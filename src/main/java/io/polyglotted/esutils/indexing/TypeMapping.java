@@ -1,5 +1,7 @@
 package io.polyglotted.esutils.indexing;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -7,8 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -23,7 +24,8 @@ public final class TypeMapping {
     public final boolean storeSource;
     public final ImmutableSortedSet<String> sourceIncludes;
     public final ImmutableSortedSet<FieldMapping> fieldMappings;
-    //TODO transform
+    public final ImmutableList<TransformScript> transformScripts;
+    public final ImmutableMap<String, Object> metaData;
 
     public static Builder builder() {
         return new Builder();
@@ -39,6 +41,8 @@ public final class TypeMapping {
         private boolean storeSource = true;
         private final Set<String> sourceIncludes = new HashSet<>();
         private final Set<FieldMapping> fieldMappings = new HashSet<>();
+        private final List<TransformScript> transformScripts = new ArrayList<>();
+        private final Map<String, Object> metaData = new HashMap<>();
 
         public Builder fieldMapping(FieldMapping.Builder mapping) {
             return fieldMapping(mapping.build());
@@ -50,10 +54,25 @@ public final class TypeMapping {
             return this;
         }
 
+        public Builder transform(TransformScript.Builder script) {
+            return transform(script.build());
+        }
+
+        public Builder transform(TransformScript script) {
+            transformScripts.add(script);
+            return this;
+        }
+
+        public Builder metaData(String name, Object value) {
+            metaData.put(name, value);
+            return this;
+        }
+
         public TypeMapping build() {
             checkArgument(!fieldMappings.isEmpty(), "atleast one field must be indexed");
             return new TypeMapping(checkNotNull(index, "index cannot be null"), checkNotNull(type,
-                    "type cannot be null"), strict, storeSource, copyOf(sourceIncludes), copyOf(fieldMappings));
+                    "type cannot be null"), strict, storeSource, copyOf(sourceIncludes), copyOf(fieldMappings),
+                    ImmutableList.copyOf(transformScripts), ImmutableMap.copyOf(metaData));
         }
     }
 }

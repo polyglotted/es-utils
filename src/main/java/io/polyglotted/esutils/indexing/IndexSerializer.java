@@ -54,6 +54,16 @@ abstract class IndexSerializer {
             all.addProperty("enabled", true);
             all.addProperty("analyzer", "all_analyzer");
 
+            if(!mapping.metaData.isEmpty())
+                mainType.add("_meta", context.serialize(mapping.metaData));
+
+            if (!mapping.transformScripts.isEmpty()) {
+                if (mapping.transformScripts.size() > 1)
+                    mainType.add("transform", context.serialize(mapping.transformScripts));
+                else
+                    mainType.add("transform", context.serialize(mapping.transformScripts.get(0)));
+            }
+
             JsonObject properties = new JsonObject();
             mainType.add("properties", properties);
             for (FieldMapping field : mapping.fieldMappings)

@@ -32,7 +32,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
 
     @Override
     public int compareTo(FieldMapping other) {
-        return other == null ? -1 : field.compareTo(other.field);
+        return field.compareTo(other.field);
     }
 
     @SuppressWarnings("unused")
@@ -58,21 +58,25 @@ public final class FieldMapping implements Comparable<FieldMapping> {
                 .includeInSource(true).includeInAll(false).docValues(true).build();
     }
 
-    @Getter
     @Accessors(fluent = true, chain = true)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
         @Setter
         private String field;
+        @Getter
         private FieldType type;
         @Setter
         private boolean includeInSource = false;
+        @Getter
         @Setter
         private Indexed indexed = null;
+        @Getter
         @Setter
         private Boolean stored = null;
+        @Getter
         @Setter
         private Boolean includeInAll = null;
+        @Getter
         @Setter
         private Boolean docValues = null;
 
