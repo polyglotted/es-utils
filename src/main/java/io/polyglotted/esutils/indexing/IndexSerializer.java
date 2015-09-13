@@ -7,7 +7,7 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-abstract class IndexSerializer {
+public abstract class IndexSerializer {
 
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(IndexSetting.class, new IndexSettingSerializer())

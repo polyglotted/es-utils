@@ -1,7 +1,6 @@
 package io.polyglotted.esutils.query;
 
 import com.google.common.collect.ImmutableList;
-import io.polyglotted.esutils.query.request.Aggregates;
 import io.polyglotted.esutils.query.request.Expression;
 import io.polyglotted.esutils.query.request.QueryHints;
 import io.polyglotted.esutils.query.request.SimpleSort;
@@ -10,11 +9,12 @@ import lombok.experimental.Accessors;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public final class StandardQueryRequest {
+public final class StandardQuery {
     public final ImmutableList<String> indices;
     public final ImmutableList<String> types;
+    public final ImmutableList<String> fields;
     public final ImmutableList<Expression> expressions;
-    public final ImmutableList<Aggregates> aggregates;
+    public final ImmutableList<Expression> aggregates;
     public final ImmutableList<SimpleSort> sorts;
     public final QueryHints hints;
     public final Long scrollTimeInMillis;

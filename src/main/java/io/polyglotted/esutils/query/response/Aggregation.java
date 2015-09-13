@@ -5,8 +5,11 @@ import io.polyglotted.esutils.query.AggregationType;
 import lombok.*;
 import lombok.experimental.Accessors;
 
-import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -52,7 +55,7 @@ public final class Aggregation {
     @SuppressWarnings("unchecked")
     public Iterable<Entry<String, Object>> valueIterable() {
         return (value instanceof Map) ? ((Map<String, Object>) value).entrySet()
-                : Collections.singletonList(new SimpleEntry("value", value));
+           : Collections.singletonList(new SimpleEntry("value", value));
     }
 
     public static Builder builder() {
@@ -88,7 +91,7 @@ public final class Aggregation {
         public Aggregation build() {
             Iterable<Bucket> buckets = transform(builders, Bucket.Builder::build);
             return new Aggregation(checkNotNull(label, "label cannot be null"), checkNotNull(type,
-                    "type cannot be null"), type.valueFrom(valueMap, buckets), ImmutableMap.copyOf(paramsMap));
+               "type cannot be null"), type.valueFrom(valueMap, buckets), ImmutableMap.copyOf(paramsMap));
         }
     }
 }

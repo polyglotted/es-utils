@@ -38,11 +38,17 @@
         <lombok.version>1.16.4</lombok.version>
         <guava.version>18.0</guava.version>
         <gson.version>2.3.1</gson.version>
+        <spring.version>4.2.0.RELEASE</spring.version>
+        <applauncher.version>2.0.1</applauncher.version>
+        <jna.version>4.1.0</jna.version>
         <elasticsearch.version>1.7.1</elasticsearch.version>
         <lucene.version>4.10.4</lucene.version>
         <groovy.version>2.4.4</groovy.version>
+        <springelasticsearch.version>1.4.2</springelasticsearch.version>
+
         <slf4j.version>1.7.12</slf4j.version>
         <logback.version>1.1.3</logback.version>
+        <log4jsl4j.version>2.2</log4jsl4j.version>
         <hamcrest.version>1.3</hamcrest.version>
         <jmockit.version>1.18</jmockit.version>
         <testng.version>6.9.6</testng.version>
@@ -74,22 +80,47 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.polyglotted</groupId>
+            <artifactId>app-launcher</artifactId>
+            <version>${applauncher.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>${jna.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
             <version>${elasticsearch.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-expressions</artifactId>
             <version>${lucene.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
             <version>${groovy.version}</version>
-            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.pilato.spring</groupId>
+            <artifactId>spring-elasticsearch</artifactId>
+            <version>${springelasticsearch.version}</version>
         </dependency>
 
         <dependency>
@@ -102,6 +133,12 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+            <version>${log4jsl4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -131,6 +168,12 @@
                     <artifactId>bsh</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
