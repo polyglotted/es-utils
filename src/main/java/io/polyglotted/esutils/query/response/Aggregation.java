@@ -6,10 +6,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -30,9 +27,9 @@ public final class Aggregation {
     }
 
     @SuppressWarnings("unchecked")
-    public Iterable<Bucket> buckets() {
+    public List<Bucket> buckets() {
         checkState(hasBuckets(), type.name() + " does not support buckets");
-        return (Iterable<Bucket>) value;
+        return (List<Bucket>) value;
     }
 
     public <T> T param(String name, Class<T> tClass) {
@@ -68,8 +65,8 @@ public final class Aggregation {
     public static class Builder {
         private String label;
         private AggregationType type;
-        private final java.util.Map<String, Object> valueMap = new LinkedHashMap<>();
-        private final java.util.Map<String, Object> paramsMap = new LinkedHashMap<>();
+        private final java.util.Map<String, Object> valueMap = new TreeMap<>();
+        private final java.util.Map<String, Object> paramsMap = new TreeMap<>();
         private final java.util.List<Bucket.Builder> builders = new ArrayList<>();
 
         public Builder value(String key, Object value) {

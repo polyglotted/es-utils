@@ -91,7 +91,6 @@ public final class QueryWrapper {
     }
 
     public <T> StandardResponse search(StandardQuery query, FilterBuilder postFilter, ResultBuilder<T> resultBuilder) {
-
         SearchResponse searchResponse = client.search(queryToRequest(query, postFilter)).actionGet();
         return responseBuilder(searchResponse, resultBuilder)
            .aggregations(buildAggregations(query.aggregates, searchResponse)).build();
@@ -102,7 +101,7 @@ public final class QueryWrapper {
 
         StandardResponse.Builder responseBuilder = StandardResponse.builder();
         responseBuilder.header(headerFrom(searchResponse));
-        responseBuilder.results(resultBuilder.buildFrom(searchResponse));
+        if (getReturnedHits(searchResponse) > 0) responseBuilder.results(resultBuilder.buildFrom(searchResponse));
         return responseBuilder;
     }
 

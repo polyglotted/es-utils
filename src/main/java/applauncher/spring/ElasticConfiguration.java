@@ -4,6 +4,7 @@ import fr.pilato.spring.elasticsearch.ElasticsearchClientFactoryBean;
 import fr.pilato.spring.elasticsearch.ElasticsearchNodeFactoryBean;
 import io.polyglotted.applauncher.settings.SettingsHolder;
 import io.polyglotted.esutils.services.AdminWrapper;
+import io.polyglotted.esutils.services.IndexerWrapper;
 import io.polyglotted.esutils.services.QueryWrapper;
 import lombok.SneakyThrows;
 import org.elasticsearch.client.Client;
@@ -23,14 +24,19 @@ public class ElasticConfiguration {
     @Autowired @Qualifier("settingsHolder")
     private final SettingsHolder settingsHolder = null;
 
-    @Bean
-    public AdminWrapper admin() {
+    @Bean(name = "es-admin")
+    public AdminWrapper elasticSearchAdmin() {
         return new AdminWrapper(client());
     }
 
-    @Bean
-    public QueryWrapper query() {
+    @Bean(name = "es-query")
+    public QueryWrapper elasticSearchQuery() {
         return new QueryWrapper(client());
+    }
+
+    @Bean(name = "es-indexer")
+    public IndexerWrapper elasticSearchIndexer() {
+        return new IndexerWrapper(client());
     }
 
     @Bean

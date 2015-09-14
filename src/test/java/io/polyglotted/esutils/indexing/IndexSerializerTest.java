@@ -9,7 +9,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
-import static io.polyglotted.esutils.indexing.FieldMapping.FieldType.BINARY;
+import static io.polyglotted.esutils.indexing.FieldType.BINARY;
 import static io.polyglotted.esutils.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.esutils.indexing.FieldMapping.privateField;
 import static org.hamcrest.CoreMatchers.equalTo;

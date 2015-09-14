@@ -20,7 +20,6 @@ import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -37,31 +36,30 @@ public final class AdminWrapper {
     }
 
     public void createIndex(IndexSetting setting, String... indices) {
-        String indexSettingDoc = GSON.toJson(setting);
         for (String index : indices) {
-            createIndex(index, indexSettingDoc, null);
+            createIndex(index, setting);
         }
     }
 
-    public void createIndex(String index, String indexSettingDoc, String indexAliasDoc) {
+    public void createIndex(String index, IndexSetting setting, String... aliases) {
         if (indexExists(index)) return;
 
-        CreateIndexRequest request = new CreateIndexRequest(index).settings(indexSettingDoc);
-        if (!StringUtils.isEmpty(indexAliasDoc))
-            request.aliases(indexAliasDoc);
+        CreateIndexRequest request = new CreateIndexRequest(index).settings(GSON.toJson(setting));
+        if (aliases.length > 0)
+            request.aliases(GSON.toJson(aliases));
 
         IndicesAdminClient indicesAdmin = client.admin().indices();
         AcknowledgedResponse response = indicesAdmin.create(request).actionGet();
         checkState(response.isAcknowledged(), "unable to create index for " + index);
     }
 
-    public void updateIndex(String index, String indexSettingDoc, String alias) {
+    public void updateIndex(String index, IndexSetting setting, String alias) {
         checkState(indexExists(index), "index does not exist " + index);
         IndicesAdminClient indicesAdmin = client.admin().indices();
 
-        if (!Strings.isNullOrEmpty(indexSettingDoc)) {
+        if (setting != null) {
             UpdateSettingsRequest settingsRequest = Requests.updateSettingsRequest(index)
-                    .settings(indexSettingDoc);
+                    .settings(GSON.toJson(setting));
             AcknowledgedResponse response = indicesAdmin.updateSettings(settingsRequest).actionGet();
             checkState(response.isAcknowledged(), "unable to update settings for " + index);
         }
@@ -78,18 +76,14 @@ public final class AdminWrapper {
         return indicesAdmin.typesExists(request).actionGet().isExists();
     }
 
-    public void createType(TypeMapping typeMapping) {
-        createType(typeMapping.index, typeMapping.type, GSON.toJson(typeMapping));
-    }
-
-    public void createType(String index, String type, String typeMappingDoc) {
-        checkState(indexExists(index), "create the index before creating type");
-        if (typeExists(index, type)) return;
+    public void createType(TypeMapping mapping) {
+        checkState(indexExists(mapping.index), "create the index before creating type");
+        if (typeExists(mapping.index, mapping.type)) return;
 
         IndicesAdminClient indicesAdmin = client.admin().indices();
-        if (!indicesAdmin.putMapping(new PutMappingRequest(index).type(type)
-                .source(typeMappingDoc)).actionGet().isAcknowledged())
-            throw new RuntimeException("could not create type " + type);
+        if (!indicesAdmin.putMapping(new PutMappingRequest(mapping.index).type(mapping.type)
+                .source(GSON.toJson(mapping))).actionGet().isAcknowledged())
+            throw new RuntimeException("could not create type " + mapping.type);
 
         forceRefresh();
     }

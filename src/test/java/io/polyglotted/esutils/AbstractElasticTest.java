@@ -1,6 +1,7 @@
 package io.polyglotted.esutils;
 
 import io.polyglotted.esutils.services.AdminWrapper;
+import io.polyglotted.esutils.services.IndexerWrapper;
 import io.polyglotted.esutils.services.QueryWrapper;
 import lombok.SneakyThrows;
 import org.elasticsearch.client.Client;
@@ -18,13 +19,16 @@ import static org.elasticsearch.common.io.FileSystemUtils.deleteRecursively;
 public abstract class AbstractElasticTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
-    protected final Client client = null;
+    protected Client client;
 
     @Autowired
-    protected final AdminWrapper admin = null;
+    protected AdminWrapper admin;
 
     @Autowired
-    protected final QueryWrapper query = null;
+    protected QueryWrapper query;
+
+    @Autowired
+    protected IndexerWrapper indexer;
 
     @BeforeSuite
     public void cleanES() {

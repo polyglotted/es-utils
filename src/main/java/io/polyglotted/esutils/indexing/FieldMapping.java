@@ -40,11 +40,6 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         NOT_ANALYZED, ANALYZED, NO
     }
 
-    @SuppressWarnings("unused")
-    public enum FieldType {
-        BOOLEAN, STRING, FLOAT, DOUBLE, BYTE, SHORT, INTEGER, LONG, DATE, BINARY, NESTED, IP, GEO_POINT, GEO_SHAPE
-    }
-
     public static Builder builder() {
         return new Builder();
     }
