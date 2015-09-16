@@ -30,7 +30,7 @@ public final class Bucket {
         return aggregations.size() > 0;
     }
 
-    public static Builder builder() {
+    public static Builder bucketBuilder() {
         return new Builder();
     }
 

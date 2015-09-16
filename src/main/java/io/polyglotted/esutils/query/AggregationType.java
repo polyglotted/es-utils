@@ -18,6 +18,7 @@ import org.elasticsearch.search.aggregations.metrics.stats.Stats;
 import java.util.Map;
 
 import static io.polyglotted.esutils.query.request.Aggregates.*;
+import static io.polyglotted.esutils.query.response.Aggregation.aggregationBuilder;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.avg;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.count;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.dateHistogram;
@@ -38,7 +39,7 @@ public enum AggregationType {
         @Override
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             org.elasticsearch.search.aggregations.metrics.max.Max max = aggregations.get(expr.label);
-            return Aggregation.builder().label(expr.label)
+            return aggregationBuilder().label(expr.label)
                .type(AggregationType.Max).value(name(), max.getValue());
         }
     }, 
@@ -51,7 +52,7 @@ public enum AggregationType {
         @Override
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             org.elasticsearch.search.aggregations.metrics.min.Min min = aggregations.get(expr.label);
-            return Aggregation.builder().label(expr.label)
+            return aggregationBuilder().label(expr.label)
                .type(AggregationType.Min).value(name(), min.getValue());
         }
     }, 
@@ -64,7 +65,7 @@ public enum AggregationType {
         @Override
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             org.elasticsearch.search.aggregations.metrics.sum.Sum sum = aggregations.get(expr.label);
-            return Aggregation.builder().label(expr.label)
+            return aggregationBuilder().label(expr.label)
                .type(AggregationType.Sum).value(name(), sum.getValue());
         }
     }, 
@@ -77,7 +78,7 @@ public enum AggregationType {
         @Override
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             org.elasticsearch.search.aggregations.metrics.avg.Avg avg = aggregations.get(expr.label);
-            return Aggregation.builder().label(expr.label)
+            return aggregationBuilder().label(expr.label)
                .type(AggregationType.Avg).value(name(), avg.getValue());
         }
     }, 
@@ -90,7 +91,7 @@ public enum AggregationType {
         @Override
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount count = aggregations.get(expr.label);
-            return Aggregation.builder().label(expr.label)
+            return aggregationBuilder().label(expr.label)
                .type(AggregationType.Count).value(name(), count.getValue());
         }
     },
@@ -117,7 +118,7 @@ public enum AggregationType {
         @Override
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             Terms terms = aggregations.get(expr.label);
-            Aggregation.Builder builder = Aggregation.builder().label(expr.label)
+            Aggregation.Builder builder = aggregationBuilder().label(expr.label)
                .type(AggregationType.Term).param("docCountError", terms.getDocCountError())
                .param("sumOfOtherDocs", terms.getSumOfOtherDocCounts());
 
@@ -149,7 +150,7 @@ public enum AggregationType {
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             Stats stats = aggregations.get(expr.label);
 
-            return Aggregation.builder().label(expr.label).type(AggregationType.Statistics)
+            return aggregationBuilder().label(expr.label).type(AggregationType.Statistics)
                .value(Count.name(), stats.getCount()).value(Max.name(), stats.getMax())
                .value(Min.name(), stats.getMin()).value(Avg.name(), stats.getAvg())
                .value(Sum.name(), stats.getSum());
@@ -176,7 +177,7 @@ public enum AggregationType {
         @Override
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             DateHistogram dateHistogram = aggregations.get(expr.label);
-            Aggregation.Builder builder = Aggregation.builder().label(expr.label)
+            Aggregation.Builder builder = aggregationBuilder().label(expr.label)
                .type(AggregationType.DateHistogram);
 
             for (DateHistogram.Bucket bucket : dateHistogram.getBuckets()) {

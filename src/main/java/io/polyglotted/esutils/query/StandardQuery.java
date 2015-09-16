@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableList.copyOf;
+import static io.polyglotted.esutils.query.request.QueryHints.hintsBuilder;
 import static java.util.Arrays.asList;
 
 @Accessors(fluent = true)
@@ -30,7 +31,7 @@ public final class StandardQuery {
     public final int offset;
     public final int size;
 
-    public static Builder builder() {
+    public static Builder queryBuilder() {
         return new Builder();
     }
 
@@ -44,7 +45,7 @@ public final class StandardQuery {
         private final List<Expression> expressions = new ArrayList<>();
         private final List<Expression> aggregates = new ArrayList<>();
         private final List<SimpleSort> sorts = new ArrayList<>();
-        private QueryHints hints = QueryHints.builder().build();
+        private QueryHints hints = hintsBuilder().build();
         private Long scrollTimeInMillis = null;
         private int offset = 0;
         private int size = 10;

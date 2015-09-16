@@ -80,32 +80,32 @@ public abstract class Aggregates {
     }
 
     public static Builder termBuilder(String label, String field, int size, String order, boolean asc) {
-        return builder(true).oper(Term.name()).label(label).arg(FieldKey, field).arg(SizeKey, size)
+        return aggsBuilder(true).oper(Term.name()).label(label).arg(FieldKey, field).arg(SizeKey, size)
            .arg(OrderKey, order).arg(AscKey, asc);
     }
 
     public static Builder maxBuilder(String label, String field) {
-        return builder(false).oper(Max.name()).label(label).arg(FieldKey, field);
+        return aggsBuilder(false).oper(Max.name()).label(label).arg(FieldKey, field);
     }
 
     public static Builder minBuilder(String label, String field) {
-        return builder(false).oper(Min.name()).label(label).arg(FieldKey, field);
+        return aggsBuilder(false).oper(Min.name()).label(label).arg(FieldKey, field);
     }
 
     public static Builder sumBuilder(String label, String field) {
-        return builder(false).oper(Sum.name()).label(label).arg(FieldKey, field);
+        return aggsBuilder(false).oper(Sum.name()).label(label).arg(FieldKey, field);
     }
 
     public static Builder avgBuilder(String label, String field) {
-        return builder(false).oper(Avg.name()).label(label).arg(FieldKey, field);
+        return aggsBuilder(false).oper(Avg.name()).label(label).arg(FieldKey, field);
     }
 
     public static Builder countBuilder(String label, String field) {
-        return builder(false).oper(Count.name()).label(label).arg(FieldKey, field);
+        return aggsBuilder(false).oper(Count.name()).label(label).arg(FieldKey, field);
     }
 
     public static Builder statsBuilder(String label, String field) {
-        return builder(false).oper(Statistics.name()).label(label).arg(FieldKey, field);
+        return aggsBuilder(false).oper(Statistics.name()).label(label).arg(FieldKey, field);
     }
 
     public static Builder dateHistogramBuilder(String label, String field, String interval) {
@@ -113,11 +113,11 @@ public abstract class Aggregates {
     }
 
     public static Builder dateHistogramBuilder(String label, String field, String interval, String format) {
-        return builder(true).oper(DateHistogram.name()).label(label).arg(FieldKey, field)
+        return aggsBuilder(true).oper(DateHistogram.name()).label(label).arg(FieldKey, field)
            .arg(IntervalKey, interval).arg(FormatKey, format);
     }
 
-    private static Builder builder(boolean canHaveChildren) {
+    private static Builder aggsBuilder(boolean canHaveChildren) {
         return new Builder(canHaveChildren);
     }
 

@@ -3,6 +3,7 @@ package io.polyglotted.esutils.services;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.index.VersionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,6 @@ import static io.polyglotted.esutils.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 public class Trade {
-    public static final String TRADES_INDEX = "trades_index";
     public static final String TRADE_TYPE = "Trade";
 
     public static final String FieldRegion = "region";
@@ -32,7 +32,7 @@ public class Trade {
         return new Trade(address, region, country, city, exchange, trader, date, value);
     }
 
-    public static BulkRequest tradesRequest() {
+    public static BulkRequest tradesRequest(String index, long version) {
         List<Trade> trades = new ArrayList<>(25);
         trades.add(trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0));
         trades.add(trade("/trades/002", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 15.0));
@@ -54,11 +54,15 @@ public class Trade {
         trades.add(trade("/trades/018", "SA", "Brazil", "Sao Paulo", "NYM", "David", 1422144000000L, 18.0));
         trades.add(trade("/trades/019", "SA", "Brazil", "Sao Paulo", "NYM", "Fred", 1423958400000L, 10.0));
         trades.add(trade("/trades/020", "APAC", "HK", "Hong Kong", "IEU", "John", 1420848000000L, 16.0));
+        return tradesRequest(index, version, trades);
+    }
 
+    public static BulkRequest tradesRequest(String index, long version, List<Trade> trades) {
         BulkRequest bulkRequest = new BulkRequest().refresh(true);
         for (Trade trade : trades) {
-            bulkRequest.add(new IndexRequest(TRADES_INDEX, TRADE_TYPE, trade.address)
-               .opType(IndexRequest.OpType.CREATE).source(GSON.toJson(trade)));
+            bulkRequest.add(new IndexRequest(index, TRADE_TYPE, trade.address)
+               .opType(IndexRequest.OpType.CREATE).version(version).versionType(VersionType.EXTERNAL)
+               .source(GSON.toJson(trade)));
         }
         return bulkRequest;
     }

@@ -15,7 +15,7 @@ public final class TransformScript {
     public final ImmutableMap<String, Object> params;
     public final String lang;
 
-    public static Builder builder() {
+    public static Builder transformBuilder() {
         return new Builder();
     }
 

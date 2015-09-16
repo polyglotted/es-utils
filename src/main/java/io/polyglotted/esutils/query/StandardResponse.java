@@ -24,7 +24,7 @@ public final class StandardResponse {
         return Iterables.transform(results, tClass::cast);
     }
 
-    public static Builder builder() {
+    public static Builder responseBuilder() {
         return new Builder();
     }
 

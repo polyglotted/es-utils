@@ -55,7 +55,7 @@ public final class Aggregation {
            : Collections.singletonList(new SimpleEntry("value", value));
     }
 
-    public static Builder builder() {
+    public static Builder aggregationBuilder() {
         return new Builder();
     }
 
@@ -80,7 +80,7 @@ public final class Aggregation {
         }
 
         public Bucket.Builder bucketBuilder() {
-            Bucket.Builder builder = Bucket.builder();
+            Bucket.Builder builder = Bucket.bucketBuilder();
             this.builders.add(builder);
             return builder;
         }

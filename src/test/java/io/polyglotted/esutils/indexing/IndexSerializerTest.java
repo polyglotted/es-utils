@@ -12,6 +12,8 @@ import java.util.List;
 import static io.polyglotted.esutils.indexing.FieldType.BINARY;
 import static io.polyglotted.esutils.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.esutils.indexing.FieldMapping.privateField;
+import static io.polyglotted.esutils.indexing.TransformScript.transformBuilder;
+import static io.polyglotted.esutils.indexing.TypeMapping.typeBuilder;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,26 +42,26 @@ public class IndexSerializerTest extends IndexSerializer {
     @Test(expectedExceptions = IllegalArgumentException.class,
             expectedExceptionsMessageRegExp = "atleast one field must be indexed")
     public void noFieldTypeMapping() {
-        GSON.toJson(TypeMapping.builder().index("testIndex").type("testType").build());
+        GSON.toJson(typeBuilder().index("testIndex").type("testType").build());
     }
 
     @Test
     public void simpleTypeMapping() {
-        String actual = GSON.toJson(TypeMapping.builder().index("testIndex").type("testType")
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
                 .fieldMapping(notAnalyzedStringField("field1").stored(true)).build());
         assertThat(actual, is(SERIALISED_DOCS.get("simpleTypeMapping")));
     }
 
     @Test
     public void simpleFieldTypeMapping() {
-        String actual = GSON.toJson(TypeMapping.builder().index("testIndex").type("testType")
-                .fieldMapping(FieldMapping.builder().field("field1").type(BINARY)).build());
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
+                .fieldMapping(FieldMapping.fieldBuilder().field("field1").type(BINARY)).build());
         assertThat(actual, is(SERIALISED_DOCS.get("simpleFieldTypeMapping")));
     }
 
     @Test
     public void strictNoSourceTypeMapping() {
-        String actual = GSON.toJson(TypeMapping.builder().index("testIndex").type("testType")
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
                 .strict(true).storeSource(false).fieldMapping(notAnalyzedStringField("field1"))
                 .fieldMapping(notAnalyzedStringField("field2")).build());
         assertThat(actual, is(SERIALISED_DOCS.get("strictNoSourceTypeMapping")));
@@ -67,32 +69,32 @@ public class IndexSerializerTest extends IndexSerializer {
 
     @Test
     public void sourceIncludesTypeMapping() {
-        String actual = GSON.toJson(TypeMapping.builder().index("testIndex").type("testType")
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
                 .fieldMapping(privateField("field1")).build());
         assertThat(actual, is(SERIALISED_DOCS.get("sourceIncludesTypeMapping")));
     }
 
     @Test
     public void transformTypeMapping() {
-        String actual = GSON.toJson(TypeMapping.builder().index("testIndex").type("testType")
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
                 .fieldMapping(notAnalyzedStringField("field1")).fieldMapping(notAnalyzedStringField("field2"))
-                .transform(TransformScript.builder().script("ctx._source['field2'] = ctx._source['field1']")
+                .transform(transformBuilder().script("ctx._source['field2'] = ctx._source['field1']")
                         .lang("groovy").param("attr1", "attr2")).build());
         assertThat(actual, is(SERIALISED_DOCS.get("transformTypeMapping")));
     }
 
     @Test
     public void multiTransformTypeMapping() {
-        String actual = GSON.toJson(TypeMapping.builder().index("testIndex").type("testType")
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
                 .fieldMapping(notAnalyzedStringField("field1")).fieldMapping(notAnalyzedStringField("field2"))
-                .transform(TransformScript.builder().script("ctx._source['field2'] = ctx._source['field1']"))
-                .transform(TransformScript.builder().script("ctx._source['field3'] = ctx._source['field1']")).build());
+                .transform(transformBuilder().script("ctx._source['field2'] = ctx._source['field1']"))
+                .transform(transformBuilder().script("ctx._source['field3'] = ctx._source['field1']")).build());
         assertThat(actual, is(SERIALISED_DOCS.get("multiTransformTypeMapping")));
     }
 
     @Test
     public void metaTypeMapping() {
-        String actual = GSON.toJson(TypeMapping.builder().index("testIndex").type("testType")
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
                 .fieldMapping(notAnalyzedStringField("field1")).metaData("myName", "myVal").build());
         assertThat(actual, is(SERIALISED_DOCS.get("metaTypeMapping")));
     }

@@ -33,7 +33,7 @@ public final class QueryHints {
         query_then_fetch, query_and_fetch, scan, count
     }
 
-    public static Builder builder() {
+    public static Builder hintsBuilder() {
         return new Builder();
     }
 

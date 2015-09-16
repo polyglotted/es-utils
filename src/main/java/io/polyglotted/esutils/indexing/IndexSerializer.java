@@ -24,8 +24,8 @@ public abstract class IndexSerializer {
         public JsonElement serialize(IndexSetting setting, Type type, JsonSerializationContext context) {
             JsonObject result = new JsonObject();
             result.add("analysis", context.serialize(DEFAULT_ANALYSIS));
-            result.addProperty("number_of_shards", setting.numberOfShards);
-            result.addProperty("number_of_replicas", setting.numberOfReplicas);
+            if (setting.numberOfShards != null) result.addProperty("number_of_shards", setting.numberOfShards);
+            if (setting.numberOfReplicas != null) result.addProperty("number_of_replicas", setting.numberOfReplicas);
             if (setting.refreshInterval != null) result.addProperty("refresh_interval", setting.refreshInterval);
             if (setting.disableFlush != null) result.addProperty("translog.disable_flush", setting.disableFlush);
             result.addProperty("mapping.ignore_malformed", true);

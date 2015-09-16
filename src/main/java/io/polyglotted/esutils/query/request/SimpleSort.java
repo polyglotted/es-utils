@@ -17,11 +17,11 @@ public final class SimpleSort {
     public final Object missing;
 
     public static SimpleSort sortAsc(String field) {
-        return builder().field(field).build();
+        return sortBuilder().field(field).build();
     }
 
     public static SimpleSort sortDesc(String field) {
-        return builder().field(field).order(Order.DESC).build();
+        return sortBuilder().field(field).order(Order.DESC).build();
     }
 
     public enum Order {
@@ -37,7 +37,7 @@ public final class SimpleSort {
         }
     }
 
-    public static Builder builder() {
+    public static Builder sortBuilder() {
         return new Builder();
     }
 

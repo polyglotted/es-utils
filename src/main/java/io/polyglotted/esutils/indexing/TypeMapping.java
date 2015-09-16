@@ -27,7 +27,7 @@ public final class TypeMapping {
     public final ImmutableList<TransformScript> transformScripts;
     public final ImmutableMap<String, Object> metaData;
 
-    public static Builder builder() {
+    public static Builder typeBuilder() {
         return new Builder();
     }
 

@@ -66,7 +66,7 @@ public enum ExpressionType {
         @Override
         FilterBuilder buildFrom(Expression expr) {
             return rangeFilter(expr.label).from(expr.argFor("from")).to(expr.argFor("to"))
-                    .includeLower(expr.boolArg("fromIncl")).includeUpper(expr.boolArg("toIncl"));
+               .includeLower(expr.boolArg("fromIncl")).includeUpper(expr.boolArg("toIncl"));
         }
     },
     Text {
@@ -122,7 +122,7 @@ public enum ExpressionType {
     abstract FilterBuilder buildFrom(Expression expr);
 
     public static FilterBuilder buildFilter(Expression expr) {
-        return valueOf(expr.operation).buildFrom(expr);
+        return expr == null ? null : valueOf(expr.operation).buildFrom(expr);
     }
 
     public static FilterBuilder[] aggregateFilters(Iterable<Expression> expressions) {

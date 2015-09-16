@@ -1,10 +1,7 @@
 package io.polyglotted.esutils.services;
 
 import io.polyglotted.esutils.AbstractElasticTest;
-import io.polyglotted.esutils.indexing.FieldMapping;
-import io.polyglotted.esutils.indexing.FieldType;
-import io.polyglotted.esutils.indexing.IndexSetting;
-import io.polyglotted.esutils.indexing.TypeMapping;
+import io.polyglotted.esutils.indexing.*;
 import io.polyglotted.esutils.query.StandardQuery;
 import io.polyglotted.esutils.query.StandardResponse;
 import io.polyglotted.esutils.query.request.Aggregates;
@@ -17,17 +14,19 @@ import org.testng.annotations.Test;
 
 import java.util.Iterator;
 
+import static io.polyglotted.esutils.indexing.FieldMapping.notAnalyzedField;
+import static io.polyglotted.esutils.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.esutils.query.AggregationType.Avg;
 import static io.polyglotted.esutils.query.AggregationType.Count;
 import static io.polyglotted.esutils.query.AggregationType.Max;
 import static io.polyglotted.esutils.query.AggregationType.Min;
 import static io.polyglotted.esutils.query.AggregationType.Sum;
+import static io.polyglotted.esutils.query.StandardQuery.queryBuilder;
 import static io.polyglotted.esutils.query.request.Aggregates.*;
 import static io.polyglotted.esutils.query.request.Expressions.equalsTo;
 import static io.polyglotted.esutils.services.Trade.FieldDate;
 import static io.polyglotted.esutils.services.Trade.FieldRegion;
 import static io.polyglotted.esutils.services.Trade.FieldValue;
-import static io.polyglotted.esutils.services.Trade.TRADES_INDEX;
 import static io.polyglotted.esutils.services.Trade.TRADE_TYPE;
 import static io.polyglotted.esutils.services.Trade.tradesRequest;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,13 +36,14 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
 public class AggregationsTest extends AbstractElasticTest {
+    private static final String TRADE_AGGREGATES_INDEX = "trade_aggregates_index";
 
     @Override
     protected void performSetup() {
-        admin.dropIndex(TRADES_INDEX);
-        admin.createIndex(IndexSetting.with(3, 0), TRADES_INDEX);
-        admin.createType(TypeMapping.builder().index(TRADES_INDEX).type(TRADE_TYPE).fieldMapping(
-           FieldMapping.builder().field(FieldDate).type(FieldType.DATE).build()).build());
+        admin.dropIndex(TRADE_AGGREGATES_INDEX);
+        admin.createIndex(IndexSetting.with(3, 0), TRADE_AGGREGATES_INDEX);
+        admin.createType(typeBuilder().index(TRADE_AGGREGATES_INDEX).type(TRADE_TYPE)
+           .fieldMapping(notAnalyzedField(FieldDate, FieldType.DATE)).build());
     }
 
     @Test
@@ -138,8 +138,8 @@ public class AggregationsTest extends AbstractElasticTest {
     }
 
     private Aggregation indexAndAggregate(Expression aggs) {
-        indexer.index(tradesRequest());
-        return query.aggregate(aggs, TRADES_INDEX);
+        indexer.index(tradesRequest(TRADE_AGGREGATES_INDEX, System.currentTimeMillis()));
+        return query.aggregate(aggs, TRADE_AGGREGATES_INDEX);
     }
 
     @Test
@@ -190,8 +190,8 @@ public class AggregationsTest extends AbstractElasticTest {
     }
 
     private Aggregation queryWithAggregations(Expression filter, Expression... aggs) {
-        indexer.index(tradesRequest());
-        StandardQuery.Builder queryBuilder = StandardQuery.builder().index(TRADES_INDEX).type(TRADE_TYPE)
+        indexer.index(tradesRequest(TRADE_AGGREGATES_INDEX, System.currentTimeMillis()));
+        StandardQuery.Builder queryBuilder = queryBuilder().index(TRADE_AGGREGATES_INDEX).type(TRADE_TYPE)
            .size(0).aggregate(aggs);
         if (filter != null) queryBuilder.expression(filter);
         StandardResponse response = query.search(queryBuilder.build(), null, ResultBuilder.EmptyBuilder);

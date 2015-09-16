@@ -67,7 +67,7 @@ public final class QueryWrapper {
         request = request.scroll(DEFAULT_KEEP_ALIVE);
         SearchResponse searchResponse = client.search(request).actionGet();
 
-        StandardResponse.Builder response = StandardResponse.builder();
+        StandardResponse.Builder response = StandardResponse.responseBuilder();
         response.header(headerFrom(searchResponse));
 
         while (getReturnedHits(searchResponse) > 0) {
@@ -99,7 +99,7 @@ public final class QueryWrapper {
     private static <T> StandardResponse.Builder responseBuilder(SearchResponse searchResponse, ResultBuilder<T>
        resultBuilder) {
 
-        StandardResponse.Builder responseBuilder = StandardResponse.builder();
+        StandardResponse.Builder responseBuilder = StandardResponse.responseBuilder();
         responseBuilder.header(headerFrom(searchResponse));
         if (getReturnedHits(searchResponse) > 0) responseBuilder.results(resultBuilder.buildFrom(searchResponse));
         return responseBuilder;

@@ -40,16 +40,20 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         NOT_ANALYZED, ANALYZED, NO
     }
 
-    public static Builder builder() {
+    public static Builder fieldBuilder() {
         return new Builder();
     }
 
     public static FieldMapping.Builder notAnalyzedStringField(String field) {
-        return builder().field(field).type(FieldType.STRING).indexed(Indexed.NOT_ANALYZED).docValues(true);
+        return fieldBuilder().field(field).type(FieldType.STRING).indexed(Indexed.NOT_ANALYZED).docValues(true);
+    }
+
+    public static FieldMapping.Builder notAnalyzedField(String field, FieldType fieldType) {
+        return fieldBuilder().field(field).type(fieldType).indexed(Indexed.NOT_ANALYZED).docValues(true);
     }
 
     public static FieldMapping privateField(String field) {
-        return builder().field(field).type(FieldType.STRING).indexed(Indexed.NOT_ANALYZED).stored(null)
+        return fieldBuilder().field(field).type(FieldType.STRING).indexed(Indexed.NOT_ANALYZED).stored(null)
                 .includeInSource(true).includeInAll(false).docValues(true).build();
     }
 

@@ -1,6 +1,7 @@
 package io.polyglotted.esutils.services;
 
-import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import io.polyglotted.esutils.indexing.Alias;
 import io.polyglotted.esutils.indexing.IndexSetting;
 import io.polyglotted.esutils.indexing.TypeMapping;
 import lombok.RequiredArgsConstructor;
@@ -9,9 +10,11 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
+import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
@@ -21,10 +24,14 @@ import org.elasticsearch.client.Requests;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
 import static io.polyglotted.esutils.indexing.IndexSerializer.GSON;
+import static org.elasticsearch.client.Requests.createIndexRequest;
+import static org.elasticsearch.client.Requests.indexAliasesRequest;
+import static org.elasticsearch.client.Requests.updateSettingsRequest;
 
 @RequiredArgsConstructor
 public final class AdminWrapper {
@@ -36,38 +43,36 @@ public final class AdminWrapper {
     }
 
     public void createIndex(IndexSetting setting, String... indices) {
+        createIndex(setting, ImmutableList.of(), indices);
+    }
+
+    public void createIndex(IndexSetting setting, List<String> aliases, String... indices) {
         for (String index : indices) {
-            createIndex(index, setting);
+            if (indexExists(index)) continue;
+
+            CreateIndexRequest request = createIndexRequest(index).settings(GSON.toJson(setting));
+            for (String alias : aliases) {
+                request.alias(new org.elasticsearch.action.admin.indices.alias.Alias(alias));
+            }
+            AcknowledgedResponse response = client.admin().indices().create(request).actionGet();
+            checkState(response.isAcknowledged(), "unable to create index for " + index);
         }
     }
 
-    public void createIndex(String index, IndexSetting setting, String... aliases) {
-        if (indexExists(index)) return;
-
-        CreateIndexRequest request = new CreateIndexRequest(index).settings(GSON.toJson(setting));
-        if (aliases.length > 0)
-            request.aliases(GSON.toJson(aliases));
-
-        IndicesAdminClient indicesAdmin = client.admin().indices();
-        AcknowledgedResponse response = indicesAdmin.create(request).actionGet();
-        checkState(response.isAcknowledged(), "unable to create index for " + index);
+    public void updateIndex(IndexSetting setting, String... indices) {
+        checkState(indexExists(indices), "one or more index does not exist " + indices);
+        UpdateSettingsRequest settingsRequest = updateSettingsRequest(indices).settings(GSON.toJson(setting));
+        AcknowledgedResponse response = client.admin().indices().updateSettings(settingsRequest).actionGet();
+        checkState(response.isAcknowledged(), "unable to update settings for " + Arrays.toString(indices));
     }
 
-    public void updateIndex(String index, IndexSetting setting, String alias) {
-        checkState(indexExists(index), "index does not exist " + index);
-        IndicesAdminClient indicesAdmin = client.admin().indices();
-
-        if (setting != null) {
-            UpdateSettingsRequest settingsRequest = Requests.updateSettingsRequest(index)
-                    .settings(GSON.toJson(setting));
-            AcknowledgedResponse response = indicesAdmin.updateSettings(settingsRequest).actionGet();
-            checkState(response.isAcknowledged(), "unable to update settings for " + index);
+    public void indexAliases(Alias... aliases) {
+        IndicesAliasesRequest aliasesRequest = indexAliasesRequest();
+        for (Alias alias : aliases) {
+            aliasesRequest.addAliasAction(alias.action());
         }
-        if (!Strings.isNullOrEmpty(alias)) {
-            IndicesAliasesRequest aliasesRequest = Requests.indexAliasesRequest().addAlias(alias, index);
-            AcknowledgedResponse response = indicesAdmin.aliases(aliasesRequest).actionGet();
-            checkState(response.isAcknowledged(), "unable to update settings for " + index);
-        }
+        AcknowledgedResponse response = client.admin().indices().aliases(aliasesRequest).actionGet();
+        checkState(response.isAcknowledged(), "unable to update aliases");
     }
 
     public boolean typeExists(String index, String... types) {
@@ -80,17 +85,15 @@ public final class AdminWrapper {
         checkState(indexExists(mapping.index), "create the index before creating type");
         if (typeExists(mapping.index, mapping.type)) return;
 
-        IndicesAdminClient indicesAdmin = client.admin().indices();
-        if (!indicesAdmin.putMapping(new PutMappingRequest(mapping.index).type(mapping.type)
-                .source(GSON.toJson(mapping))).actionGet().isAcknowledged())
-            throw new RuntimeException("could not create type " + mapping.type);
-
+        PutMappingResponse response = client.admin().indices().putMapping(
+           new PutMappingRequest(mapping.index).type(mapping.type).source(GSON.toJson(mapping))).actionGet();
+        checkState(response.isAcknowledged(), "could not create type " + mapping.type);
         forceRefresh();
     }
 
     public String getMapping(String index, String type) {
-        ClusterState state = client.admin().cluster().prepareState().setIndices(index).execute()
-                .actionGet().getState();
+        ClusterState state = client.admin().cluster().prepareState().setIndices(index)
+           .execute().actionGet().getState();
         MappingMetaData mapping = state.getMetaData().index(index).mapping(type);
         return mapping.source().toString();
     }
@@ -100,20 +103,18 @@ public final class AdminWrapper {
     }
 
     public void dropIndex(String... indices) {
-        for (String index : indices) {
-            if (!client.admin().indices().delete(new DeleteIndexRequest(index).indicesOptions(
-                    IndicesOptions.lenientExpandOpen())).actionGet().isAcknowledged())
-                throw new RuntimeException("Could not clear the index!");
-        }
+        DeleteIndexResponse response = client.admin().indices().delete(new DeleteIndexRequest(indices)
+           .indicesOptions(IndicesOptions.lenientExpandOpen())).actionGet();
+        checkState(response.isAcknowledged(), "Could not clear one or more index", Arrays.toString(indices));
     }
 
     public void waitForYellowStatus() {
         ClusterHealthRequestBuilder healthRequest = client
-                .admin()
-                .cluster()
-                .prepareHealth()
-                .setWaitForRelocatingShards(0)
-                .setWaitForYellowStatus();
+           .admin()
+           .cluster()
+           .prepareHealth()
+           .setWaitForRelocatingShards(0)
+           .setWaitForYellowStatus();
         ClusterHealthResponse clusterHealth = healthRequest.execute().actionGet();
         List<String> validationFailures = clusterHealth.getAllValidationFailures();
         checkState(validationFailures.isEmpty(), "cluster has validation errors " + validationFailures);
