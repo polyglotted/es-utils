@@ -1,12 +1,12 @@
 package applauncher.spring;
 
+import applauncher.support.NodeIdentifier;
 import fr.pilato.spring.elasticsearch.ElasticsearchClientFactoryBean;
 import fr.pilato.spring.elasticsearch.ElasticsearchNodeFactoryBean;
 import io.polyglotted.applauncher.settings.SettingsHolder;
 import io.polyglotted.esutils.services.AdminWrapper;
 import io.polyglotted.esutils.services.IndexerWrapper;
 import io.polyglotted.esutils.services.QueryWrapper;
-import lombok.SneakyThrows;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.node.Node;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,29 +24,31 @@ public class ElasticConfiguration {
     @Autowired @Qualifier("settingsHolder")
     private final SettingsHolder settingsHolder = null;
 
+    @Autowired @SuppressWarnings("unused") @Qualifier("nodeIdentifier")
+    private final NodeIdentifier identifier = null;
+
     @Bean(name = "es-admin")
-    public AdminWrapper elasticSearchAdmin() {
+    public AdminWrapper elasticSearchAdmin() throws Exception {
         return new AdminWrapper(client());
     }
 
     @Bean(name = "es-query")
-    public QueryWrapper elasticSearchQuery() {
+    public QueryWrapper elasticSearchQuery() throws Exception {
         return new QueryWrapper(client());
     }
 
     @Bean(name = "es-indexer")
-    public IndexerWrapper elasticSearchIndexer() {
+    public IndexerWrapper elasticSearchIndexer() throws Exception {
         return new IndexerWrapper(client());
     }
 
     @Bean
-    @SneakyThrows
-    public Client client() {
+    public Client client() throws Exception {
         return elasticsearchClientFactoryBean().getObject();
     }
 
     @Bean
-    ElasticsearchClientFactoryBean elasticsearchClientFactoryBean() {
+    ElasticsearchClientFactoryBean elasticsearchClientFactoryBean() throws Exception {
         ElasticsearchClientFactoryBean elasticsearchClientFactoryBean = new ElasticsearchClientFactoryBean();
         elasticsearchClientFactoryBean.setNode(node());
         elasticsearchClientFactoryBean.setAutoscan(true);
@@ -56,8 +58,7 @@ public class ElasticConfiguration {
     }
 
     @Bean
-    @SneakyThrows
-    public Node node() {
+    public Node node() throws Exception {
         return nodeFactoryBean().getObject();
     }
 

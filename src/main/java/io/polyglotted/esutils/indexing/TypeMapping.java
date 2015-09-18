@@ -14,6 +14,7 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSortedSet.copyOf;
+import static io.polyglotted.esutils.indexing.IndexSerializer.GSON;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -26,6 +27,10 @@ public final class TypeMapping {
     public final ImmutableSortedSet<FieldMapping> fieldMappings;
     public final ImmutableList<TransformScript> transformScripts;
     public final ImmutableMap<String, Object> metaData;
+
+    public String mappingJson() {
+        return GSON.toJson(this);
+    }
 
     public static Builder typeBuilder() {
         return new Builder();

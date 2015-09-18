@@ -32,7 +32,7 @@ public final class IndexerWrapper {
         ImmutableMap.Builder<IndexKey, String> errorBuilder = ImmutableMap.builder();
         for (BulkItemResponse response : responses) {
             String failureMessage = response.getFailureMessage();
-            if (response.isFailed() && !ignore.ignoreFailure(failureMessage)) {
+            if (!ignore.ignoreFailure(failureMessage)) {
                 errorBuilder.put(IndexKey.from(response), failureMessage);
             }
         }

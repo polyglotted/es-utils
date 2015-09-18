@@ -1,22 +1,19 @@
 package applauncher.support;
 
-import lombok.SneakyThrows;
-
 import java.net.InetAddress;
 
 public final class NodeIdentifier {
     public final String identifier;
 
-    public NodeIdentifier() {
+    public NodeIdentifier() throws Exception {
         this("Unknown");
     }
 
-    public NodeIdentifier(String serverName) {
+    public NodeIdentifier(String serverName)throws Exception  {
         this.identifier = serverName + "::(" + localHost() + ")";
     }
 
-    @SneakyThrows
-    static String localHost() {
+    static String localHost() throws Exception {
         return InetAddress.getLocalHost().getHostName();
     }
 }

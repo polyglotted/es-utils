@@ -32,6 +32,7 @@ import static io.polyglotted.esutils.services.Trade.tradesRequest;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
@@ -108,6 +109,9 @@ public class AggregationsTest extends AbstractElasticTest {
         assertBucket(bucketIter.next(), "NA", 5L);
         assertBucket(bucketIter.next(), "SA", 3L);
         assertBucket(bucketIter.next(), "APAC", 1L);
+        assertThat(aggs.param("docCountError", Long.class), is(0L));
+        assertThat(aggs.param("sumOfOtherDocs", Long.class), is(0L));
+        assertThat(aggs.toString(), is(notNullValue()));
     }
 
     @Test

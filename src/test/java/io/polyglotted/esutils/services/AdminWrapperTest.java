@@ -8,7 +8,9 @@ import java.util.Map;
 
 import static io.polyglotted.esutils.indexing.Alias.aliasBuilder;
 import static io.polyglotted.esutils.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.esutils.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.esutils.indexing.TypeMapping.typeBuilder;
+import static io.polyglotted.esutils.query.request.Expressions.in;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,6 +39,11 @@ public class AdminWrapperTest extends AbstractElasticTest {
         assertThat(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE), is(MAPPING));
         assertThat(admin.getMapping(ADMIN_INDICES[1], ADMIN_TYPE), is(MAPPING));
 
+        //test no-op actions
+        admin.createIndex(IndexSetting.with(5, 2), ADMIN_INDICES[0]);
+        admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
+           .fieldMapping(notAnalyzedStringField("b")).build());
+
         admin.dropIndex(ADMIN_ALIAS);
 
         assertThat(admin.indexExists(ADMIN_INDICES), is(false));
@@ -47,9 +54,13 @@ public class AdminWrapperTest extends AbstractElasticTest {
         String[] NEW_INDICES = new String[]{"new.test.live", "new.test.history"};
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
         admin.createIndex(IndexSetting.with(3, 1), NEW_INDICES);
+        admin.createType(typeBuilder().index(NEW_INDICES[0]).type(ADMIN_TYPE)
+           .fieldMapping(notAnalyzedStringField("a")).build());
+        admin.createType(typeBuilder().index(NEW_INDICES[1]).type(ADMIN_TYPE)
+           .fieldMapping(notAnalyzedStringField("a")).build());
 
-        admin.indexAliases(aliasBuilder().alias(ADMIN_ALIAS).index(ADMIN_INDICES).remove().build(),
-           aliasBuilder().alias(ADMIN_ALIAS).index(NEW_INDICES).build());
+        admin.updateAliases(aliasBuilder().alias(ADMIN_ALIAS).index(ADMIN_INDICES).remove().build(),
+           aliasBuilder().alias(ADMIN_ALIAS).filter(in("a", "aa")).index(NEW_INDICES).build());
 
         admin.dropIndex(ADMIN_ALIAS);
 
@@ -57,25 +68,24 @@ public class AdminWrapperTest extends AbstractElasticTest {
         assertThat(admin.indexExists(ADMIN_INDICES), is(true));
     }
 
-    @Test(enabled = false)
+    @Test
     public void updateSetting() {
         //TODO FAILED
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
         Map<String, Map<String, String>> originalMap = query.indexStatus(ADMIN_INDICES);
-        assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null, null);
-        assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null, null);
+        assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null);
+        assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null);
 
-        admin.updateIndex(IndexSetting.with(2, -1L, true), ADMIN_ALIAS);
+        admin.updateSetting(settingBuilder().numberOfReplicas(2).refreshInterval(-1).build(), ADMIN_ALIAS);
 
         Map<String, Map<String, String>> updatedMap = query.indexStatus(ADMIN_INDICES);
-        assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1", "true");
-        assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1", "true");
+        assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1");
+        assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1");
     }
 
-    private static void assertSettings(Map<String, String> settings, String replicas, String interval, String disable) {
+    private static void assertSettings(Map<String, String> settings, String replicas, String interval) {
         assertEquals(settings.get("index.number_of_shards"), "3");
         assertEquals(settings.get("index.number_of_replicas"), replicas);
-        assertEquals(settings.get("index.disable_flush"), interval);
-        assertEquals(settings.get("index.disable_flush"), disable);
+        assertEquals(settings.get("index.refresh_interval"), interval);
     }
 }

@@ -32,7 +32,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
 
     @Override
     public int compareTo(FieldMapping other) {
-        return field.compareTo(other.field);
+        return (other == null) ? -1 : field.compareTo(other.field);
     }
 
     @SuppressWarnings("unused")
@@ -54,7 +54,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
 
     public static FieldMapping privateField(String field) {
         return fieldBuilder().field(field).type(FieldType.STRING).indexed(Indexed.NOT_ANALYZED).stored(null)
-                .includeInSource(true).includeInAll(false).docValues(true).build();
+           .includeInSource(true).includeInAll(false).docValues(true).build();
     }
 
     @Accessors(fluent = true, chain = true)

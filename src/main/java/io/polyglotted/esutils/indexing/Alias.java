@@ -36,8 +36,8 @@ public final class Alias {
     @Accessors(fluent = true, chain = true)
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
-        private List<String> aliases = new ArrayList<>();
-        private List<String> indices = new ArrayList<>();
+        private final List<String> aliases = new ArrayList<>();
+        private final List<String> indices = new ArrayList<>();
         private Expression filter;
         private boolean remove = false;
 
@@ -52,7 +52,7 @@ public final class Alias {
         }
 
         public Builder remove() {
-            this.remove = true;
+            this.remove(true);
             return this;
         }
 

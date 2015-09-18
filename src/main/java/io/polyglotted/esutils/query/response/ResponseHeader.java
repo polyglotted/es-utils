@@ -2,7 +2,6 @@ package io.polyglotted.esutils.query.response;
 
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.search.SearchHits;
 
 @RequiredArgsConstructor
 public final class ResponseHeader {
@@ -17,12 +16,10 @@ public final class ResponseHeader {
     }
 
     public static long getTotalHits(SearchResponse response) {
-        SearchHits hits = response.getHits();
-        return hits == null ? 0 : hits.getTotalHits();
+        return response.getHits().getTotalHits();
     }
 
     public static int getReturnedHits(SearchResponse response) {
-        SearchHits hits = response.getHits();
-        return hits == null ? 0 : hits.getHits().length;
+        return response.getHits().hits().length;
     }
 }

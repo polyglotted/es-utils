@@ -1,7 +1,9 @@
 package io.polyglotted.esutils.services;
 
+import com.google.common.collect.ImmutableList;
 import io.polyglotted.esutils.AbstractElasticTest;
 import io.polyglotted.esutils.indexing.*;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.testng.annotations.Test;
 
 import static io.polyglotted.esutils.indexing.FieldMapping.notAnalyzedStringField;
@@ -20,6 +22,11 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     }
 
     @Test
+    public void writeEmptyRequest() {
+        indexer.index(new BulkRequest().refresh(true), IgnoreErrors.strict());
+    }
+
+    @Test
     public void writeAgainNoFailure() {
         indexer.index(tradesRequest(TRADES_INDEX, System.currentTimeMillis()), IgnoreErrors.strict());
         indexer.index(tradesRequest(TRADES_INDEX, System.currentTimeMillis(), singletonList(trade(
@@ -29,8 +36,9 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     @Test
     public void writeOlderVersionNoFailure() {
         indexer.index(tradesRequest(TRADES_INDEX, 1100L));
-        indexer.index(tradesRequest(TRADES_INDEX, 1000L, singletonList(trade("/trades/001", "EMEA",
-           "UK", "London", "IEU", "Alex", 1425427200000L, 20.0))), IgnoreErrors.from(false, true));
+        indexer.index(tradesRequest(TRADES_INDEX, 1000L, ImmutableList.of(trade("/trades/001", "EMEA",
+           "UK", "London", "IEU", "Alex", 1425427200000L, 20.0), trade("/trades/021", "APAC",
+           "SG", "Singapore", "IEU", "Alex", 1425427200000L, 27.0))), IgnoreErrors.from(false, true));
     }
 
     @Test(expectedExceptions = IndexerException.class)

@@ -31,6 +31,8 @@ public class ExpressionsTest extends Expressions {
               "{\"range\":{\"hello\":{\"from\":\"foo\",\"to\":\"bar\",\"include_lower\":true,\"include_upper\":false}}}"},
            {Text.buildFrom(textAnywhere("hello")),
               "{\"query\":{\"match\":{\"_all\":{\"query\":\"hello\",\"type\":\"phrase_prefix\"}}}}"},
+           {Text.buildFrom(textAnywhere("a", "hello")),
+              "{\"query\":{\"match\":{\"a\":{\"query\":\"hello\",\"type\":\"phrase_prefix\"}}}}"},
            {Regex.buildFrom(regex("hello", "wor*")), "{\"regexp\":{\"hello\":\"wor*\"}}"},
            {Missing.buildFrom(missing("hello")),
               "{\"missing\":{\"field\":\"hello\",\"null_value\":true,\"existence\":true}}"},
@@ -47,5 +49,11 @@ public class ExpressionsTest extends Expressions {
     @Test(dataProvider = "expressionInputs")
     public void expressionToFilter(FilterBuilder filterBuilder, String json) throws Exception {
         assertEquals(convertToJson(filterBuilder.buildAsBytes(), false, false), json);
+    }
+
+    @Test
+    public void expressionToString() {
+        assertEquals(equalsTo("hello", "world").toString(), "hello Eq {_val=world}");
+        assertEquals(not(equalsTo("hello", "world")).toString(), "Not {}");
     }
 }

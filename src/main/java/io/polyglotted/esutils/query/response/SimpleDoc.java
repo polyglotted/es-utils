@@ -1,19 +1,31 @@
 package io.polyglotted.esutils.query.response;
 
+import com.google.common.collect.ImmutableMap;
+import io.polyglotted.esutils.indexing.IndexKey;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.Time;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.google.common.base.Optional.fromNullable;
 
 @RequiredArgsConstructor
 public final class SimpleDoc {
-    public final String index;
-    public final String type;
-    public final String id;
-    public final Map<String, Object> source;
+    public final IndexKey indexKey;
+    public final ImmutableMap<String, Object> source;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleDoc other = (SimpleDoc) o;
+        return indexKey.equals(other.indexKey) && source.equals(other.source);
+    }
+
+    @Override
+    public int hashCode() {
+        return 17 * indexKey.hashCode() + source.hashCode();
+    }
 
     public <T extends Enum<T>> T enumVal(Class<T> enumClass, String property) {
         String name = strVal(property);

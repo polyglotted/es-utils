@@ -3,6 +3,7 @@ package io.polyglotted.esutils.indexing;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.search.SearchHit;
 
 import static com.google.common.collect.ComparisonChain.start;
 
@@ -16,6 +17,10 @@ public final class IndexKey implements Comparable<IndexKey> {
 
     public static IndexKey from(BulkItemResponse response) {
         return new IndexKey(response.getIndex(), response.getType(), response.getId(), response.getVersion());
+    }
+
+    public static IndexKey from(SearchHit searchHit) {
+        return new IndexKey(searchHit.getIndex(), searchHit.getType(), searchHit.getId(), searchHit.getVersion());
     }
 
     @Override

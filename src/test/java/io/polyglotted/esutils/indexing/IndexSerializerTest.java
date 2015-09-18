@@ -79,7 +79,7 @@ public class IndexSerializerTest extends IndexSerializer {
         String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
                 .fieldMapping(notAnalyzedStringField("field1")).fieldMapping(notAnalyzedStringField("field2"))
                 .transform(transformBuilder().script("ctx._source['field2'] = ctx._source['field1']")
-                        .lang("groovy").param("attr1", "attr2")).build());
+                   .lang("groovy").param("attr1", "attr2")).build());
         assertThat(actual, is(SERIALISED_DOCS.get("transformTypeMapping")));
     }
 
@@ -101,14 +101,21 @@ public class IndexSerializerTest extends IndexSerializer {
 
     @Test
     public void defaultIndexSetting() {
-        String actual = GSON.toJson(IndexSetting.defaultSetting());
+        String actual = IndexSetting.with(5, 1).createJson();
         assertThat(actual, is(SERIALISED_DOCS.get("defaultIndexSetting")));
     }
 
     @Test
     public void forcedIndexSetting() {
-        String actual = GSON.toJson(new IndexSetting(3, 2, -1L, true));
+        String actual = IndexSetting.settingBuilder().numberOfShards(3).numberOfReplicas(2)
+           .refreshInterval(-1L).any("translog.disable_flush", true).ignoreMalformed().build().createJson();
         assertThat(actual, is(SERIALISED_DOCS.get("forcedIndexSetting")));
+    }
+
+    @Test
+    public void settingForUpdate() {
+        String actual = IndexSetting.with(5, 1).updateJson();
+        assertThat(actual, is(SERIALISED_DOCS.get("settingForUpdate")));
     }
 
     private static java.util.Map<String, String> readAllDocs(String file) {

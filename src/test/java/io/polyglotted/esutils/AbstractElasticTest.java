@@ -31,8 +31,8 @@ public abstract class AbstractElasticTest extends AbstractTestNGSpringContextTes
     protected IndexerWrapper indexer;
 
     @BeforeSuite
-    public void cleanES() {
-        deleteRecursively(new File("elastic-test"), true);
+    public static void cleanES() {
+        deleteRecursively(new File("target", "elastic-test"), true);
     }
 
     @BeforeMethod

@@ -75,8 +75,21 @@ public final class StandardQuery {
             return this;
         }
 
+        public Builder sort(SimpleSort.Builder sortBuilder) {
+            return sort(sortBuilder.build());
+        }
+
         public Builder sort(SimpleSort... sorts) {
             this.sorts.addAll(asList(sorts));
+            return this;
+        }
+
+        public Builder hints(QueryHints.Builder hintBuilder) {
+            return hints(hintBuilder.build());
+        }
+
+        public Builder hints(QueryHints hints) {
+            this.hints = hints;
             return this;
         }
 
