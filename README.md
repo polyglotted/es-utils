@@ -1,6 +1,6 @@
-# ElasticSearch Utils
+# ElasticSearch Wrapper
 
-ElasticSearch utilities provide easy abstractions and models over the standard ES API.
+ElasticSearch utilities for easy abstraction and modeling over the standard ES API.
 
 ### Continuous Integration
 
