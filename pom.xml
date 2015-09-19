@@ -7,16 +7,16 @@
         <version>2.0.0</version>
     </parent>
 
-    <artifactId>es-utils</artifactId>
+    <artifactId>es-wrapper</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>ElasticSearch Utils</name>
+    <name>Elastic Search Wrapper</name>
     <description>Standard set of utilities for elastic search abstraction</description>
-    <url>http://www.polyglotted.org/es-utils</url>
+    <url>http://www.polyglotted.org/es-wrapper</url>
     <scm>
-        <url>https://github.com/polyglotted/es-utils</url>
-        <connection>scm:git:ssh://github.com/polyglotted/es-utils.git</connection>
-        <developerConnection>scm:git:git+ssh://git@github.com/polyglotted/es-utils.git</developerConnection>
+        <url>https://github.com/polyglotted/es-wrapper</url>
+        <connection>scm:git:ssh://github.com/polyglotted/es-wrapper.git</connection>
+        <developerConnection>scm:git:git+ssh://git@github.com/polyglotted/es-wrapper.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
