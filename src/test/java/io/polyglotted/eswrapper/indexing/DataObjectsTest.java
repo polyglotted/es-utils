@@ -23,6 +23,11 @@ public class DataObjectsTest {
     }
 
     @Test
+    public void indexActionValues() {
+        asList(IndexRecord.Action.values()).contains(IndexRecord.Action.valueOf("CREATE"));
+    }
+
+    @Test
     public void indexedValues() {
         asList(FieldMapping.Indexed.values()).contains(FieldMapping.Indexed.valueOf("NOT_ANALYZED"));
     }
@@ -77,6 +82,14 @@ public class DataObjectsTest {
         IndexKey other3 = new IndexKey("a", "b", "c", 2);
         verifyEqualsHashCode(orig, copy, other1, other2, other3);
         verifyComparable(orig, other1);
+    }
+
+    @Test
+    public void indexRecordEqHash() {
+        IndexRecord orig = IndexRecord.createRecord("abc", "def").source("").build();
+        IndexRecord copy = IndexRecord.createRecord("abc", "def").source("").build();
+        IndexRecord other1 = IndexRecord.createRecord("abc", "ghi").source("").build();
+        verifyEqualsHashCode(orig, copy, other1);
     }
 
     @Test

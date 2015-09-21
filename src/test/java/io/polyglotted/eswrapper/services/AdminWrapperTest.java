@@ -34,8 +34,10 @@ public class AdminWrapperTest extends AbstractElasticTest {
         admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
            .fieldMapping(notAnalyzedStringField("a")).build());
 
-        String MAPPING = "{\"AdminType\":{\"_all\":{\"enabled\":true,\"analyzer\":\"all_analyzer" +
-           "\"},\"properties\":{\"a\":{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true}}}}";
+        String MAPPING = "{\"AdminType\":{\"_all\":{\"enabled\":true,\"analyzer\":\"all_analyzer\"}," +
+           "\"properties\":{\"&expiry\":{\"type\":\"long\",\"include_in_all\":false},\"&status\":" +
+           "{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true,\"include_in_all\":false}," +
+           "\"a\":{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true}}}}";
         assertThat(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE), is(MAPPING));
         assertThat(admin.getMapping(ADMIN_INDICES[1], ADMIN_TYPE), is(MAPPING));
 
@@ -70,7 +72,6 @@ public class AdminWrapperTest extends AbstractElasticTest {
 
     @Test
     public void updateSetting() {
-        //TODO FAILED
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
         Map<String, Map<String, String>> originalMap = query.indexStatus(ADMIN_INDICES);
         assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null);

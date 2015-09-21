@@ -14,7 +14,7 @@ public interface ResultBuilder<T> {
 
     List<T> buildFrom(SearchResponse response);
 
-    ResultBuilder<?> EmptyBuilder = response -> ImmutableList.of();
+    ResultBuilder<?> NullBuilder = null;
 
     ResultBuilder<IndexKey> IndexKeyBuilder = response -> ImmutableList.copyOf(transform(response.getHits(),
        hit -> IndexKey.from(hit)));

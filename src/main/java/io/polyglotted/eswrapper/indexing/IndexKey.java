@@ -1,11 +1,17 @@
 package io.polyglotted.eswrapper.indexing;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.search.SearchHit;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.OutputStream;
+
 import static com.google.common.collect.ComparisonChain.start;
+import static io.polyglotted.eswrapper.indexing.KeyUtil.generateUuid;
 
 @ToString(includeFieldNames = false)
 @RequiredArgsConstructor
@@ -15,10 +21,12 @@ public final class IndexKey implements Comparable<IndexKey> {
     public final String id;
     public final long version;
 
-    public String id() { return id; }
+    public String uniqueId() {
+        return generateUuid(writeToStream(this, new ByteArrayOutputStream()).toByteArray()).toString();
+    }
 
     public static IndexKey keyWith(String type, String id) {
-        return new IndexKey(null, type, id, -1);
+        return new IndexKey("", type, id, -1);
     }
 
     public static IndexKey from(BulkItemResponse response) {
@@ -46,5 +54,19 @@ public final class IndexKey implements Comparable<IndexKey> {
     public int compareTo(IndexKey other) {
         return other == null ? -1 : start().compare(index, other.index)
            .compare(id, other.id).compare(version, other.version).result();
+    }
+
+    @VisibleForTesting
+    static <OS extends OutputStream> OS writeToStream(IndexKey indexKey, OS output) {
+        try{
+            DataOutputStream stream = new DataOutputStream(output);
+            stream.writeBytes(indexKey.index);
+            stream.writeBytes(indexKey.id);
+            stream.writeLong(indexKey.version);
+            stream.close();
+        } catch(Exception ex) {
+            throw new RuntimeException("failed to writeToStream");
+        }
+        return output;
     }
 }

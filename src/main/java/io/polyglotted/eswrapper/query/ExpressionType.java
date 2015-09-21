@@ -7,13 +7,17 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static org.elasticsearch.index.query.FilterBuilders.*;
-import static org.elasticsearch.index.query.FilterBuilders.nestedFilter;
-import static org.elasticsearch.index.query.FilterBuilders.notFilter;
 import static org.elasticsearch.index.query.MatchQueryBuilder.Type.PHRASE_PREFIX;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.prefixQuery;
 
 public enum ExpressionType {
+    Ids {
+        @Override
+        FilterBuilder buildFrom(Expression expr) {
+            return idsFilter().ids(toArray(transform(expr.arrayArg(), Object::toString), String.class));
+        }
+    },
     Eq {
         @Override
         FilterBuilder buildFrom(Expression expr) {
@@ -80,6 +84,12 @@ public enum ExpressionType {
         @Override
         FilterBuilder buildFrom(Expression expr) {
             return regexpFilter(expr.label, expr.stringArg());
+        }
+    },
+    Exists {
+        @Override
+        FilterBuilder buildFrom(Expression expr) {
+            return existsFilter(expr.label);
         }
     },
     Missing {

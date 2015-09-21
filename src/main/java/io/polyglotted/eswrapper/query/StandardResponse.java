@@ -2,6 +2,7 @@ package io.polyglotted.eswrapper.query;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import io.polyglotted.eswrapper.query.response.Aggregation;
 import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import lombok.AccessLevel;
@@ -20,8 +21,8 @@ public final class StandardResponse {
     public final ImmutableList<Object> results;
     public final ImmutableList<Aggregation> aggregations;
 
-    public <T> Iterable<T> resultsAs(Class<? extends T> tClass) {
-        return Iterables.transform(results, tClass::cast);
+    public <T> List<T> resultsAs(Class<? extends T> tClass) {
+        return Lists.transform(results, tClass::cast);
     }
 
     public static Builder responseBuilder() {

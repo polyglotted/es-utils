@@ -4,4 +4,4 @@ ElasticSearch utilities for easy abstraction and modeling over the standard ES A
 
 ### Continuous Integration
 
-[![Circle CI](https://circleci.com/gh/polyglotted/es-utils.svg?style=shield)](https://circleci.com/gh/polyglotted/es-utils)
+[![Circle CI](https://circleci.com/gh/polyglotted/es-wrapper.svg?style=shield)](https://circleci.com/gh/polyglotted/es-wrapper)

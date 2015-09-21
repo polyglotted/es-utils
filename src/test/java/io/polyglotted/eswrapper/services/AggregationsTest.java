@@ -198,7 +198,7 @@ public class AggregationsTest extends AbstractElasticTest {
         StandardQuery.Builder queryBuilder = queryBuilder().index(TRADE_AGGREGATES_INDEX).type(TRADE_TYPE)
            .size(0).aggregate(aggs);
         if (filter != null) queryBuilder.expression(filter);
-        StandardResponse response = query.search(queryBuilder.build(), null, ResultBuilder.EmptyBuilder);
+        StandardResponse response = query.search(queryBuilder.build(), null, ResultBuilder.NullBuilder);
         return response.aggregations.get(0);
     }
 

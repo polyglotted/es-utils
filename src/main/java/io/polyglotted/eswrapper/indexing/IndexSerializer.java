@@ -46,6 +46,8 @@ public abstract class IndexSerializer {
 
             JsonObject properties = new JsonObject();
             mainType.add("properties", properties);
+            for (FieldMapping field : FieldMapping.PRIVATE_FIELDS)
+                properties.add(field.field, context.serialize(field.mapping));
             for (FieldMapping field : mapping.fieldMappings)
                 properties.add(field.field, context.serialize(field.mapping));
 

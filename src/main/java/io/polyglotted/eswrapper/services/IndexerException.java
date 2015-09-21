@@ -1,11 +1,13 @@
-package io.polyglotted.eswrapper.indexing;
+package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableMap;
+import io.polyglotted.eswrapper.indexing.IndexKey;
 
 import java.util.Map;
 
-public class IndexerException extends RuntimeException {
-    private final ImmutableMap<IndexKey, String> errorsMap;
+@SuppressWarnings("serial")
+public final class IndexerException extends RuntimeException {
+    public final ImmutableMap<IndexKey, String> errorsMap;
 
     public IndexerException(Map<IndexKey, String> errorsMap) {
         super(buildFailureMessage(errorsMap));
@@ -15,10 +17,8 @@ public class IndexerException extends RuntimeException {
     private static String buildFailureMessage(Map<IndexKey, String> errorsMap) {
         StringBuilder sb = new StringBuilder();
         sb.append("indexing failed:");
-        for (Map.Entry<IndexKey, String> entry : errorsMap.entrySet()) {
-            sb.append("\n[").append(entry.getKey()).append("]: message [")
-               .append(entry.getValue()).append("]");
-        }
+        for (Map.Entry<IndexKey, String> entry : errorsMap.entrySet())
+            sb.append("\n[").append(entry.getKey()).append("]: ").append(entry.getValue());
         return sb.toString();
     }
 }

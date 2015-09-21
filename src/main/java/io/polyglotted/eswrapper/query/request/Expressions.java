@@ -4,10 +4,24 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.query.ExpressionType;
 
+import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
 import static io.polyglotted.eswrapper.query.request.Expression.*;
 import static java.util.Arrays.asList;
 
 public abstract class Expressions {
+
+    public static Expression liveIndex() {
+        return and(missing(STATUS_FIELD), missing(EXPIRY_FIELD));
+    }
+
+    public static Expression archiveIndex() {
+        return and(exists(STATUS_FIELD), exists(EXPIRY_FIELD));
+    }
+
+    public static Expression ids(String... ids) {
+        return withValue(ExpressionType.Ids, null, ImmutableList.copyOf(asList(ids)));
+    }
 
     public static Expression equalsTo(String field, Object value) {
         return withValue(ExpressionType.Eq, field, value);
@@ -62,6 +76,10 @@ public abstract class Expressions {
         return withValue(ExpressionType.Regex, field, expr);
     }
 
+    public static Expression exists(String field) {
+        return new Expression(ExpressionType.Exists.name(), field, ImmutableMap.of(), ImmutableList.of());
+    }
+
     public static Expression missing(String field) {
         return new Expression(ExpressionType.Missing.name(), field, ImmutableMap.of(), ImmutableList.of());
     }
@@ -69,7 +87,6 @@ public abstract class Expressions {
     public static Expression json(String json) {
         return withValue(ExpressionType.Json, null, json);
     }
-
 
     public static Expression and(Expression... expressions) {
         return withOnlyChildren(ExpressionType.And, null, asList(expressions));

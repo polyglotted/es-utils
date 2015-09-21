@@ -5,8 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.eswrapper.indexing.IndexKey;
-import io.polyglotted.eswrapper.indexing.IndexerException;
-import io.polyglotted.eswrapper.indexing.VersionIndexable;
+import io.polyglotted.eswrapper.indexing.Indexable;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +22,7 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.idRequest;
@@ -38,22 +38,22 @@ public final class IndexerWrapper {
         index(bulkRequest, strict());
     }
 
-    public void twoPhaseCommit(VersionIndexable indexable) {
-        lockTheIndexOrFail(indexable.currentIndex);
-        List<SimpleDoc> currentDocs = getCurrent(indexable.currentIndex, indexable.currentIds());
+    public void twoPhaseCommit(Indexable indexable) {
+        lockTheIndexOrFail(indexable.index);
+        List<SimpleDoc> currentDocs = getCurrent(indexable.index, indexable.updateIds());
         try {
-            index(indexable.updateRequest());
+            index(indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key)));
             index(indexable.writeRequest());
 
-        } catch (IndexerException ex) {
+        } catch (RuntimeException ex) {
             log.error("failed two phase commit", ex);
-            deleteUpdatesInHistory(indexable.historyIndex, indexable.updateKeys());
+            deleteUpdatesInHistory(indexable.index, indexable.updateKeys());
             forceReindex(currentDocs);
             throw ex;
 
         } finally {
-            unlockIndex(indexable.currentIndex);
-            client.admin().indices().refresh(refreshRequest(indexable.indices())).actionGet();
+            unlockIndex(indexable.index);
+            client.admin().indices().refresh(refreshRequest(indexable.index)).actionGet();
         }
     }
 

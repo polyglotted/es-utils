@@ -3,15 +3,14 @@ package io.polyglotted.eswrapper.query.response;
 import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.indexing.IndexKey;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.VersionType;
 
-import java.sql.Time;
-import java.util.UUID;
-
 import static com.google.common.base.Optional.fromNullable;
 
+@ToString(includeFieldNames = false)
 @RequiredArgsConstructor
 public final class SimpleDoc {
     public final IndexKey indexKey;
@@ -30,17 +29,8 @@ public final class SimpleDoc {
         return 17 * indexKey.hashCode() + source.hashCode();
     }
 
-    public <T extends Enum<T>> T enumVal(Class<T> enumClass, String property) {
-        String name = strVal(property);
-        return name == null ? null : Enum.valueOf(enumClass, name);
-    }
-
-    public Time timeVal(String property) {
-        return new Time(longVal(property));
-    }
-
-    public UUID uuidVal(String property) {
-        return fromNullable(strVal(property)).transform(UUID::fromString).or(new UUID(0, 0));
+    public IndexKey key() {
+        return indexKey;
     }
 
     public long longVal(String property) {

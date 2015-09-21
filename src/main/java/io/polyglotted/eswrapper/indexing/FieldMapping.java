@@ -1,16 +1,24 @@
 package io.polyglotted.eswrapper.indexing;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import lombok.*;
 import lombok.experimental.Accessors;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.FieldType.LONG;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 public final class FieldMapping implements Comparable<FieldMapping> {
+    public static final String STATUS_FIELD = "&status";
+    public static final String EXPIRY_FIELD = "&expiry";
+    static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(notAnalyzedStringField(STATUS_FIELD)
+       .docValues(true).includeInAll(false).build(), notAnalyzedField(EXPIRY_FIELD, LONG).includeInAll(false).build());
+
     public final String field;
     public final boolean includeInSource;
     public final ImmutableMap<String, Object> mapping;
@@ -45,16 +53,11 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     }
 
     public static FieldMapping.Builder notAnalyzedStringField(String field) {
-        return fieldBuilder().field(field).type(FieldType.STRING).indexed(Indexed.NOT_ANALYZED).docValues(true);
+        return notAnalyzedField(field, FieldType.STRING).docValues(true);
     }
 
     public static FieldMapping.Builder notAnalyzedField(String field, FieldType fieldType) {
-        return fieldBuilder().field(field).type(fieldType).indexed(Indexed.NOT_ANALYZED).docValues(true);
-    }
-
-    public static FieldMapping privateField(String field) {
-        return fieldBuilder().field(field).type(FieldType.STRING).indexed(Indexed.NOT_ANALYZED).stored(null)
-           .includeInSource(true).includeInAll(false).docValues(true).build();
+        return fieldBuilder().field(field).type(fieldType).indexed(Indexed.NOT_ANALYZED).stored(null);
     }
 
     @Accessors(fluent = true, chain = true)

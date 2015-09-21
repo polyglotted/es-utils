@@ -14,6 +14,7 @@ public class ExpressionsTest extends Expressions {
     @DataProvider
     public static Object[][] expressionInputs() {
         return new Object[][]{
+           {Ids.buildFrom(ids("ab", "cd")), "{\"ids\":{\"types\":[],\"values\":[\"ab\",\"cd\"]}}"},
            {Eq.buildFrom(equalsTo("hello", "world")), "{\"term\":{\"hello\":\"world\"}}"},
            {Gte.buildFrom(greaterThanEquals("hello", "world")),
               "{\"range\":{\"hello\":{\"from\":\"world\",\"to\":null,\"include_lower\":true,\"include_upper\":true}}}"},
@@ -34,11 +35,16 @@ public class ExpressionsTest extends Expressions {
            {Text.buildFrom(textAnywhere("a", "hello")),
               "{\"query\":{\"match\":{\"a\":{\"query\":\"hello\",\"type\":\"phrase_prefix\"}}}}"},
            {Regex.buildFrom(regex("hello", "wor*")), "{\"regexp\":{\"hello\":\"wor*\"}}"},
+           {Exists.buildFrom(exists("hello")), "{\"exists\":{\"field\":\"hello\"}}"},
            {Missing.buildFrom(missing("hello")),
               "{\"missing\":{\"field\":\"hello\",\"null_value\":true,\"existence\":true}}"},
            {Json.buildFrom(json("{\"query\":{\"match_phrase\":{\"_all\":{\"query\":\"commodity\",\"slop\":20}}}}")),
               "{\"wrapper\":{\"filter\":\"eyJxdWVyeSI6eyJtYXRjaF9waHJhc2UiOnsiX2FsbCI6eyJxdWVyeSI6ImNvbW1vZGl0eSIsInNsb3AiOjIwfX19fQ==\"}}"},
            {And.buildFrom(and(equalsTo("hello", "world"))), "{\"and\":{\"filters\":[{\"term\":{\"hello\":\"world\"}}]}}"},
+           {And.buildFrom(liveIndex()), "{\"and\":{\"filters\":[{\"missing\":{\"field\":\"&status\",\"null_value\":true," +
+              "\"existence\":true}},{\"missing\":{\"field\":\"&expiry\",\"null_value\":true,\"existence\":true}}]}}"},
+           {And.buildFrom(archiveIndex()), "{\"and\":{\"filters\":[{\"exists\":{\"field\":\"&status\"}}," +
+              "{\"exists\":{\"field\":\"&expiry\"}}]}}"},
            {Or.buildFrom(or(equalsTo("hello", "world"))), "{\"or\":{\"filters\":[{\"term\":{\"hello\":\"world\"}}]}}"},
            {Not.buildFrom(not(equalsTo("hello", "world"))), "{\"not\":{\"filter\":{\"term\":{\"hello\":\"world\"}}}}"},
            {Nested.buildFrom(nested("foo.bar", equalsTo("hello", "world"))),
