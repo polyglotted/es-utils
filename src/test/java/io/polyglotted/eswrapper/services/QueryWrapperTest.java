@@ -12,8 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
+import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
+import static io.polyglotted.eswrapper.services.NamePath.NAMEPATH_TYPE;
+import static io.polyglotted.eswrapper.services.NamePath.pathsRequest;
 import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
@@ -54,5 +58,16 @@ public class QueryWrapperTest extends AbstractElasticTest {
            null, ResultBuilder.SimpleDocBuilder);
         List<SimpleDoc> simpleDocs = response.resultsAs(SimpleDoc.class);
         for(SimpleDoc doc : simpleDocs) assertEquals(doc.source.size(), 0);
+    }
+
+    @Test
+    public void testPathHierarchy() {
+        admin.createType(typeBuilder().index(DUMMY_INDICES[1]).type(NAMEPATH_TYPE).fieldMapping(
+           notAnalyzedStringField("name")).fieldMapping(notAnalyzedStringField("path").isAPath(true)).build());
+        indexer.index(pathsRequest(DUMMY_INDICES[1]));
+        StandardResponse response = query.search(queryBuilder().index(DUMMY_INDICES).size(20)
+           .expression(equalsTo("path.tree", "/users/aux")).build(), null, ResultBuilder.SimpleDocBuilder);
+        List<SimpleDoc> simpleDocs = response.resultsAs(SimpleDoc.class);
+        assertEquals(simpleDocs.size(), 2);
     }
 }

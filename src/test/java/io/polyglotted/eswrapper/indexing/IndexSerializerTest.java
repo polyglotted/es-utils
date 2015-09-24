@@ -98,6 +98,15 @@ public class IndexSerializerTest extends IndexSerializer {
     }
 
     @Test
+    public void setAsPathTypeMapping() {
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
+           .fieldMapping(notAnalyzedStringField("name"))
+           .fieldMapping(notAnalyzedStringField("path").isAPath(true)).build());
+        //System.out.println("setAsPathTypeMapping=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("setAsPathTypeMapping")));
+    }
+
+    @Test
     public void metaTypeMapping() {
         String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
            .fieldMapping(notAnalyzedStringField("field1")).metaData("myName", "myVal").build());

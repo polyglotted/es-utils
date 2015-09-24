@@ -9,9 +9,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class IndexSerializer {
 
     public static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(TypeMapping.class, new TypeMappingSerializer())
-            .registerTypeAdapter(FieldMapping.Builder.class, new FieldMappingSerializer())
-            .create();
+       .registerTypeAdapter(TypeMapping.class, new TypeMappingSerializer())
+       .registerTypeAdapter(FieldMapping.Builder.class, new FieldMappingSerializer())
+       .create();
 
     private static final class TypeMappingSerializer implements JsonSerializer<TypeMapping> {
         @Override
@@ -34,7 +34,7 @@ public abstract class IndexSerializer {
             all.addProperty("enabled", true);
             all.addProperty("analyzer", "all_analyzer");
 
-            if(!mapping.metaData.isEmpty())
+            if (!mapping.metaData.isEmpty())
                 mainType.add("_meta", context.serialize(mapping.metaData));
 
             if (!mapping.transformScripts.isEmpty()) {
@@ -66,6 +66,7 @@ public abstract class IndexSerializer {
             if (builder.stored() != null) object.addProperty("store", builder.stored());
             if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
             if (builder.docValues() != null) object.addProperty("doc_values", builder.docValues());
+            if (builder.isAPath()) object.add("fields", context.serialize(FieldMapping.PATH_FIELDS));
             return object;
         }
     }

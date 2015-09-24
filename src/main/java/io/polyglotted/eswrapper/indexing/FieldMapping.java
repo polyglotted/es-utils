@@ -18,6 +18,8 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     public static final String EXPIRY_FIELD = "&expiry";
     static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(notAnalyzedStringField(STATUS_FIELD)
        .docValues(true).includeInAll(false).build(), notAnalyzedField(EXPIRY_FIELD, LONG).includeInAll(false).build());
+    static final Map<String, Object> PATH_FIELDS = ImmutableMap.of("tree", ImmutableMap.of("type", "string",
+       "analyzer", "path_analyzer"));
 
     public final String field;
     public final boolean includeInSource;
@@ -60,32 +62,24 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         return fieldBuilder().field(field).type(fieldType).indexed(Indexed.NOT_ANALYZED).stored(null);
     }
 
+    @Setter
     @Accessors(fluent = true, chain = true)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
-        @Setter
         private String field;
         @Getter
         private FieldType type;
-        @Setter
         private boolean includeInSource = false;
         @Getter
-        @Setter
         private Indexed indexed = null;
         @Getter
-        @Setter
         private Boolean stored = null;
         @Getter
-        @Setter
         private Boolean includeInAll = null;
         @Getter
-        @Setter
         private Boolean docValues = null;
-
-        public Builder type(FieldType fieldType) {
-            this.type = fieldType;
-            return this;
-        }
+        @Getter
+        private boolean isAPath = false;
 
         public FieldMapping build() {
             return new FieldMapping(checkNotNull(field, "field cannot be null"), includeInSource, GSON.toJson(this));

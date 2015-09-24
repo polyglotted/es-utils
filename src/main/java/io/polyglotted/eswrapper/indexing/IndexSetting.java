@@ -14,9 +14,9 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 public final class IndexSetting {
-    private static final String DEFAULT_ANALYSIS = "{\"analysis\":{\"analyzer\":{\"default\":" +
-       "{\"type\":\"keyword\"},\"all_analyzer\":{\"type\":\"custom\",\"tokenizer\":\"whitespace\"," +
-       "\"filter\":[\"lowercase\"]}}},";
+    private static final String DEFAULT_ANALYSIS = "{\"analysis\":{\"analyzer\":{\"default\":{\"type\":\"keyword\"}," +
+       "\"all_analyzer\":{\"type\":\"custom\",\"tokenizer\":\"whitespace\",\"filter\":[\"lowercase\"]},\"" +
+       "path_analyzer\":{\"tokenizer\":\"path_hierarchy\",\"filter\":[\"lowercase\"]}}},";
     public final ImmutableMap<String, Object> map;
 
     public String createJson() {
