@@ -84,6 +84,7 @@ public final class Expression {
 
     @Override
     public String toString() {
-        return (isNullOrEmpty(label) ? "" : label + " ") + operation + " " + args;
+        return (isNullOrEmpty(label) ? "" : label + " ") + operation + (args.isEmpty() ? "" : " " + args)
+           + (children.isEmpty() ? "" : " " + children);
     }
 }

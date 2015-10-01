@@ -56,10 +56,4 @@ public class ExpressionsTest extends Expressions {
     public void expressionToFilter(FilterBuilder filterBuilder, String json) throws Exception {
         assertEquals(convertToJson(filterBuilder.buildAsBytes(), false, false), json);
     }
-
-    @Test
-    public void expressionToString() {
-        assertEquals(equalsTo("hello", "world").toString(), "hello Eq {_val=world}");
-        assertEquals(not(equalsTo("hello", "world")).toString(), "Not {}");
-    }
 }
