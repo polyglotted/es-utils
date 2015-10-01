@@ -20,7 +20,7 @@ public abstract class Expressions {
     }
 
     public static Expression ids(String... ids) {
-        return withValue(ExpressionType.Ids, null, ImmutableList.copyOf(asList(ids)));
+        return withValue(ExpressionType.Ids, "", ImmutableList.copyOf(asList(ids)));
     }
 
     public static Expression equalsTo(String field, Object value) {
@@ -85,19 +85,19 @@ public abstract class Expressions {
     }
 
     public static Expression json(String json) {
-        return withValue(ExpressionType.Json, null, json);
+        return withValue(ExpressionType.Json, "", json);
     }
 
     public static Expression and(Expression... expressions) {
-        return withOnlyChildren(ExpressionType.And, null, asList(expressions));
+        return withOnlyChildren(ExpressionType.And, "", asList(expressions));
     }
 
     public static Expression or(Expression... expressions) {
-        return withOnlyChildren(ExpressionType.Or, null, asList(expressions));
+        return withOnlyChildren(ExpressionType.Or, "", asList(expressions));
     }
 
     public static Expression not(Expression expression) {
-        return withOnlyChildren(ExpressionType.Not, null, asList(expression));
+        return withOnlyChildren(ExpressionType.Not, "", asList(expression));
     }
 
     public static Expression nested(String path, Expression expression) {

@@ -24,9 +24,9 @@ public class NamePath {
 
     public static BulkRequest pathsRequest(String index) {
         List<NamePath> paths = new ArrayList<>(3);
-        paths.add(new NamePath("john", "/users/main/john", "/employees/perm/john"));
-        paths.add(new NamePath("bill", "/users/aux/bill", "/employees/perm/bill"));
-        paths.add(new NamePath("pete", "/users/aux/pete"));
+        paths.add(new NamePath("john", "/Users/main/john", "/employees/perm/john"));
+        paths.add(new NamePath("bill", "/Users/Aux/bill", "/employees/perm/bill"));
+        paths.add(new NamePath("pete", "/Users/Aux/pete"));
         BulkRequest bulkRequest = new BulkRequest().refresh(true);
         for (NamePath path : paths) {
             bulkRequest.add(new IndexRequest(index, NAMEPATH_TYPE).create(true).source(GSON.toJson(path)));

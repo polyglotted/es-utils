@@ -1,6 +1,8 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableMap;
+import io.polyglotted.eswrapper.query.request.Expression;
+import io.polyglotted.eswrapper.query.request.Expressions;
 import io.polyglotted.eswrapper.query.request.QueryHints;
 import io.polyglotted.eswrapper.query.request.SimpleSort;
 import io.polyglotted.eswrapper.query.response.Flattened;
@@ -107,6 +109,26 @@ public class DataObjectsTest {
         Flattened copy = new Flattened("a", "b", 1, 0L);
         Flattened other1 = new Flattened("a", "b", 1, 1L);
         verifyEqualsHashCode(orig, copy, other1);
+    }
+
+    @Test
+    public void expressionSimpleEqHash() {
+        Expression orig = Expressions.equalsTo("product", "Coffee");
+        Expression copy = Expressions.equalsTo("product", "Coffee");
+        Expression other1 = Expressions.greaterThan("product", "Coffee");
+        Expression other2 = Expressions.equalsTo("beverage", "Coffee");
+        Expression other3 = Expressions.equalsTo("product", "Tea");
+        verifyEqualsHashCode(orig, copy, other1, other2, other3);
+    }
+
+    @Test
+    public void expressionCompoundEqHash() {
+        Expression orig = Expressions.not(Expressions.in("bets", "a", "b"));
+        Expression copy = Expressions.not(Expressions.in("bets", "a", "b"));
+        Expression other1 = Expressions.not(Expressions.in("cups", "a", "b"));
+        Expression other2 = Expressions.or(Expressions.in("bets", "a", "b"));
+        Expression other3 = Expressions.in("product", "Coffee", "Tea");
+        verifyEqualsHashCode(orig, copy, other1, other2, other3);
     }
 
     @SafeVarargs

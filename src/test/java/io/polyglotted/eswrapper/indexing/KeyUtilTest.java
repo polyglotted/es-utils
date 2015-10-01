@@ -14,7 +14,6 @@ public class KeyUtilTest extends KeyUtil {
 
     @Test
     public void testIndexKey() {
-        System.out.println(System.currentTimeMillis());
         String orig = new IndexKey("abc", "", "id101", 1234).uniqueId();
 
         assertThat(orig, is("0fbce132-d525-5bea-8bba-d4d21fdbb7b1"));

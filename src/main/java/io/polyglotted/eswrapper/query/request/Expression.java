@@ -19,19 +19,19 @@ public final class Expression {
     public final ImmutableList<Expression> children;
 
     public static Expression withMap(String operation, String label, java.util.Map<String, ?> args) {
-        return new Expression(operation, label, ImmutableMap.copyOf(args), ImmutableList.of());
+        return new Expression(checkNotNull(operation), checkNotNull(label), ImmutableMap.copyOf(args), ImmutableList.of());
     }
 
     public static Expression withValue(ExpressionType expressionType, String label, Object valueArg) {
-        return new Expression(expressionType.name(), label, ImmutableMap.of(ValueKey, valueArg), ImmutableList.of());
+        return new Expression(expressionType.name(), checkNotNull(label), ImmutableMap.of(ValueKey, valueArg), ImmutableList.of());
     }
 
     public static <E extends Comparable<E>> Expression withArray(ExpressionType expressionType, String label, List<E> valueArg) {
-        return new Expression(expressionType.name(), label, ImmutableMap.of(ValueKey, valueArg), ImmutableList.of());
+        return new Expression(expressionType.name(), checkNotNull(label), ImmutableMap.of(ValueKey, valueArg), ImmutableList.of());
     }
 
     public static Expression withOnlyChildren(ExpressionType expressionType, String label, Iterable<Expression> list) {
-        return new Expression(expressionType.name(), label, ImmutableMap.of(), ImmutableList.copyOf(list));
+        return new Expression(expressionType.name(), checkNotNull(label), ImmutableMap.of(), ImmutableList.copyOf(list));
     }
 
     public <T> T valueArg() {
@@ -65,6 +65,21 @@ public final class Expression {
     @SuppressWarnings("unchecked")
     private <T> T argFor(String key, T defValue) {
         return args.containsKey(key) ? (T) args.get(key) : defValue;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Expression that = (Expression) o;
+        return operation.equals(that.operation) && label.equals(that.label)
+           && args.equals(that.args) && children.equals(that.children);
+    }
+
+    @Override
+    public int hashCode() {
+        return 19 * operation.hashCode() + 23 * label.hashCode() + 29 * args.hashCode() + 31 * children.hashCode();
     }
 
     @Override
