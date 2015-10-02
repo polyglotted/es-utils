@@ -6,8 +6,12 @@ import io.polyglotted.eswrapper.query.ExpressionType;
 
 import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
-import static io.polyglotted.eswrapper.query.request.Expression.*;
+import static io.polyglotted.eswrapper.query.request.Expression.withArray;
+import static io.polyglotted.eswrapper.query.request.Expression.withMap;
+import static io.polyglotted.eswrapper.query.request.Expression.withOnlyChildren;
+import static io.polyglotted.eswrapper.query.request.Expression.withValue;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public abstract class Expressions {
 
@@ -89,18 +93,26 @@ public abstract class Expressions {
     }
 
     public static Expression and(Expression... expressions) {
-        return withOnlyChildren(ExpressionType.And, "", asList(expressions));
+        return and(asList(expressions));
+    }
+
+    public static Expression and(Iterable<Expression> expressions) {
+        return withOnlyChildren(ExpressionType.And, "", expressions);
     }
 
     public static Expression or(Expression... expressions) {
-        return withOnlyChildren(ExpressionType.Or, "", asList(expressions));
+        return or(asList(expressions));
+    }
+
+    public static Expression or(Iterable<Expression> expressions) {
+        return withOnlyChildren(ExpressionType.Or, "", expressions);
     }
 
     public static Expression not(Expression expression) {
-        return withOnlyChildren(ExpressionType.Not, "", asList(expression));
+        return withOnlyChildren(ExpressionType.Not, "", singletonList(expression));
     }
 
     public static Expression nested(String path, Expression expression) {
-        return withOnlyChildren(ExpressionType.Nested, path, asList(expression));
+        return withOnlyChildren(ExpressionType.Nested, path, singletonList(expression));
     }
 }

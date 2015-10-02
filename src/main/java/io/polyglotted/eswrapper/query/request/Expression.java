@@ -12,6 +12,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 @RequiredArgsConstructor
 public final class Expression {
+    public static final Expression NilExpression = new Expression("_nil_", "_nil_", ImmutableMap.of(), ImmutableList.of());
     public static final String ValueKey = "_val";
     public final String operation;
     public final String label;
