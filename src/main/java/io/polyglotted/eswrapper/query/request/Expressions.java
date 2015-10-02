@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.query.ExpressionType;
 
+import java.util.List;
+
 import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
 import static io.polyglotted.eswrapper.query.request.Expression.withArray;
@@ -55,8 +57,13 @@ public abstract class Expressions {
         return withValue(ExpressionType.Ne, field, value);
     }
 
+    @SafeVarargs
     public static <E extends Comparable<E>> Expression in(String field, E... values) {
-        return withArray(ExpressionType.In, field, ImmutableList.copyOf(asList(values)));
+        return in(field, asList(values));
+    }
+
+    public static <E extends Comparable<E>> Expression in(String field, List<E> values) {
+        return withArray(ExpressionType.In, field, ImmutableList.copyOf(values));
     }
 
     public static Expression between(String field, Object from, Object to) {
