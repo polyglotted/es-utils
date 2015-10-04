@@ -2,11 +2,11 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import lombok.*;
 import lombok.experimental.Accessors;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.FieldType.LONG;
@@ -54,6 +54,10 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         return new Builder();
     }
 
+    public static FieldMapping.Builder nestedField(String field) {
+        return fieldBuilder().field(field).type(FieldType.NESTED);
+    }
+
     public static FieldMapping.Builder notAnalyzedStringField(String field) {
         return notAnalyzedField(field, FieldType.STRING).docValues(true);
     }
@@ -66,6 +70,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     @Accessors(fluent = true, chain = true)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
+        @Getter
         private String field;
         @Getter
         private FieldType type;
@@ -80,6 +85,13 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         private Boolean docValues = null;
         @Getter
         private boolean isAPath = false;
+        @Getter
+        private final Map<String, Builder> properties = new TreeMap<>();
+
+        public Builder property(Iterable<Builder> properties) {
+            this.properties.putAll(Maps.uniqueIndex(properties, Builder::field));
+            return this;
+        }
 
         public FieldMapping build() {
             return new FieldMapping(checkNotNull(field, "field cannot be null"), includeInSource, GSON.toJson(this));

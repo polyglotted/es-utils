@@ -9,11 +9,16 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
+import static io.polyglotted.eswrapper.indexing.FieldMapping.fieldBuilder;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.nestedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
+import static io.polyglotted.eswrapper.indexing.FieldType.BOOLEAN;
+import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
 import static io.polyglotted.eswrapper.indexing.TransformScript.transformBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,7 +60,7 @@ public class IndexSerializerTest extends IndexSerializer {
     @Test
     public void simpleFieldTypeMapping() {
         String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
-           .fieldMapping(FieldMapping.fieldBuilder().field("field1").type(BINARY)).build());
+           .fieldMapping(fieldBuilder().field("field1").type(BINARY)).build());
         //System.out.println("simpleFieldTypeMapping=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("simpleFieldTypeMapping")));
     }
@@ -72,7 +77,7 @@ public class IndexSerializerTest extends IndexSerializer {
     @Test
     public void sourceIncludesTypeMapping() {
         String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
-           .fieldMapping(notAnalyzedField("field1", FieldType.STRING).includeInSource(true)).build());
+           .fieldMapping(notAnalyzedField("field1", STRING).includeInSource(true)).build());
         //System.out.println("sourceIncludesTypeMapping=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("sourceIncludesTypeMapping")));
     }
@@ -112,6 +117,18 @@ public class IndexSerializerTest extends IndexSerializer {
            .fieldMapping(notAnalyzedStringField("field1")).metaData("myName", "myVal").build());
         //System.out.println("metaTypeMapping=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("metaTypeMapping")));
+    }
+
+    @Test
+    public void nestedMapping() {
+        FieldMapping.Builder constraint = nestedField("constraint").property(asList(notAnalyzedField("attr", STRING),
+           notAnalyzedField("func", STRING), notAnalyzedField("val", STRING), notAnalyzedField("neg", BOOLEAN)));
+        FieldMapping.Builder axiom = nestedField("axiom").property(asList(notAnalyzedField("effect", STRING), constraint));
+
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("NestedObj")
+           .fieldMapping(notAnalyzedStringField("target").isAPath(true)).fieldMapping(axiom).build());
+        //System.out.println("nestedMapping=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("nestedMapping")));
     }
 
     @Test

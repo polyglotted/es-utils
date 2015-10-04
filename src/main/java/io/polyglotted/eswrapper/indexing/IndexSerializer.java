@@ -67,6 +67,7 @@ public abstract class IndexSerializer {
             if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
             if (builder.docValues() != null) object.addProperty("doc_values", builder.docValues());
             if (builder.isAPath()) object.add("fields", context.serialize(FieldMapping.PATH_FIELDS));
+            if (FieldType.NESTED == builder.type()) object.add("properties", context.serialize(builder.properties()));
             return object;
         }
     }
