@@ -22,11 +22,13 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.cluster.ClusterState;
+import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.client.Requests.indexAliasesRequest;
@@ -93,7 +95,11 @@ public final class AdminWrapper {
     public String getMapping(String index, String type) {
         ClusterState state = client.admin().cluster().prepareState().setIndices(index)
            .execute().actionGet().getState();
-        MappingMetaData mapping = state.getMetaData().index(index).mapping(type);
+
+        IndexMetaData indexMetaData = state.getMetaData().hasIndex(index) ? state.getMetaData().index(index) :
+           state.getMetaData().indices().valuesIt().next();
+        MappingMetaData mapping = checkNotNull(indexMetaData).mapping(type);
+
         return mapping.source().toString();
     }
 

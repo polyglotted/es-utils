@@ -55,7 +55,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     }
 
     public static FieldMapping.Builder nestedField(String field) {
-        return fieldBuilder().field(field).type(FieldType.NESTED);
+        return simpleField(field, FieldType.NESTED);
     }
 
     public static FieldMapping.Builder notAnalyzedStringField(String field) {
@@ -63,7 +63,11 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     }
 
     public static FieldMapping.Builder notAnalyzedField(String field, FieldType fieldType) {
-        return fieldBuilder().field(field).type(fieldType).indexed(Indexed.NOT_ANALYZED).stored(null);
+        return simpleField(field, fieldType).indexed(Indexed.NOT_ANALYZED).stored(null);
+    }
+
+    public static FieldMapping.Builder simpleField(String field, FieldType fieldType) {
+        return fieldBuilder().field(field).type(fieldType);
     }
 
     @Setter

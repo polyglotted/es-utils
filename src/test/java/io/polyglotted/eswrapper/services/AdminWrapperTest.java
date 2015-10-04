@@ -40,6 +40,7 @@ public class AdminWrapperTest extends AbstractElasticTest {
            "\"a\":{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true}}}}";
         assertThat(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE), is(MAPPING));
         assertThat(admin.getMapping(ADMIN_INDICES[1], ADMIN_TYPE), is(MAPPING));
+        assertThat(admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), is(MAPPING));
 
         //test no-op actions
         admin.createIndex(IndexSetting.with(5, 2), ADMIN_INDICES[0]);
