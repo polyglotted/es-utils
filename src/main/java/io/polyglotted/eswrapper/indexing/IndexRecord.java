@@ -97,8 +97,8 @@ public final class IndexRecord {
         return new Builder(checkNotNull(key, "key cannot be null"), Action.UPDATE);
     }
 
-    public static Builder deleteRecord(IndexKey key) {
-        return new Builder(checkNotNull(key, "key cannot be null"), Action.DELETE).source("");
+    public static IndexRecord deleteRecord(IndexKey key) {
+        return new Builder(checkNotNull(key, "key cannot be null"), Action.DELETE).source("").build();
     }
 
     @Setter

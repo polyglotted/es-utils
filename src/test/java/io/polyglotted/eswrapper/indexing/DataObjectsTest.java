@@ -6,6 +6,7 @@ import io.polyglotted.eswrapper.query.request.Expressions;
 import io.polyglotted.eswrapper.query.request.QueryHints;
 import io.polyglotted.eswrapper.query.request.SimpleSort;
 import io.polyglotted.eswrapper.query.response.Flattened;
+import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import org.testng.annotations.Test;
 
@@ -131,6 +132,19 @@ public class DataObjectsTest {
         verifyEqualsHashCode(orig, copy, other1, other2, other3);
     }
 
+    @Test
+    public void responseHeaderEqHash() {
+        ResponseHeader orig = new ResponseHeader(0, 20, 10, "hello");
+        ResponseHeader copy = new ResponseHeader(0, 20, 10, "hello");
+        ResponseHeader nil = new ResponseHeader(0, 20, 10, null);
+        ResponseHeader nilCopy = new ResponseHeader(0, 20, 10, null);
+        ResponseHeader other1 = new ResponseHeader(0, 10, 10, "hello");
+        ResponseHeader other2 = new ResponseHeader(0, 20, 20, "hello");
+        ResponseHeader other3 = new ResponseHeader(0, 20, 10, "notsame");
+        verifyEqualsHashCode(orig, copy, nil, other1, other2, other3);
+        verifyEqualsHashCode(nil, nilCopy, other3);
+    }
+
     @SafeVarargs
     public static <T> void verifyEqualsHashCode(T obj, T copy, T... others) {
         assertNotNull(obj.toString());
@@ -139,7 +153,7 @@ public class DataObjectsTest {
         assertEquals(obj.hashCode(), copy.hashCode());
         assertFalse(obj.equals(null));
         assertFalse(obj.equals(""));
-        for(int i = 0; i < others.length; ++i) {
+        for (int i = 0; i < others.length; ++i) {
             assertNotEquals(obj, others[i]);
         }
     }
@@ -148,7 +162,7 @@ public class DataObjectsTest {
     public static <T extends Comparable<T>> void verifyComparable(T obj1, T... others) {
         assertEquals(obj1.compareTo(null), -1);
         assertEquals(obj1.compareTo(obj1), 0);
-        for(T other : others) {
+        for (T other : others) {
             assertTrue(obj1.compareTo(other) < 0);
         }
     }

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.query.StandardScroll.fromScrollId;
 
 @RequiredArgsConstructor
 public final class StandardResponse {
@@ -23,6 +24,10 @@ public final class StandardResponse {
 
     public <T> List<T> resultsAs(Class<? extends T> tClass) {
         return Lists.transform(results, tClass::cast);
+    }
+
+    public StandardScroll nextScroll() {
+        return fromScrollId(checkNotNull(header.scrollId, "cannot scroll null scrollId"));
     }
 
     public static Builder responseBuilder() {

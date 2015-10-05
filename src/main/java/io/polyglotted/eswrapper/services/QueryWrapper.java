@@ -5,8 +5,10 @@ import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.query.AggregationType;
 import io.polyglotted.eswrapper.query.StandardQuery;
 import io.polyglotted.eswrapper.query.StandardResponse;
+import io.polyglotted.eswrapper.query.StandardScroll;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.response.Aggregation;
+import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import io.polyglotted.eswrapper.query.response.ResultBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +30,9 @@ import java.util.Map;
 
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.aggregationToRequest;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.queryToRequest;
+import static io.polyglotted.eswrapper.query.request.QueryBuilder.scrollRequest;
 import static io.polyglotted.eswrapper.query.response.ResponseHeader.getReturnedHits;
+import static io.polyglotted.eswrapper.query.response.ResponseHeader.getTotalHits;
 import static io.polyglotted.eswrapper.query.response.ResponseHeader.headerFrom;
 import static java.util.Collections.singletonList;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
@@ -62,26 +66,27 @@ public final class QueryWrapper {
         return buildAggregations(singletonList(aggs), response).get(0);
     }
 
-    @SuppressWarnings("unused")
-    public <T> StandardResponse scroll(SearchRequest request, ResultBuilder<T> resultBuilder) {
+    public <T> StandardResponse simpleScroll(SearchRequest request, ResultBuilder<T> resultBuilder) {
         request = request.scroll(DEFAULT_KEEP_ALIVE);
         SearchResponse searchResponse = client.search(request).actionGet();
 
         StandardResponse.Builder response = StandardResponse.responseBuilder();
-        response.header(headerFrom(searchResponse));
-
+        final long totalHits = getTotalHits(searchResponse);
+        long tookInMillis = 0;
         while (getReturnedHits(searchResponse) > 0) {
+            tookInMillis+= searchResponse.getTookInMillis();
             response.results(resultBuilder.buildFrom(searchResponse));
 
-            SearchScrollRequest scrollRequest = new SearchScrollRequest(
-               searchResponse.getScrollId()).scroll(DEFAULT_KEEP_ALIVE);
+            SearchScrollRequest scrollRequest = new SearchScrollRequest( searchResponse.getScrollId())
+               .scroll(DEFAULT_KEEP_ALIVE);
             searchResponse = client.searchScroll(scrollRequest).actionGet();
         }
+        response.header(new ResponseHeader(tookInMillis, totalHits, totalHits, null));
         return response.build();
     }
 
-    public <T> StandardResponse scroll(SearchScrollRequest request, ResultBuilder<T> resultBuilder) {
-        SearchResponse searchResponse = client.searchScroll(request).actionGet();
+    public <T> StandardResponse scroll(StandardScroll scroll, ResultBuilder<T> resultBuilder) {
+        SearchResponse searchResponse = client.searchScroll(scrollRequest(scroll)).actionGet();
         return responseBuilder(searchResponse, resultBuilder).build();
     }
 

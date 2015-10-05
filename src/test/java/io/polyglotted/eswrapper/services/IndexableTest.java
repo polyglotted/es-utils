@@ -65,28 +65,24 @@ public class IndexableTest extends AbstractElasticTest {
     public void updateRecords() {
         indexer.twoPhaseCommit(initialIndexable());
 
-        List<Trade> newTrades = ImmutableList.of(
-           trade("/trades/021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0),
-           trade("/trades/022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0));
+        IndexMutations<Trade> mutations = IndexMutations.<Trade>mutationsBuilder()
+           .creates(ImmutableList.of(trade("/trades/021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0),
+              trade("/trades/022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0)))
 
-        Map<IndexKey, Trade> updateTrades = ImmutableMap.of(
-           new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0),
-           new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/010", T1),
-           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0));
+           .updates(ImmutableMap.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
+              trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0),
+              new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/010", T1),
+              trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0)))
 
-        List<IndexKey> deleteTrades = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
+           .deletes(ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1))).build();
 
-        indexer.twoPhaseCommit(indexableBuilder().index(INDEXABLE_INDEX).timestamp(T2)
-           .records(transform(newTrades, IndexableTest::toNewRecord))
-           .records(transform(updateTrades.entrySet(), IndexableTest::toUpdateRecord))
-           .records(transform(deleteTrades, IndexRecord::deleteRecord))
-           .build());
+        indexer.twoPhaseCommit(mutations.toIndexable(INDEXABLE_INDEX, T2,
+           IndexableTest::toNewRecord, IndexableTest::toUpdateRecord));
 
         assertThat(fetchRecords(LIVE_INDEX).size(), is(21));
         assertThat(fetchRecords(HISTORY_INDEX).size(), is(3));
-        assertHistory(updateTrades.keySet(), T1, "expired", T2);
-        assertHistory(deleteTrades, T1, "deleted", T2);
+        assertHistory(mutations.updates.keySet(), T1, "expired", T2);
+        assertHistory(mutations.deletes, T1, "deleted", T2);
     }
 
     @Test
@@ -175,12 +171,11 @@ public class IndexableTest extends AbstractElasticTest {
            .records(transform(sampleTrades(), IndexableTest::toNewRecord)).build();
     }
 
-    private static IndexRecord.Builder toNewRecord(Trade trade) {
-        return createRecord(TRADE_TYPE, trade.address).source(GSON.toJson(trade));
+    private static IndexRecord toNewRecord(Trade trade) {
+        return createRecord(TRADE_TYPE, trade.address).source(GSON.toJson(trade)).build();
     }
 
-    private static IndexRecord.Builder toUpdateRecord(Map.Entry<IndexKey, Trade> entry) {
-        Trade trade = entry.getValue();
-        return updateRecord(entry.getKey()).source(GSON.toJson(trade));
+    private static IndexRecord toUpdateRecord(Map.Entry<IndexKey, Trade> entry) {
+        return updateRecord(entry.getKey()).source(GSON.toJson(entry.getValue())).build();
     }
 }

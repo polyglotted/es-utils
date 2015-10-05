@@ -44,7 +44,7 @@ public final class Indexable {
         BulkRequest request = new BulkRequest().refresh(false);
         validateCurrentDocs(currentDocs);
         for (IndexRecord record : records) {
-            if(!record.isUpdate()) continue;
+            if (!record.isUpdate()) continue;
 
             String uniqueId = record.uniqueId();
             log.debug("creating archive record " + uniqueId + " for " + record.id() + " at " + index);
@@ -74,7 +74,7 @@ public final class Indexable {
                 builder.put(indexKey, "record not found for update");
             }
         }
-        if(count > 0) throw new IndexerException(builder.build());
+        if (count > 0) throw new IndexerException(builder.build());
     }
 
     public static Builder indexableBuilder() {
@@ -89,13 +89,9 @@ public final class Indexable {
         private long timestamp = System.currentTimeMillis();
         private final Set<IndexRecord> records = new LinkedHashSet<>();
 
-        public Builder records(Iterable<IndexRecord.Builder> builders) {
-            for (IndexRecord.Builder builder : builders) record(builder);
-            return this;
-        }
-
-        public Builder record(IndexRecord.Builder builder) {
-            checkArgument(records.add(builder.build()), "record already exists", builder.indexKey);
+        public Builder records(Iterable<IndexRecord> records) {
+            for (IndexRecord record : records)
+                checkArgument(this.records.add(record), "record already exists {}", record.indexKey);
             return this;
         }
 

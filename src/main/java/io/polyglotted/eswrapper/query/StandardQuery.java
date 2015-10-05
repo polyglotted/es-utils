@@ -17,7 +17,6 @@ import static com.google.common.collect.ImmutableList.copyOf;
 import static io.polyglotted.eswrapper.query.request.QueryHints.hintsBuilder;
 import static java.util.Arrays.asList;
 
-@Accessors(fluent = true)
 @RequiredArgsConstructor
 public final class StandardQuery {
     public final ImmutableList<String> indices;

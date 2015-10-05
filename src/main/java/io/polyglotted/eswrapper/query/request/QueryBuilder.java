@@ -4,8 +4,10 @@ import com.google.common.annotations.VisibleForTesting;
 import io.polyglotted.eswrapper.query.AggregationType;
 import io.polyglotted.eswrapper.query.ExpressionType;
 import io.polyglotted.eswrapper.query.StandardQuery;
+import io.polyglotted.eswrapper.query.StandardScroll;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
@@ -37,6 +39,10 @@ public abstract class QueryBuilder {
     public static SearchRequest aggregationToRequest(AbstractAggregationBuilder aggs, String... indices) {
         SearchSourceBuilder source = new SearchSourceBuilder().size(0).query(matchAllQuery()).aggregation(aggs);
         return new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source);
+    }
+
+    public static SearchScrollRequest scrollRequest(StandardScroll scroll) {
+        return new SearchScrollRequest(scroll.scrollId).scroll(timeValueMillis(scroll.scrollTimeInMillis));
     }
 
     public static SearchRequest queryToRequest(StandardQuery query, FilterBuilder postFilter) {

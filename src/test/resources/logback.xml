@@ -8,11 +8,11 @@
 
     <logger name="org.apache" level="WARN" />
     <logger name="org.springframework" level="WARN" />
-    <logger name="org.elasticsearch" level="INFO" />
+    <logger name="org.elasticsearch" level="WARN" />
     <logger name="fr.pilato" level="INFO" />
     <logger name="org.eclipse" level="WARN" />
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
