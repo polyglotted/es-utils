@@ -81,9 +81,9 @@ public class QueryWrapperTest extends AbstractElasticTest {
         StandardResponse standardResponse = query.search(queryToRequest(queryBuilder()
            .index(DUMMY_INDICES[0]).size(8).scrollTimeInMillis(3000L).build(), null), NullBuilder);
         standardResponse = query.scroll(standardResponse.nextScroll(), NullBuilder);
-        assertEquals(standardResponse.header.totalHits, 20L);
-        assertEquals(standardResponse.header.returnedHits, 8L);
-        assertNotNull(standardResponse.header.scrollId);
+        assertEquals(standardResponse.header.hits, 20L);
+        assertEquals(standardResponse.header.returned, 8L);
+        assertNotNull(standardResponse.header.id);
     }
 
     @Test

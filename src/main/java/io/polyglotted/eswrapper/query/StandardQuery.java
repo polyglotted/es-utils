@@ -26,7 +26,7 @@ public final class StandardQuery {
     public final ImmutableList<Expression> aggregates;
     public final ImmutableList<SimpleSort> sorts;
     public final QueryHints hints;
-    public final Long scrollTimeInMillis;
+    public final Long scroll;
     public final int offset;
     public final int size;
 

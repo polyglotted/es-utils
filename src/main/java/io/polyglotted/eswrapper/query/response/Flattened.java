@@ -41,7 +41,7 @@ public final class Flattened {
         }
         return aggs.buckets().stream().flatMap(bucket -> {
             final String[] inner = makeArray(strings, bucket.key);
-            return !bucket.hasAggregations() ? Stream.of(build(inner, bucket.docCount)) :
+            return !bucket.hasAggregations() ? Stream.of(build(inner, bucket.count)) :
                bucket.aggregations.stream().flatMap(child -> flatten(inner, child));
         });
     }

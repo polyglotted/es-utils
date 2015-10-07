@@ -22,12 +22,12 @@ public final class FieldMapping implements Comparable<FieldMapping> {
        "analyzer", "path_analyzer"));
 
     public final String field;
-    public final boolean includeInSource;
+    public final boolean include;
     public final ImmutableMap<String, Object> mapping;
 
     @SuppressWarnings("unchecked")
-    public FieldMapping(String field, boolean includeInSource, String mappingJson) {
-        this(field, includeInSource, ImmutableMap.copyOf(GSON.fromJson(mappingJson, Map.class)));
+    public FieldMapping(String field, boolean include, String mappingJson) {
+        this(field, include, ImmutableMap.copyOf(GSON.fromJson(mappingJson, Map.class)));
     }
 
     @Override

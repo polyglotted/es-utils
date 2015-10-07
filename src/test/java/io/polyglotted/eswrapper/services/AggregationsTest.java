@@ -209,6 +209,6 @@ public class AggregationsTest extends AbstractElasticTest {
 
     private static void assertBucket(Bucket bucket, String key, long docCount) {
         assertThat(bucket.key, is(equalTo(key)));
-        assertThat(bucket.docCount, is(equalTo(docCount)));
+        assertThat(bucket.count, is(equalTo(docCount)));
     }
 }

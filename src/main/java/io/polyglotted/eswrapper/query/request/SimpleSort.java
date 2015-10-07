@@ -11,9 +11,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SimpleSort {
     public final String field;
-    public final String order;
-    public final String mode;
-    public final String unmappedType;
+    public final Order order;
+    public final Mode mode;
+    public final String unmapped;
     public final Object missing;
 
     public static SimpleSort sortAsc(String field) {
@@ -52,8 +52,7 @@ public final class SimpleSort {
         private Object missing;
 
         public SimpleSort build() {
-            return new SimpleSort(checkNotNull(field, "field should not be null"), order.name(),
-                    mode.toMode(), unmappedType, missing);
+            return new SimpleSort(checkNotNull(field, "field should not be null"), order, mode, unmappedType, missing);
         }
     }
 }

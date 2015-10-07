@@ -13,17 +13,17 @@ import java.util.List;
 import static com.google.common.collect.Iterables.transform;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString(doNotUseGetters = true, includeFieldNames = false, of = {"key", "docCount", "aggregations"})
+@ToString(doNotUseGetters = true, includeFieldNames = false, of = {"key", "count", "aggregations"})
 public final class Bucket {
     public final String key;
-    public final Object keyValue;
-    public final long docCount;
-    public final long docCountError;
+    public final Object value;
+    public final long count;
+    public final long errors;
     public final ImmutableList<Aggregation> aggregations;
 
     @SuppressWarnings("unchecked")
     public <T> T keyValue() {
-        return (T) keyValue;
+        return (T) value;
     }
 
     public boolean hasAggregations() {

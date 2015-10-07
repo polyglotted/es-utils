@@ -18,22 +18,22 @@ import static com.google.common.collect.Iterables.transform;
 @ToString(doNotUseGetters = true, includeFieldNames = false, of = {"label", "type", "value"})
 public final class Aggregation {
     public final String label;
-    public final AggregationType type;
+    public final String type;
     public final Object value;
-    public final ImmutableMap<String, Object> paramsMap;
+    public final ImmutableMap<String, Object> params;
 
     public boolean hasBuckets() {
-        return type.hasBuckets;
+        return AggregationType.valueOf(type).hasBuckets;
     }
 
     @SuppressWarnings("unchecked")
     public List<Bucket> buckets() {
-        checkState(hasBuckets(), type.name() + " does not support buckets");
+        checkState(hasBuckets(), type + " does not support buckets");
         return (List<Bucket>) value;
     }
 
     public <T> T param(String name, Class<T> tClass) {
-        return tClass.cast(paramsMap.get(name));
+        return tClass.cast(params.get(name));
     }
 
     public long longValue(String name) {
@@ -88,7 +88,7 @@ public final class Aggregation {
         public Aggregation build() {
             Iterable<Bucket> buckets = transform(builders, Bucket.Builder::build);
             return new Aggregation(checkNotNull(label, "label cannot be null"), checkNotNull(type,
-               "type cannot be null"), type.valueFrom(valueMap, buckets), ImmutableMap.copyOf(paramsMap));
+               "type cannot be null").name(), type.valueFrom(valueMap, buckets), ImmutableMap.copyOf(paramsMap));
         }
     }
 }

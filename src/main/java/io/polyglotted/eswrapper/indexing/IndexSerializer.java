@@ -20,13 +20,13 @@ public abstract class IndexSerializer {
             if (mapping.strict) mainType.addProperty("dynamic", "strict");
 
             JsonObject source = new JsonObject();
-            if (!mapping.storeSource) {
+            if (!mapping.store) {
                 mainType.add("_source", source);
                 source.addProperty("enabled", false);
 
-            } else if (!mapping.sourceIncludes.isEmpty()) {
+            } else if (!mapping.includes.isEmpty()) {
                 mainType.add("_source", source);
-                source.add("includes", context.serialize(mapping.sourceIncludes));
+                source.add("includes", context.serialize(mapping.includes));
             }
 
             JsonObject all = new JsonObject();
@@ -34,21 +34,21 @@ public abstract class IndexSerializer {
             all.addProperty("enabled", true);
             all.addProperty("analyzer", "all_analyzer");
 
-            if (!mapping.metaData.isEmpty())
-                mainType.add("_meta", context.serialize(mapping.metaData));
+            if (!mapping.meta.isEmpty())
+                mainType.add("_meta", context.serialize(mapping.meta));
 
-            if (!mapping.transformScripts.isEmpty()) {
-                if (mapping.transformScripts.size() > 1)
-                    mainType.add("transform", context.serialize(mapping.transformScripts));
+            if (!mapping.scripts.isEmpty()) {
+                if (mapping.scripts.size() > 1)
+                    mainType.add("transform", context.serialize(mapping.scripts));
                 else
-                    mainType.add("transform", context.serialize(mapping.transformScripts.get(0)));
+                    mainType.add("transform", context.serialize(mapping.scripts.get(0)));
             }
 
             JsonObject properties = new JsonObject();
             mainType.add("properties", properties);
             for (FieldMapping field : FieldMapping.PRIVATE_FIELDS)
                 properties.add(field.field, context.serialize(field.mapping));
-            for (FieldMapping field : mapping.fieldMappings)
+            for (FieldMapping field : mapping.mappings)
                 properties.add(field.field, context.serialize(field.mapping));
 
             JsonObject result = new JsonObject();

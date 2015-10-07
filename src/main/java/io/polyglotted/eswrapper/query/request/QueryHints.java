@@ -14,12 +14,12 @@ import static java.util.Arrays.asList;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class QueryHints {
-    public final String indicesOptions;
-    public final String searchType;
-    public final int timeoutInSeconds;
+    public final String options;
+    public final String type;
+    public final int timeout;
     public final ImmutableList<String> routing;
     public final String preference;
-    public final boolean fetchSource;
+    public final boolean fetch;
 
     @SuppressWarnings("unused")
     public enum Options {

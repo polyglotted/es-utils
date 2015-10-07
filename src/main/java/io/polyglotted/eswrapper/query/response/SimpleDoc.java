@@ -13,7 +13,7 @@ import static com.google.common.base.Optional.fromNullable;
 @ToString(includeFieldNames = false)
 @RequiredArgsConstructor
 public final class SimpleDoc {
-    public final IndexKey indexKey;
+    public final IndexKey key;
     public final ImmutableMap<String, Object> source;
 
     @Override
@@ -21,16 +21,16 @@ public final class SimpleDoc {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SimpleDoc other = (SimpleDoc) o;
-        return indexKey.equals(other.indexKey) && source.equals(other.source);
+        return key.equals(other.key) && source.equals(other.source);
     }
 
     @Override
     public int hashCode() {
-        return 17 * indexKey.hashCode() + source.hashCode();
+        return 17 * key.hashCode() + source.hashCode();
     }
 
     public IndexKey key() {
-        return indexKey;
+        return key;
     }
 
     public long longVal(String property) {
@@ -42,7 +42,7 @@ public final class SimpleDoc {
     }
 
     public ActionRequest forcedRequest() {
-        return new IndexRequest(indexKey.index, indexKey.type, indexKey.id).version(indexKey.version)
+        return new IndexRequest(key.index, key.type, key.id).version(key.version)
            .versionType(VersionType.FORCE).source(source);
     }
 }

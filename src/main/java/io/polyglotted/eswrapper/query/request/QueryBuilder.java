@@ -42,7 +42,7 @@ public abstract class QueryBuilder {
     }
 
     public static SearchScrollRequest scrollRequest(StandardScroll scroll) {
-        return new SearchScrollRequest(scroll.scrollId).scroll(timeValueMillis(scroll.scrollTimeInMillis));
+        return new SearchScrollRequest(scroll.id).scroll(timeValueMillis(scroll.scroll));
     }
 
     public static SearchRequest queryToRequest(StandardQuery query, FilterBuilder postFilter) {
@@ -68,13 +68,13 @@ public abstract class QueryBuilder {
 
     @VisibleForTesting
     static void setHints(SearchRequest request, SearchSourceBuilder builder, QueryHints hints) {
-        request.indicesOptions(optionsFrom(hints.indicesOptions));
-        request.searchType(hints.searchType);
+        request.indicesOptions(optionsFrom(hints.options));
+        request.searchType(hints.type);
         request.preference(hints.preference);
         String[] routings = toStrArray(hints.routing);
         if (routings.length > 0) request.routing(routings);
-        if (!hints.fetchSource) builder.fetchSource(false);
-        builder.timeout(timeValueSeconds(hints.timeoutInSeconds));
+        if (!hints.fetch) builder.fetchSource(false);
+        builder.timeout(timeValueSeconds(hints.timeout));
     }
 
     @VisibleForTesting
@@ -97,14 +97,14 @@ public abstract class QueryBuilder {
     @VisibleForTesting
     static void setOrder(SearchSourceBuilder builder, StandardQuery query) {
         for (SimpleSort sort : query.sorts)
-            builder.sort(fieldSort(sort.field).order(SortOrder.valueOf(sort.order)).sortMode(sort.mode)
-               .unmappedType(sort.unmappedType).missing(sort.missing));
+            builder.sort(fieldSort(sort.field).order(SortOrder.valueOf(sort.order.name()))
+               .sortMode(sort.mode.toMode()).unmappedType(sort.unmapped).missing(sort.missing));
     }
 
     private static void setScrollOrLimits(SearchRequest request, SearchSourceBuilder builder, StandardQuery query) {
         builder.size(query.size);
-        if (query.scrollTimeInMillis != null) {
-            request.scroll(timeValueMillis(query.scrollTimeInMillis));
+        if (query.scroll != null) {
+            request.scroll(timeValueMillis(query.scroll));
         } else {
             builder.from(query.offset);
         }

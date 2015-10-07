@@ -9,10 +9,10 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @ToString(doNotUseGetters = true)
 public final class ResponseHeader {
-    public final long tookInMillis;
-    public final long totalHits;
-    public final long returnedHits;
-    public final String scrollId;
+    public final long millis;
+    public final long hits;
+    public final long returned;
+    public final String id;
 
     public static ResponseHeader headerFrom(SearchResponse response) {
         return new ResponseHeader(response.getTookInMillis(), getTotalHits(response),
@@ -33,12 +33,12 @@ public final class ResponseHeader {
         if (o == null || getClass() != o.getClass()) return false;
 
         ResponseHeader that = (ResponseHeader) o;
-        return (totalHits == that.totalHits) && (returnedHits == that.returnedHits) &&
-           (scrollId == null ? that.scrollId == null : scrollId.equals(that.scrollId));
+        return (hits == that.hits) && (returned == that.returned) &&
+           (id == null ? that.id == null : id.equals(that.id));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(totalHits, returnedHits, scrollId);
+        return Objects.hash(hits, returned, id);
     }
 }

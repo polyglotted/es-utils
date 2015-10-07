@@ -27,7 +27,7 @@ public final class StandardResponse {
     }
 
     public StandardScroll nextScroll() {
-        return fromScrollId(checkNotNull(header.scrollId, "cannot scroll null scrollId"));
+        return fromScrollId(checkNotNull(header.id, "cannot scroll null scrollId"));
     }
 
     public static Builder responseBuilder() {
