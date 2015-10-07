@@ -5,31 +5,28 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.elasticsearch.search.sort.SortOrder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SimpleSort {
+public final class Sort {
     public final String field;
-    public final Order order;
-    public final Mode mode;
+    public final SortOrder order;
+    public final SortMode mode;
     public final String unmapped;
     public final Object missing;
 
-    public static SimpleSort sortAsc(String field) {
+    public static Sort sortAsc(String field) {
         return sortBuilder().field(field).build();
     }
 
-    public static SimpleSort sortDesc(String field) {
-        return sortBuilder().field(field).order(Order.DESC).build();
-    }
-
-    public enum Order {
-        ASC, DESC
+    public static Sort sortDesc(String field) {
+        return sortBuilder().field(field).order(SortOrder.DESC).build();
     }
 
     @SuppressWarnings("unused")
-    public enum Mode {
+    public enum SortMode {
         NONE, MIN, MAX, SUM, AVG;
 
         public String toMode() {
@@ -46,13 +43,13 @@ public final class SimpleSort {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
         private String field;
-        private Order order = Order.ASC;
-        private Mode mode = Mode.NONE;
+        private SortOrder order = SortOrder.ASC;
+        private SortMode mode = SortMode.NONE;
         private String unmappedType;
         private Object missing;
 
-        public SimpleSort build() {
-            return new SimpleSort(checkNotNull(field, "field should not be null"), order, mode, unmappedType, missing);
+        public Sort build() {
+            return new Sort(checkNotNull(field, "field should not be null"), order, mode, unmappedType, missing);
         }
     }
 }

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.query.AggregationType;
 import io.polyglotted.eswrapper.query.StandardQuery;
-import io.polyglotted.eswrapper.query.StandardResponse;
+import io.polyglotted.eswrapper.query.QueryResponse;
 import io.polyglotted.eswrapper.query.StandardScroll;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.response.Aggregation;
@@ -66,11 +66,11 @@ public final class QueryWrapper {
         return buildAggregations(singletonList(aggs), response).get(0);
     }
 
-    public <T> StandardResponse simpleScroll(SearchRequest request, ResultBuilder<T> resultBuilder) {
+    public <T> QueryResponse simpleScroll(SearchRequest request, ResultBuilder<T> resultBuilder) {
         request = request.scroll(DEFAULT_KEEP_ALIVE);
         SearchResponse searchResponse = client.search(request).actionGet();
 
-        StandardResponse.Builder response = StandardResponse.responseBuilder();
+        QueryResponse.Builder response = QueryResponse.responseBuilder();
         final long totalHits = getTotalHits(searchResponse);
         long tookInMillis = 0;
         while (getReturnedHits(searchResponse) > 0) {
@@ -85,26 +85,26 @@ public final class QueryWrapper {
         return response.build();
     }
 
-    public <T> StandardResponse scroll(StandardScroll scroll, ResultBuilder<T> resultBuilder) {
+    public <T> QueryResponse scroll(StandardScroll scroll, ResultBuilder<T> resultBuilder) {
         SearchResponse searchResponse = client.searchScroll(scrollRequest(scroll)).actionGet();
         return responseBuilder(searchResponse, resultBuilder).build();
     }
 
-    public <T> StandardResponse search(SearchRequest request, ResultBuilder<T> resultBuilder) {
+    public <T> QueryResponse search(SearchRequest request, ResultBuilder<T> resultBuilder) {
         SearchResponse searchResponse = client.search(request).actionGet();
         return responseBuilder(searchResponse, resultBuilder).build();
     }
 
-    public <T> StandardResponse search(StandardQuery query, FilterBuilder postFilter, ResultBuilder<T> resultBuilder) {
+    public <T> QueryResponse search(StandardQuery query, FilterBuilder postFilter, ResultBuilder<T> resultBuilder) {
         SearchResponse searchResponse = client.search(queryToRequest(query, postFilter)).actionGet();
         return responseBuilder(searchResponse, resultBuilder)
            .aggregations(buildAggregations(query.aggregates, searchResponse)).build();
     }
 
-    private static <T> StandardResponse.Builder responseBuilder(SearchResponse searchResponse, ResultBuilder<T>
+    private static <T> QueryResponse.Builder responseBuilder(SearchResponse searchResponse, ResultBuilder<T>
        resultBuilder) {
 
-        StandardResponse.Builder responseBuilder = StandardResponse.responseBuilder();
+        QueryResponse.Builder responseBuilder = QueryResponse.responseBuilder();
         responseBuilder.header(headerFrom(searchResponse));
         if (getReturnedHits(searchResponse) > 0) responseBuilder.results(resultBuilder.buildFrom(searchResponse));
         return responseBuilder;

@@ -19,6 +19,16 @@ public final class IndexSetting {
        "path_analyzer\":{\"tokenizer\":\"path_hierarchy\",\"filter\":[\"lowercase\"]}}},";
     public final ImmutableMap<String, Object> map;
 
+    @Override
+    public boolean equals(Object o) {
+        return this == o || (!(o == null || getClass() != o.getClass()) && map.equals(((IndexSetting) o).map));
+    }
+
+    @Override
+    public int hashCode() {
+        return 19 * map.hashCode();
+    }
+
     public String createJson() {
         return DEFAULT_ANALYSIS + GSON.toJson(map).substring(1);
     }

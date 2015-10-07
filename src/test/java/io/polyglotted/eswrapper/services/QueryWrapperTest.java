@@ -3,7 +3,7 @@ package io.polyglotted.eswrapper.services;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.FieldType;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
-import io.polyglotted.eswrapper.query.StandardResponse;
+import io.polyglotted.eswrapper.query.QueryResponse;
 import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import org.testng.annotations.Test;
@@ -58,7 +58,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
         admin.createType(typeBuilder().index(DUMMY_INDICES[0]).type(TRADE_TYPE).storeSource(false)
            .fieldMapping(notAnalyzedField(FieldDate, FieldType.DATE)).build());
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
-        StandardResponse response = query.search(queryBuilder().index(DUMMY_INDICES).size(20).build(),
+        QueryResponse response = query.search(queryBuilder().index(DUMMY_INDICES).size(20).build(),
            null, SimpleDocBuilder);
         List<SimpleDoc> simpleDocs = response.resultsAs(SimpleDoc.class);
         for (SimpleDoc doc : simpleDocs) assertEquals(doc.source.size(), 0);
@@ -69,7 +69,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
         admin.createType(typeBuilder().index(DUMMY_INDICES[1]).type(NAMEPATH_TYPE).fieldMapping(
            notAnalyzedStringField("name")).fieldMapping(notAnalyzedStringField("path").isAPath(true)).build());
         indexer.index(pathsRequest(DUMMY_INDICES[1]));
-        StandardResponse response = query.search(queryBuilder().index(DUMMY_INDICES).size(20)
+        QueryResponse response = query.search(queryBuilder().index(DUMMY_INDICES).size(20)
            .expression(equalsTo("path.tree", "/users/aux")).build(), null, SimpleDocBuilder);
         List<SimpleDoc> simpleDocs = response.resultsAs(SimpleDoc.class);
         assertEquals(simpleDocs.size(), 2);
@@ -78,19 +78,19 @@ public class QueryWrapperTest extends AbstractElasticTest {
     @Test
     public void testScroll() {
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
-        StandardResponse standardResponse = query.search(queryToRequest(queryBuilder()
+        QueryResponse queryResponse = query.search(queryToRequest(queryBuilder()
            .index(DUMMY_INDICES[0]).size(8).scrollTimeInMillis(3000L).build(), null), NullBuilder);
-        standardResponse = query.scroll(standardResponse.nextScroll(), NullBuilder);
-        assertEquals(standardResponse.header.hits, 20L);
-        assertEquals(standardResponse.header.returned, 8L);
-        assertNotNull(standardResponse.header.id);
+        queryResponse = query.scroll(queryResponse.nextScroll(), NullBuilder);
+        assertEquals(queryResponse.header.hits, 20L);
+        assertEquals(queryResponse.header.returned, 8L);
+        assertNotNull(queryResponse.header.id);
     }
 
     @Test
     public void testSimpleScroll() {
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
-        StandardResponse standardResponse = query.simpleScroll(queryToRequest(queryBuilder()
+        QueryResponse queryResponse = query.simpleScroll(queryToRequest(queryBuilder()
            .index(DUMMY_INDICES[0]).build(), null), NullBuilder);
-        assertEquals(standardResponse.header, new ResponseHeader(0, 20, 20, null));
+        assertEquals(queryResponse.header, new ResponseHeader(0, 20, 20, null));
     }
 }

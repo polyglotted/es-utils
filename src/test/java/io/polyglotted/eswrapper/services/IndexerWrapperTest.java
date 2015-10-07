@@ -6,7 +6,7 @@ import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.eswrapper.indexing.IndexKey;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
-import io.polyglotted.eswrapper.query.StandardResponse;
+import io.polyglotted.eswrapper.query.QueryResponse;
 import io.polyglotted.eswrapper.query.request.QueryBuilder;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -76,16 +76,16 @@ public class IndexerWrapperTest extends AbstractElasticTest {
            "/trades/001").version(2101L).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade("/trades/001",
            "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0)))));
 
-        StandardResponse origResponse = query.search(QueryBuilder.idRequest(new String[]{"/trades/001", "/trades/010"},
+        QueryResponse origResponse = query.search(QueryBuilder.idRequest(new String[]{"/trades/001", "/trades/010"},
            ImmutableList.of(TRADE_TYPE), TRADES_INDEX), IndexKeyBuilder);
         assertEquals(transform(origResponse.resultsAs(IndexKey.class), key -> key.version), ImmutableList.of(2101L, 1101L));
 
         indexer.forceReindex(docs);
         admin.forceRefresh(TRADES_INDEX);
 
-        StandardResponse standardResponse = query.search(QueryBuilder.idRequest(new String[]{"/trades/001", "/trades/010"},
+        QueryResponse queryResponse = query.search(QueryBuilder.idRequest(new String[]{"/trades/001", "/trades/010"},
            ImmutableList.of(TRADE_TYPE), TRADES_INDEX), IndexKeyBuilder);
-        assertTrue(Iterables.all(standardResponse.resultsAs(IndexKey.class), key -> key.version == 1101L));
+        assertTrue(Iterables.all(queryResponse.resultsAs(IndexKey.class), key -> key.version == 1101L));
     }
 
     @Test

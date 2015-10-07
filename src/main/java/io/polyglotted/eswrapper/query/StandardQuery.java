@@ -3,7 +3,7 @@ package io.polyglotted.eswrapper.query;
 import com.google.common.collect.ImmutableList;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.request.QueryHints;
-import io.polyglotted.eswrapper.query.request.SimpleSort;
+import io.polyglotted.eswrapper.query.request.Sort;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public final class StandardQuery {
     public final ImmutableList<String> fields;
     public final ImmutableList<Expression> expressions;
     public final ImmutableList<Expression> aggregates;
-    public final ImmutableList<SimpleSort> sorts;
+    public final ImmutableList<Sort> sorts;
     public final QueryHints hints;
     public final Long scroll;
     public final int offset;
@@ -43,7 +43,7 @@ public final class StandardQuery {
         private final List<String> fields = new ArrayList<>();
         private final List<Expression> expressions = new ArrayList<>();
         private final List<Expression> aggregates = new ArrayList<>();
-        private final List<SimpleSort> sorts = new ArrayList<>();
+        private final List<Sort> sorts = new ArrayList<>();
         private QueryHints hints = hintsBuilder().build();
         private Long scrollTimeInMillis = null;
         private int offset = 0;
@@ -74,11 +74,11 @@ public final class StandardQuery {
             return this;
         }
 
-        public Builder sort(SimpleSort.Builder sortBuilder) {
+        public Builder sort(Sort.Builder sortBuilder) {
             return sort(sortBuilder.build());
         }
 
-        public Builder sort(SimpleSort... sorts) {
+        public Builder sort(Sort... sorts) {
             this.sorts.addAll(asList(sorts));
             return this;
         }

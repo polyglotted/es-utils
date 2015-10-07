@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.request.Expressions;
 import io.polyglotted.eswrapper.query.request.QueryHints;
-import io.polyglotted.eswrapper.query.request.SimpleSort;
+import io.polyglotted.eswrapper.query.request.Sort;
 import io.polyglotted.eswrapper.query.response.Flattened;
 import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
@@ -37,24 +37,18 @@ public class DataObjectsTest {
 
     @Test
     public void hintOptionValues() {
-        asList(QueryHints.Options.values()).contains(QueryHints.Options.valueOf("strictExpandOpen"));
+        asList(QueryHints.SearchOptions.values()).contains(QueryHints.SearchOptions.valueOf("STRICT_EXPAND_OPEN"));
     }
 
     @Test
     public void hintTypeValues() {
-        asList(QueryHints.SearchType.values()).contains(QueryHints.SearchType.valueOf("query_and_fetch"));
-    }
-
-    @Test
-    public void sortOrderValues() {
-        asList(SimpleSort.Order.values()).contains(SimpleSort.Order.valueOf("ASC"));
-        assertNotEquals(SimpleSort.sortAsc("a").order, SimpleSort.sortDesc("a").order);
+        asList(QueryHints.SearchType.values()).contains(QueryHints.SearchType.valueOf("QUERY_AND_FETCH"));
     }
 
     @Test
     public void sortModeValues() {
-        asList(SimpleSort.Mode.values()).contains(SimpleSort.Mode.valueOf("SUM"));
-        assertEquals(SimpleSort.Mode.AVG.toMode(), "avg");
+        asList(Sort.SortMode.values()).contains(Sort.SortMode.valueOf("SUM"));
+        assertEquals(Sort.SortMode.AVG.toMode(), "avg");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

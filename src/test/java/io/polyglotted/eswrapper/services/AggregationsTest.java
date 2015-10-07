@@ -3,7 +3,7 @@ package io.polyglotted.eswrapper.services;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.*;
 import io.polyglotted.eswrapper.query.StandardQuery;
-import io.polyglotted.eswrapper.query.StandardResponse;
+import io.polyglotted.eswrapper.query.QueryResponse;
 import io.polyglotted.eswrapper.query.request.Aggregates;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.response.Aggregation;
@@ -198,7 +198,7 @@ public class AggregationsTest extends AbstractElasticTest {
         StandardQuery.Builder queryBuilder = queryBuilder().index(TRADE_AGGREGATES_INDEX).type(TRADE_TYPE)
            .size(0).aggregate(aggs);
         if (filter != null) queryBuilder.expression(filter);
-        StandardResponse response = query.search(queryBuilder.build(), null, ResultBuilder.NullBuilder);
+        QueryResponse response = query.search(queryBuilder.build(), null, ResultBuilder.NullBuilder);
         return response.aggregations.get(0);
     }
 

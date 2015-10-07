@@ -1,5 +1,6 @@
 package io.polyglotted.eswrapper.indexing;
 
+import com.google.common.collect.ImmutableList;
 import io.polyglotted.eswrapper.query.request.Expression;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -10,22 +11,38 @@ import org.elasticsearch.cluster.metadata.AliasAction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.toArray;
 import static io.polyglotted.eswrapper.query.ExpressionType.buildFilter;
 import static java.util.Arrays.asList;
 
 @RequiredArgsConstructor
 public final class Alias {
-    public final String[] aliases;
-    public final String[] indices;
+    public final String alias;
+    public final ImmutableList<String> indices;
     public final Expression filter;
     public final boolean remove;
 
     public IndicesAliasesRequest.AliasActions action() {
         return new IndicesAliasesRequest.AliasActions(remove ? AliasAction.Type.REMOVE : AliasAction.Type.ADD,
-           indices, aliases).filter(buildFilter(filter));
+           toArray(indices, String.class), new String[]{alias}).filter(buildFilter(filter));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Alias that = (Alias) o;
+        return alias.equals(that.alias) && indices.equals(that.indices) && remove == that.remove &&
+           (filter == null ? that.filter==null : filter.equals(that.filter));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(alias, indices, filter, remove);
     }
 
     public static Builder aliasBuilder() {
@@ -36,15 +53,10 @@ public final class Alias {
     @Accessors(fluent = true, chain = true)
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
-        private final List<String> aliases = new ArrayList<>();
+        private String alias;
         private final List<String> indices = new ArrayList<>();
         private Expression filter;
         private boolean remove = false;
-
-        public Builder alias(String... aliases) {
-            this.aliases.addAll(asList(aliases));
-            return this;
-        }
 
         public Builder index(String... indices) {
             this.indices.addAll(asList(indices));
@@ -57,9 +69,8 @@ public final class Alias {
         }
 
         public Alias build() {
-            checkArgument(!aliases.isEmpty(), "atleast one alias must be added");
             checkArgument(!indices.isEmpty(), "atleast one index must be added");
-            return new Alias(toArray(aliases, String.class), toArray(indices, String.class), filter, remove);
+            return new Alias(checkNotNull(alias, "alias required"), ImmutableList.copyOf(indices), filter, remove);
         }
     }
 }

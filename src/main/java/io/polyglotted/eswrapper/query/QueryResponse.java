@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.query.StandardScroll.fromScrollId;
 
 @RequiredArgsConstructor
-public final class StandardResponse {
+public final class QueryResponse {
     public final ResponseHeader header;
     public final ImmutableList<Object> results;
     public final ImmutableList<Aggregation> aggregations;
@@ -47,8 +47,8 @@ public final class StandardResponse {
             return this;
         }
 
-        public StandardResponse build() {
-            return new StandardResponse(checkNotNull(header, "header cannot be null"),
+        public QueryResponse build() {
+            return new QueryResponse(checkNotNull(header, "header cannot be null"),
                ImmutableList.copyOf(results), ImmutableList.copyOf(aggregations));
         }
     }
