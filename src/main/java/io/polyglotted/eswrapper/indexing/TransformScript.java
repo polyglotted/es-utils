@@ -8,12 +8,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 public final class TransformScript {
     public final String script;
     public final ImmutableMap<String, Object> params;
     public final String lang;
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o || (!(o == null || getClass() != o.getClass()) &&
+           scriptJson().equals(((TransformScript) o).scriptJson()));
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * scriptJson().hashCode();
+    }
+
+    public String scriptJson() {
+        return GSON.toJson(this);
+    }
 
     public static Builder transformBuilder() {
         return new Builder();

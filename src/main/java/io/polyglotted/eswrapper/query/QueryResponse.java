@@ -12,6 +12,7 @@ import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.query.StandardScroll.fromScrollId;
@@ -21,6 +22,19 @@ public final class QueryResponse {
     public final ResponseHeader header;
     public final ImmutableList<Object> results;
     public final ImmutableList<Aggregation> aggregations;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        QueryResponse that = (QueryResponse) o;
+        return header.equals(that.header) && results.equals(that.results) && aggregations.equals(that.aggregations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(header, results, aggregations);
+    }
 
     public <T> List<T> resultsAs(Class<? extends T> tClass) {
         return Lists.transform(results, tClass::cast);

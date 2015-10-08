@@ -6,10 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import static com.google.common.collect.Iterables.transform;
@@ -29,6 +26,19 @@ public final class IndexMutations<T> {
            .records(transform(updates.entrySet(), updator))
            .records(transform(deletes, IndexRecord::deleteRecord))
            .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IndexMutations that = (IndexMutations) o;
+        return creates.equals(that.creates) && updates.equals(that.updates) && deletes.equals(that.deletes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(creates, updates, deletes);
     }
 
     public static <T> Builder<T> mutationsBuilder() {

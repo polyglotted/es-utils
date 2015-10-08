@@ -13,7 +13,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
 
-
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(doNotUseGetters = true, includeFieldNames = false, of = {"label", "type", "value"})
 public final class Aggregation {
@@ -21,6 +20,20 @@ public final class Aggregation {
     public final String type;
     public final Object value;
     public final ImmutableMap<String, Object> params;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Aggregation that = (Aggregation) o;
+        return label.equals(that.label) && type.equals(that.type) &&
+           value.equals(that.value) && params.equals(that.params);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(label, type, value, params);
+    }
 
     public boolean hasBuckets() {
         return AggregationType.valueOf(type).hasBuckets;

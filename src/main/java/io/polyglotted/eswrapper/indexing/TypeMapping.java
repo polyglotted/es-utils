@@ -15,7 +15,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
-@Accessors(fluent = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TypeMapping {
     public final String index;
@@ -26,6 +25,17 @@ public final class TypeMapping {
     public final ImmutableSet<FieldMapping> mappings;
     public final ImmutableList<TransformScript> scripts;
     public final ImmutableMap<String, Object> meta;
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o || (!(o == null || getClass() != o.getClass()) &&
+           mappingJson().equals(((TypeMapping) o).mappingJson()));
+    }
+
+    @Override
+    public int hashCode() {
+        return 29 * mappingJson().hashCode();
+    }
 
     public String mappingJson() {
         return GSON.toJson(this);

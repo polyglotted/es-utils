@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.collect.Iterables.transform;
 
@@ -20,6 +21,20 @@ public final class Bucket {
     public final long count;
     public final long errors;
     public final ImmutableList<Aggregation> aggregations;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bucket that = (Bucket) o;
+        return key.equals(that.key) && value.equals(that.value) && count == that.count
+           && errors == that.errors && aggregations.equals(that.aggregations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value, count, errors, aggregations);
+    }
 
     @SuppressWarnings("unchecked")
     public <T> T keyValue() {

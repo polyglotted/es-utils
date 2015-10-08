@@ -27,7 +27,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
 
     @SuppressWarnings("unchecked")
     public FieldMapping(String field, boolean include, String mappingJson) {
-        this(field, include, ImmutableMap.copyOf(GSON.fromJson(mappingJson, Map.class)));
+        this(field, include, (mappingJson == null) ? ImmutableMap.of() : ImmutableMap.copyOf(GSON.fromJson(mappingJson, Map.class)));
     }
 
     @Override

@@ -12,6 +12,7 @@ import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static io.polyglotted.eswrapper.query.request.QueryHints.hintsBuilder;
@@ -29,6 +30,22 @@ public final class StandardQuery {
     public final Long scroll;
     public final int offset;
     public final int size;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StandardQuery that = (StandardQuery) o;
+        return indices.equals(that.indices) && types.equals(that.types) && fields.equals(that.fields) &&
+           expressions.equals(that.expressions) && aggregates.equals(that.aggregates) && sorts.equals(that.sorts)
+           && (hints == null ? that.hints == null : hints.equals(that.hints)) && (scroll == null ?
+           that.scroll == null : scroll.equals(that.scroll)) && offset == that.offset && size == that.size;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(indices, types, fields, expressions, aggregates, scroll, hints, scroll, offset, size);
+    }
 
     public static Builder queryBuilder() {
         return new Builder();
