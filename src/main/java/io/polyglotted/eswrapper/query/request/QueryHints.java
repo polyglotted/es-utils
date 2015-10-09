@@ -9,11 +9,14 @@ import org.elasticsearch.common.io.stream.StreamInput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 import static org.elasticsearch.action.support.IndicesOptions.readIndicesOptions;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class QueryHints {
     public final SearchOptions options;
     public final SearchType type;
@@ -21,6 +24,21 @@ public final class QueryHints {
     public final ImmutableList<String> routing;
     public final String preference;
     public final boolean fetch;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        QueryHints that = (QueryHints) o;
+        return options.equals(that.options) && type.equals(that.type) && timeout==that.timeout
+           && routing.equals(that.routing) && (preference == null ? that.preference == null :
+           preference.equals(that.preference) && fetch == that.fetch);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(options, type, timeout, routing, preference, fetch);
+    }
 
     @SuppressWarnings("unused")
     public enum SearchOptions {
@@ -73,7 +91,7 @@ public final class QueryHints {
         }
 
         public QueryHints build() {
-            return new QueryHints(indicesOptions, searchType, timeoutInSeconds,
+            return new QueryHints(checkNotNull(indicesOptions), checkNotNull(searchType), timeoutInSeconds,
                ImmutableList.copyOf(routing), preference, fetchSource);
         }
     }

@@ -14,7 +14,7 @@ import java.util.Objects;
 import static com.google.common.collect.Iterables.transform;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString(doNotUseGetters = true, includeFieldNames = false, of = {"key", "count", "aggregations"})
+@ToString(includeFieldNames = false, doNotUseGetters = true, of = {"key", "count", "aggregations"})
 public final class Bucket {
     public final String key;
     public final Object value;

@@ -5,6 +5,7 @@ import io.polyglotted.eswrapper.query.request.Expression;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.cluster.metadata.AliasAction;
@@ -20,6 +21,7 @@ import static io.polyglotted.eswrapper.query.ExpressionType.buildFilter;
 import static java.util.Arrays.asList;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class Alias {
     public final String alias;
     public final ImmutableList<String> indices;

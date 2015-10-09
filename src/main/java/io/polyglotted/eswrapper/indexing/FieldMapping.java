@@ -13,6 +13,7 @@ import static io.polyglotted.eswrapper.indexing.FieldType.LONG;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class FieldMapping implements Comparable<FieldMapping> {
     public static final String STATUS_FIELD = "&status";
     public static final String EXPIRY_FIELD = "&expiry";

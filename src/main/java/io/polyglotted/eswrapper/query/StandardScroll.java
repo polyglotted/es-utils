@@ -1,10 +1,12 @@
 package io.polyglotted.eswrapper.query;
 
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import static org.elasticsearch.common.unit.TimeValue.timeValueMinutes;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class StandardScroll {
     public final String id;
     public final long scroll;

@@ -8,6 +8,7 @@ import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.query.StandardScroll.fromScrollId;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class QueryResponse {
     public final ResponseHeader header;
     public final ImmutableList<Object> results;

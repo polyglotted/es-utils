@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.indexing;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionRequest;
@@ -14,6 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class IndexRecord {
     public final IndexKey indexKey;
     public final Action action;

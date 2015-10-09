@@ -13,8 +13,8 @@ import java.io.OutputStream;
 import static com.google.common.collect.ComparisonChain.start;
 import static io.polyglotted.eswrapper.indexing.KeyUtil.generateUuid;
 
-@ToString(includeFieldNames = false)
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class IndexKey implements Comparable<IndexKey> {
     public final String index;
     public final String type;

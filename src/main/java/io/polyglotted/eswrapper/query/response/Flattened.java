@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -12,6 +13,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Iterables.transform;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class Flattened {
     public final ImmutableList<Object> array;
 

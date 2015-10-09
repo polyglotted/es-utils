@@ -7,7 +7,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import java.util.Objects;
 
 @RequiredArgsConstructor
-@ToString(doNotUseGetters = true)
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class ResponseHeader {
     public final long millis;
     public final long hits;

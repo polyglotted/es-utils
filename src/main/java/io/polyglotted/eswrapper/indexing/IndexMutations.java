@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -13,6 +14,7 @@ import static com.google.common.collect.Iterables.transform;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class IndexMutations<T> {
     public final ImmutableList<T> creates;
     public final ImmutableMap<IndexKey, T> updates;

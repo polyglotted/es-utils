@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.indexing;
 import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -13,6 +14,7 @@ import static com.google.common.collect.Maps.filterKeys;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class IndexSetting {
     private static final String DEFAULT_ANALYSIS = "{\"analysis\":{\"analyzer\":{\"default\":{\"type\":\"keyword\"}," +
        "\"all_analyzer\":{\"type\":\"custom\",\"tokenizer\":\"whitespace\",\"filter\":[\"lowercase\"]},\"" +

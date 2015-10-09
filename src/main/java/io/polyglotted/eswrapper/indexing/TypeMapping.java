@@ -3,10 +3,7 @@ package io.polyglotted.eswrapper.indexing;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.util.*;
@@ -16,6 +13,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class TypeMapping {
     public final String index;
     public final String type;

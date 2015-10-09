@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class TransformScript {
     public final String script;
     public final ImmutableMap<String, Object> params;

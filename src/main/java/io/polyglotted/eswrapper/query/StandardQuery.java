@@ -4,21 +4,20 @@ import com.google.common.collect.ImmutableList;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.request.QueryHints;
 import io.polyglotted.eswrapper.query.request.Sort;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static io.polyglotted.eswrapper.query.request.QueryHints.hintsBuilder;
 import static java.util.Arrays.asList;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class StandardQuery {
     public final ImmutableList<String> indices;
     public final ImmutableList<String> types;
@@ -111,7 +110,7 @@ public final class StandardQuery {
 
         public StandardQuery build() {
             return new StandardQuery(copyOf(indices), copyOf(types), copyOf(fields), copyOf(expressions),
-               copyOf(aggregates), copyOf(sorts), hints, scrollTimeInMillis, offset, size);
+               copyOf(aggregates), copyOf(sorts), checkNotNull(hints), scrollTimeInMillis, offset, size);
         }
     }
 }

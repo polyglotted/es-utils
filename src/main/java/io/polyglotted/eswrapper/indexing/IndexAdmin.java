@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class IndexAdmin {
     public final String index;
     public final IndexAction action;

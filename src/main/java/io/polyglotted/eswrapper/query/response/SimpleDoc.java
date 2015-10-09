@@ -10,8 +10,8 @@ import org.elasticsearch.index.VersionType;
 
 import static com.google.common.base.Optional.fromNullable;
 
-@ToString(includeFieldNames = false)
 @RequiredArgsConstructor
+@ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class SimpleDoc {
     public final IndexKey key;
     public final ImmutableMap<String, Object> source;

@@ -14,7 +14,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString(doNotUseGetters = true, includeFieldNames = false, of = {"label", "type", "value"})
+@ToString(includeFieldNames = false, doNotUseGetters = true, of = {"label", "type", "value"})
 public final class Aggregation {
     public final String label;
     public final String type;
@@ -89,6 +89,11 @@ public final class Aggregation {
 
         public Builder param(String key, Object value) {
             paramsMap.put(key, value);
+            return this;
+        }
+
+        public Builder bucket(Bucket.Builder builder) {
+            this.builders.add(builder);
             return this;
         }
 
