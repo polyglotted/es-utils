@@ -17,8 +17,8 @@ import static com.google.common.collect.Iterables.transform;
 public final class Flattened {
     public final ImmutableList<Object> array;
 
-    public Flattened(Object... objects) {
-        this(ImmutableList.copyOf(objects));
+    public static Flattened flattened(Object... objects) {
+        return new Flattened(ImmutableList.copyOf(objects));
     }
 
     @Override
@@ -58,7 +58,7 @@ public final class Flattened {
     private static Flattened build(String[] strings, long docCount) {
         final List<Object> values = Lists.newArrayList((Object[]) strings);
         values.add(docCount);
-        return new Flattened(values.toArray());
+        return Flattened.flattened(values.toArray());
     }
 
     private static Flattened build(String[] strings, Iterable<Entry<String, Object>> aggs) {

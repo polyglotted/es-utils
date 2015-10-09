@@ -24,6 +24,7 @@ import static io.polyglotted.eswrapper.query.AggregationType.Sum;
 import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.query.request.Aggregates.*;
 import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
+import static io.polyglotted.eswrapper.query.response.Flattened.flattened;
 import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.FieldRegion;
 import static io.polyglotted.eswrapper.services.Trade.FieldValue;
@@ -130,15 +131,15 @@ public class AggregationsTest extends AbstractElasticTest {
         Aggregation aggs = indexAndAggregate(dateHisto.build());
 
         Iterator<Flattened> iterator = Flattened.flatten(aggs).iterator();
-        assertEquals(iterator.next(), new Flattened("2015-01-01", "EMEA", 5L));
-        assertEquals(iterator.next(), new Flattened("2015-01-01", "SA", 2L));
-        assertEquals(iterator.next(), new Flattened("2015-01-01", "APAC", 1L));
-        assertEquals(iterator.next(), new Flattened("2015-01-01", "NA", 1L));
-        assertEquals(iterator.next(), new Flattened("2015-02-01", "EMEA", 3L));
-        assertEquals(iterator.next(), new Flattened("2015-02-01", "NA", 1L));
-        assertEquals(iterator.next(), new Flattened("2015-02-01", "SA", 1L));
-        assertEquals(iterator.next(), new Flattened("2015-03-01", "EMEA", 3L));
-        assertEquals(iterator.next(), new Flattened("2015-03-01", "NA", 3L));
+        assertEquals(iterator.next(), flattened("2015-01-01", "EMEA", 5L));
+        assertEquals(iterator.next(), flattened("2015-01-01", "SA", 2L));
+        assertEquals(iterator.next(), flattened("2015-01-01", "APAC", 1L));
+        assertEquals(iterator.next(), flattened("2015-01-01", "NA", 1L));
+        assertEquals(iterator.next(), flattened("2015-02-01", "EMEA", 3L));
+        assertEquals(iterator.next(), flattened("2015-02-01", "NA", 1L));
+        assertEquals(iterator.next(), flattened("2015-02-01", "SA", 1L));
+        assertEquals(iterator.next(), flattened("2015-03-01", "EMEA", 3L));
+        assertEquals(iterator.next(), flattened("2015-03-01", "NA", 3L));
     }
 
     private Aggregation indexAndAggregate(Expression aggs) {
@@ -148,27 +149,27 @@ public class AggregationsTest extends AbstractElasticTest {
 
     @Test
     public void getGroupByWithMax() throws Exception {
-        assertSingleValueSubAggs(maxBuilder(FieldValue, FieldValue), "EMEA", new Flattened("EMEA", 32.0));
+        assertSingleValueSubAggs(maxBuilder(FieldValue, FieldValue), "EMEA", flattened("EMEA", 32.0));
     }
 
     @Test
     public void getGroupByWithMin() throws Exception {
-        assertSingleValueSubAggs(minBuilder(FieldValue, FieldValue), "NA", new Flattened("NA", 10.0));
+        assertSingleValueSubAggs(minBuilder(FieldValue, FieldValue), "NA", flattened("NA", 10.0));
     }
 
     @Test
     public void getGroupByWithSum() throws Exception {
-        assertSingleValueSubAggs(sumBuilder(FieldValue, FieldValue), "SA", new Flattened("SA", 50.0));
+        assertSingleValueSubAggs(sumBuilder(FieldValue, FieldValue), "SA", flattened("SA", 50.0));
     }
 
     @Test
     public void getGroupByWithAvg() throws Exception {
-        assertSingleValueSubAggs(avgBuilder(FieldValue, FieldValue), "NA", new Flattened("NA", 34.0));
+        assertSingleValueSubAggs(avgBuilder(FieldValue, FieldValue), "NA", flattened("NA", 34.0));
     }
 
     @Test
     public void getGroupByWithCount() throws Exception {
-        assertSingleValueSubAggs(countBuilder(FieldValue, FieldValue), "EMEA", new Flattened("EMEA", 11L));
+        assertSingleValueSubAggs(countBuilder(FieldValue, FieldValue), "EMEA", flattened("EMEA", 11L));
     }
 
     private void assertSingleValueSubAggs(Builder child, String filter, Flattened expected) {
@@ -187,9 +188,9 @@ public class AggregationsTest extends AbstractElasticTest {
         Aggregation aggs = queryWithAggregations(equalsTo(FieldRegion, "EMEA"), dateHisto.build());
 
         Iterator<Flattened> iterator = Flattened.flatten(aggs).iterator();
-        assertEquals(iterator.next(), new Flattened("2015-01-01", "EMEA", 15.2, 5L, 20.0, 10.0, 76.0));
-        assertEquals(iterator.next(), new Flattened("2015-02-01", "EMEA", 29.0, 3L, 32.0, 25.0, 87.0));
-        assertEquals(iterator.next(), new Flattened("2015-03-01", "EMEA", 16.0, 3L, 20.0, 12.0, 48.0));
+        assertEquals(iterator.next(), flattened("2015-01-01", "EMEA", 15.2, 5L, 20.0, 10.0, 76.0));
+        assertEquals(iterator.next(), flattened("2015-02-01", "EMEA", 29.0, 3L, 32.0, 25.0, 87.0));
+        assertEquals(iterator.next(), flattened("2015-03-01", "EMEA", 16.0, 3L, 20.0, 12.0, 48.0));
         assertFalse(iterator.hasNext());
     }
 

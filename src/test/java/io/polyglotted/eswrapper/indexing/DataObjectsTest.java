@@ -11,6 +11,7 @@ import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import org.testng.annotations.Test;
 
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.eswrapper.query.response.Flattened.flattened;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -100,9 +101,9 @@ public class DataObjectsTest {
 
     @Test
     public void flattenedEqHash() {
-        Flattened orig = new Flattened("a", "b", 1, 0L);
-        Flattened copy = new Flattened("a", "b", 1, 0L);
-        Flattened other1 = new Flattened("a", "b", 1, 1L);
+        Flattened orig = flattened("a", "b", 1, 0L);
+        Flattened copy = flattened("a", "b", 1, 0L);
+        Flattened other1 = flattened("a", "b", 1, 1L);
         verifyEqualsHashCode(orig, copy, other1);
     }
 
