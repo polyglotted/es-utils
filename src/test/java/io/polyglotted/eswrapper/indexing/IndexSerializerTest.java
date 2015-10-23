@@ -144,12 +144,12 @@ public class IndexSerializerTest extends IndexSerializer {
     }
 
     @Test
-    public void withIndexerMapping() {
+    public void withAnalyzerMapping() {
         String actual = GSON.toJson(typeBuilder().index("testIndex").type("TestObj")
            .fieldMapping(notAnalyzedStringField("name"))
-           .fieldMapping(simpleField("value", STRING).indexer("whitespace")).build());
-        //System.out.println("withIndexerMapping=" + actual);
-        assertThat(actual, is(SERIALISED_DOCS.get("withIndexerMapping")));
+           .fieldMapping(simpleField("value", STRING).analyzer("whitespace")).build());
+        //System.out.println("withAnalyzerMapping=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("withAnalyzerMapping")));
     }
 
     @Test

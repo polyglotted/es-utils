@@ -86,7 +86,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         @Getter
         private Indexed indexed = null;
         @Getter
-        private String indexer;
+        private String analyzer;
         @Getter
         private Boolean stored = null;
         @Getter
