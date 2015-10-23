@@ -15,6 +15,8 @@ import org.testng.annotations.Test;
 import java.util.Iterator;
 
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
+import static io.polyglotted.eswrapper.indexing.IndexSetting.settingAnalyzer;
+import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.AggregationType.Avg;
 import static io.polyglotted.eswrapper.query.AggregationType.Count;
@@ -43,7 +45,8 @@ public class AggregationsTest extends AbstractElasticTest {
     @Override
     protected void performSetup() {
         admin.dropIndex(TRADE_AGGREGATES_INDEX);
-        admin.createIndex(IndexSetting.with(3, 0), TRADE_AGGREGATES_INDEX);
+        admin.createIndex(settingBuilder(3, 0).analyzer(
+           settingAnalyzer("default").type("keyword")).build(), TRADE_AGGREGATES_INDEX);
         admin.createType(typeBuilder().index(TRADE_AGGREGATES_INDEX).type(TRADE_TYPE)
            .fieldMapping(notAnalyzedField(FieldDate, FieldType.DATE)).build());
     }

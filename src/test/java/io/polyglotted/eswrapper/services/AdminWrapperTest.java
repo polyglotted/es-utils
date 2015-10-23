@@ -79,7 +79,6 @@ public class AdminWrapperTest extends AbstractElasticTest {
         assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null);
 
         admin.updateSetting(settingBuilder().numberOfReplicas(2).refreshInterval(-1).build(), ADMIN_ALIAS);
-
         Map<String, Map<String, String>> updatedMap = query.indexStatus(ADMIN_INDICES);
         assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1");
         assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1");
@@ -89,5 +88,11 @@ public class AdminWrapperTest extends AbstractElasticTest {
         assertEquals(settings.get("index.number_of_shards"), "3");
         assertEquals(settings.get("index.number_of_replicas"), replicas);
         assertEquals(settings.get("index.refresh_interval"), interval);
+        assertEquals(settings.get("index.analysis.analyzer.default.type"), "standard");
+        assertEquals(settings.get("index.analysis.analyzer.all_analyzer.type"), "custom");
+        assertEquals(settings.get("index.analysis.analyzer.all_analyzer.tokenizer"), "whitespace");
+        assertEquals(settings.get("index.analysis.analyzer.all_analyzer.filter.0"), "lowercase");
+        assertEquals(settings.get("index.analysis.analyzer.path_analyzer.tokenizer"), "path_hierarchy");
+        assertEquals(settings.get("index.analysis.analyzer.path_analyzer.filter.0"), "lowercase");
     }
 }

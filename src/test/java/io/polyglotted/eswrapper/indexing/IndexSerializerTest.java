@@ -155,13 +155,15 @@ public class IndexSerializerTest extends IndexSerializer {
     @Test
     public void defaultIndexSetting() {
         String actual = IndexSetting.with(5, 1).createJson();
+        //System.out.println("defaultIndexSetting=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("defaultIndexSetting")));
     }
 
     @Test
     public void forcedIndexSetting() {
-        String actual = IndexSetting.settingBuilder().numberOfShards(3).numberOfReplicas(2)
-           .refreshInterval(-1L).any("translog.disable_flush", true).ignoreMalformed().build().createJson();
+        String actual = IndexSetting.settingBuilder().numberOfShards(3).numberOfReplicas(2).refreshInterval(-1L)
+           .any("translog.disable_flush", true).disableDynamicMapping().ignoreMalformed().build().createJson();
+        //System.out.println("forcedIndexSetting=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("forcedIndexSetting")));
     }
 

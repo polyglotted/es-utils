@@ -46,7 +46,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
     private static void assertSampleValues(Map<String, String> settings) {
         assertEquals(settings.get("index.number_of_shards"), "3");
         assertEquals(settings.get("index.number_of_replicas"), "0");
-        assertEquals(settings.get("index.analysis.analyzer.default.type"), "keyword");
+        assertEquals(settings.get("index.analysis.analyzer.default.type"), "standard");
         assertEquals(settings.get("index.analysis.analyzer.all_analyzer.filter.0"), "lowercase");
         assertEquals(settings.get("index.analysis.analyzer.all_analyzer.tokenizer"), "whitespace");
         assertEquals(settings.get("index.analysis.analyzer.all_analyzer.type"), "custom");
