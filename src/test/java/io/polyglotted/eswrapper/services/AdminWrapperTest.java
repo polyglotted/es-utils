@@ -38,7 +38,6 @@ public class AdminWrapperTest extends AbstractElasticTest {
            "{\"&bytes\":{\"type\":\"binary\"},\"&expiry\":{\"type\":\"long\",\"include_in_all\":false},\"&status\":" +
            "{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true,\"include_in_all\":false},\"a\":" +
            "{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true}}}}";
-        System.out.println(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE));
         assertThat(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE), is(MAPPING));
         assertThat(admin.getMapping(ADMIN_INDICES[1], ADMIN_TYPE), is(MAPPING));
         assertThat(admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), is(MAPPING));

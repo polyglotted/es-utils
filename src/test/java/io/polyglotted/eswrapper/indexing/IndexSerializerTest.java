@@ -13,6 +13,7 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.fieldBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.nestedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
 import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
 import static io.polyglotted.eswrapper.indexing.FieldType.BOOLEAN;
 import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
@@ -140,6 +141,15 @@ public class IndexSerializerTest extends IndexSerializer {
            .fieldMapping(notAnalyzedStringField("target").isAPath(true)).fieldMapping(axiom).build());
         //System.out.println("emptyNestedMapping=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("emptyNestedMapping")));
+    }
+
+    @Test
+    public void withIndexerMapping() {
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("TestObj")
+           .fieldMapping(notAnalyzedStringField("name"))
+           .fieldMapping(simpleField("value", STRING).indexer("whitespace")).build());
+        //System.out.println("withIndexerMapping=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("withIndexerMapping")));
     }
 
     @Test

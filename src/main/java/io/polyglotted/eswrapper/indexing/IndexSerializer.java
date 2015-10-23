@@ -63,6 +63,7 @@ public abstract class IndexSerializer {
             JsonObject object = new JsonObject();
             object.addProperty("type", toLowerCase(checkNotNull(builder.type(), "type cannot be null")));
             if (builder.indexed() != null) object.addProperty("index", toLowerCase(builder.indexed()));
+            if (builder.indexer() != null) object.addProperty("indexer", builder.indexer());
             if (builder.stored() != null) object.addProperty("store", builder.stored());
             if (builder.docValues() != null) object.addProperty("doc_values", builder.docValues());
             if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
