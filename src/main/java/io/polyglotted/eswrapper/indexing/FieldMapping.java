@@ -9,16 +9,19 @@ import lombok.experimental.Accessors;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
 import static io.polyglotted.eswrapper.indexing.FieldType.LONG;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 @ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class FieldMapping implements Comparable<FieldMapping> {
-    public static final String STATUS_FIELD = "&status";
+    public static final String BYTES_FIELD = "&bytes";
     public static final String EXPIRY_FIELD = "&expiry";
-    static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(notAnalyzedStringField(STATUS_FIELD)
-       .docValues(true).includeInAll(false).build(), notAnalyzedField(EXPIRY_FIELD, LONG).includeInAll(false).build());
+    public static final String STATUS_FIELD = "&status";
+    static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(simpleField(BYTES_FIELD, BINARY).build(),
+       simpleField(EXPIRY_FIELD, LONG).includeInAll(false).build(),
+       notAnalyzedStringField(STATUS_FIELD).docValues(true).includeInAll(false).build());
     static final Map<String, Object> PATH_FIELDS = ImmutableMap.of("tree", ImmutableMap.of("type", "string",
        "analyzer", "path_analyzer"));
 
@@ -96,6 +99,10 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         public Builder property(Iterable<Builder> properties) {
             this.properties.putAll(Maps.uniqueIndex(properties, Builder::field));
             return this;
+        }
+
+        public boolean hasProperties() {
+            return properties.size() > 0;
         }
 
         public FieldMapping build() {

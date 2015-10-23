@@ -64,10 +64,11 @@ public abstract class IndexSerializer {
             object.addProperty("type", toLowerCase(checkNotNull(builder.type(), "type cannot be null")));
             if (builder.indexed() != null) object.addProperty("index", toLowerCase(builder.indexed()));
             if (builder.stored() != null) object.addProperty("store", builder.stored());
-            if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
             if (builder.docValues() != null) object.addProperty("doc_values", builder.docValues());
+            if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
             if (builder.isAPath()) object.add("fields", context.serialize(FieldMapping.PATH_FIELDS));
-            if (FieldType.NESTED == builder.type()) object.add("properties", context.serialize(builder.properties()));
+            if (FieldType.NESTED == builder.type() && builder.hasProperties())
+                object.add("properties", context.serialize(builder.properties()));
             return object;
         }
     }

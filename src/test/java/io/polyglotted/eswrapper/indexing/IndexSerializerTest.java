@@ -132,6 +132,17 @@ public class IndexSerializerTest extends IndexSerializer {
     }
 
     @Test
+    public void emptyNestedMapping() {
+        FieldMapping.Builder axiom = nestedField("axiom").property(asList(notAnalyzedField("effect", STRING),
+           nestedField("emptyField")));
+
+        String actual = GSON.toJson(typeBuilder().index("testIndex").type("NestedObj")
+           .fieldMapping(notAnalyzedStringField("target").isAPath(true)).fieldMapping(axiom).build());
+        //System.out.println("emptyNestedMapping=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("emptyNestedMapping")));
+    }
+
+    @Test
     public void defaultIndexSetting() {
         String actual = IndexSetting.with(5, 1).createJson();
         assertThat(actual, is(SERIALISED_DOCS.get("defaultIndexSetting")));
