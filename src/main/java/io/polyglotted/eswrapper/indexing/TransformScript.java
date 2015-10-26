@@ -51,7 +51,7 @@ public final class TransformScript {
 
         public TransformScript build() {
             return new TransformScript(checkNotNull(script, "script cannot be null"),
-                    params.isEmpty() ? null : ImmutableMap.copyOf(params), lang);
+                    params.isEmpty() ? ImmutableMap.of() : ImmutableMap.copyOf(params), lang);
         }
     }
 }

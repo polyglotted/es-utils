@@ -11,6 +11,7 @@ public abstract class IndexSerializer {
     public static final Gson GSON = new GsonBuilder()
        .registerTypeAdapter(TypeMapping.class, new TypeMappingSerializer())
        .registerTypeAdapter(FieldMapping.Builder.class, new FieldMappingSerializer())
+       .registerTypeAdapter(TransformScript.class, new ScriptMappingSerializer())
        .create();
 
     private static final class TypeMappingSerializer implements JsonSerializer<TypeMapping> {
@@ -70,6 +71,17 @@ public abstract class IndexSerializer {
             if (builder.isAPath()) object.add("fields", context.serialize(FieldMapping.PATH_FIELDS));
             if (FieldType.NESTED == builder.type() && builder.hasProperties())
                 object.add("properties", context.serialize(builder.properties()));
+            return object;
+        }
+    }
+
+    private static final class ScriptMappingSerializer implements JsonSerializer<TransformScript> {
+        @Override
+        public JsonElement serialize(TransformScript script, Type type, JsonSerializationContext context) {
+            JsonObject object = new JsonObject();
+            object.addProperty("script", script.script);
+            if(!script.params.isEmpty()) object.add("params", context.serialize(script.params));
+            if(script.lang!=null) object.addProperty("lang", script.lang);
             return object;
         }
     }
