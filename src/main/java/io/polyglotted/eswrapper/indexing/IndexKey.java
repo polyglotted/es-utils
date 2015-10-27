@@ -30,6 +30,10 @@ public final class IndexKey implements Comparable<IndexKey> {
         return generateUuid(writeToStream(this, new ByteArrayOutputStream()).toByteArray()).toString();
     }
 
+    public IndexKey delete() {
+        return new IndexKey(index, type, id, version, true);
+    }
+
     public static IndexKey keyWith(String type, String id) {
         return new IndexKey("", type, id, -1);
     }

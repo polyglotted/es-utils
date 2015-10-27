@@ -100,7 +100,7 @@ public final class IndexRecord {
     }
 
     public static IndexRecord deleteRecord(IndexKey key) {
-        return new Builder(checkNotNull(key, "key cannot be null"), Action.DELETE).source("").build();
+        return new Builder(checkNotNull(key, "key cannot be null").delete(), Action.DELETE).source("").build();
     }
 
     @Setter
