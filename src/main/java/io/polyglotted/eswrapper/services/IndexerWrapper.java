@@ -20,6 +20,7 @@ import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
@@ -89,10 +90,11 @@ public final class IndexerWrapper {
         client.delete(new DeleteRequest(index, "$lock", "global")).actionGet();
     }
 
-    public void index(BulkRequest bulkRequest, IgnoreErrors ignoreErrors) {
-        if (bulkRequest.numberOfActions() <= 0) return;
+    public BulkResponse index(BulkRequest bulkRequest, IgnoreErrors ignoreErrors) {
+        if (bulkRequest.numberOfActions() <= 0) return null;
         BulkResponse responses = client.bulk(bulkRequest).actionGet();
         checkResponse(responses, ignoreErrors);
+        return responses;
     }
 
     private static void checkResponse(BulkResponse responses, IgnoreErrors ignore) {
@@ -107,5 +109,20 @@ public final class IndexerWrapper {
         }
         ImmutableMap<IndexKey, String> errors = errorBuilder.build();
         if (errors.size() > 0) throw new IndexerException(errors);
+    }
+
+    public long generateSequence(IndexKey key) {
+        IndexResponse indexResponse = client.index(new IndexRequest(key.index, key.type, key.id)
+           .source(ImmutableMap.of())).actionGet();
+        return indexResponse.getVersion();
+    }
+
+    public List<Long> generateSequences(IndexKey key, int blocks) {
+        BulkRequest request = new BulkRequest().refresh(true);
+        for(int i=0; i<blocks; i++)
+            request.add(new IndexRequest(key.index, key.type, key.id).source(ImmutableMap.of()));
+        BulkResponse bulkResponse = checkNotNull(index(request, strict()));
+
+        return ImmutableList.copyOf(transform(bulkResponse, BulkItemResponse::getVersion));
     }
 }

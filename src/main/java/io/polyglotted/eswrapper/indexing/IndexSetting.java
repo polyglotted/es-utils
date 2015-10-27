@@ -92,6 +92,11 @@ public final class IndexSetting {
             return this;
         }
 
+        public Builder autoExpandReplicas() {
+            map.putIfAbsent("auto_expand_replicas", "0-all");
+            return this;
+        }
+
         public Builder any(String name, Object value) {
             map.put(name, value);
             return this;

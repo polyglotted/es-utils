@@ -35,7 +35,11 @@ public final class IndexKey implements Comparable<IndexKey> {
     }
 
     public static IndexKey keyWith(String type, String id) {
-        return new IndexKey("", type, id, -1);
+        return keyWith("", type, id);
+    }
+
+    public static IndexKey keyWith(String index, String type, String id) {
+        return new IndexKey(index, type, id, -1, false);
     }
 
     public static IndexKey from(BulkItemResponse response) {
@@ -67,13 +71,13 @@ public final class IndexKey implements Comparable<IndexKey> {
 
     @VisibleForTesting
     static <OS extends OutputStream> OS writeToStream(IndexKey indexKey, OS output) {
-        try{
+        try {
             DataOutputStream stream = new DataOutputStream(output);
             stream.writeBytes(indexKey.index);
             stream.writeBytes(indexKey.id);
             stream.writeLong(indexKey.version);
             stream.close();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             throw new RuntimeException("failed to writeToStream");
         }
         return output;

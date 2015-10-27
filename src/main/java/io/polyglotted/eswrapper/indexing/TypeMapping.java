@@ -10,6 +10,7 @@ import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableMap.of;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -37,6 +38,11 @@ public final class TypeMapping {
 
     public String mappingJson() {
         return GSON.toJson(this);
+    }
+
+    public static String forcedMappingJson(String type) {
+        return GSON.toJson(of(type, of("_source", of("enabled", 0), "_all", of("enabled", 0),
+           "_type", of("index", "no"), "enabled", 0)));
     }
 
     public static Builder typeBuilder() {

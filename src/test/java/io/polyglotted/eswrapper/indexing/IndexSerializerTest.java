@@ -153,6 +153,13 @@ public class IndexSerializerTest extends IndexSerializer {
     }
 
     @Test
+    public void sequenceMapping() {
+        String actual = TypeMapping.forcedMappingJson("Sequence");
+        //System.out.println("sequenceMapping=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("sequenceMapping")));
+    }
+
+    @Test
     public void defaultIndexSetting() {
         String actual = IndexSetting.with(5, 1).createJson();
         //System.out.println("defaultIndexSetting=" + actual);
@@ -165,6 +172,13 @@ public class IndexSerializerTest extends IndexSerializer {
            .any("translog.disable_flush", true).disableDynamicMapping().ignoreMalformed().build().createJson();
         //System.out.println("forcedIndexSetting=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("forcedIndexSetting")));
+    }
+
+    @Test
+    public void autoExpandSetting() {
+        String actual = IndexSetting.settingBuilder().numberOfShards(1).autoExpandReplicas().build().createJson();
+        //System.out.println("autoExpandSetting=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("autoExpandSetting")));
     }
 
     @Test

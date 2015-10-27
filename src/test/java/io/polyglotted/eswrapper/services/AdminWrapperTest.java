@@ -1,13 +1,16 @@
 package io.polyglotted.eswrapper.services;
 
+import com.google.common.collect.ImmutableList;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import org.testng.annotations.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static io.polyglotted.eswrapper.indexing.Alias.aliasBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.request.Expressions.in;
@@ -76,12 +79,12 @@ public class AdminWrapperTest extends AbstractElasticTest {
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
         Map<String, Map<String, String>> originalMap = query.indexStatus(ADMIN_INDICES);
         assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null);
-        assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null);
+        assertSettings(originalMap.get(ADMIN_INDICES[1]), "1", null);
 
         admin.updateSetting(settingBuilder().numberOfReplicas(2).refreshInterval(-1).build(), ADMIN_ALIAS);
         Map<String, Map<String, String>> updatedMap = query.indexStatus(ADMIN_INDICES);
         assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1");
-        assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1");
+        assertSettings(updatedMap.get(ADMIN_INDICES[1]), "2", "-1");
     }
 
     private static void assertSettings(Map<String, String> settings, String replicas, String interval) {
@@ -94,5 +97,23 @@ public class AdminWrapperTest extends AbstractElasticTest {
         assertEquals(settings.get("index.analysis.analyzer.all_analyzer.filter.0"), "lowercase");
         assertEquals(settings.get("index.analysis.analyzer.path_analyzer.tokenizer"), "path_hierarchy");
         assertEquals(settings.get("index.analysis.analyzer.path_analyzer.filter.0"), "lowercase");
+    }
+
+    @Test
+    public void generateSequence() {
+        admin.createIndex(settingBuilder().numberOfShards(1).autoExpandReplicas().build(), ADMIN_INDICES[0]);
+        admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
+        for(long counter=0; counter<10; counter++) {
+            long sequence = indexer.generateSequence(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence"));
+            assertEquals(sequence, counter+1);
+        }
+    }
+
+    @Test
+    public void generateBlockSequences() {
+        admin.createIndex(settingBuilder().numberOfShards(1).autoExpandReplicas().build(), ADMIN_INDICES[0]);
+        admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
+        List<Long> sequences = indexer.generateSequences(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence"), 10);
+        assertEquals(sequences, ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
     }
 }
