@@ -45,20 +45,15 @@ public final class QueryWrapper {
     private static final TimeValue DEFAULT_KEEP_ALIVE = timeValueMinutes(30);
     private final Client client;
 
-    public Map<String, Map<String, String>> indexStatus(String... indices) {
-        ImmutableMap.Builder<String, Map<String, String>> result = ImmutableMap.builder();
-
+    public Map<String, String> indexStatus(String index) {
         GetSettingsRequestBuilder settingsRequest = client.admin()
-           .indices().prepareGetSettings(indices).setIndicesOptions(lenientExpandOpen());
+           .indices().prepareGetSettings(index).setIndicesOptions(lenientExpandOpen());
         GetSettingsResponse response = settingsRequest.execute().actionGet();
 
         ImmutableOpenMap<String, Settings> indexToSettings = response.getIndexToSettings();
-        for (Iterator<String> it = indexToSettings.keysIt(); it.hasNext(); ) {
-            String indexName = it.next();
-            result.put(indexName, ImmutableMap.copyOf(indexToSettings.get(indexName).getAsMap()));
-        }
-
-        return result.build();
+        Iterator<String> it = indexToSettings.keysIt();
+        return (it.hasNext()) ? ImmutableMap.copyOf(indexToSettings.get(it.next()).getAsMap())
+           : ImmutableMap.of();
     }
 
     public Aggregation aggregate(Expression aggs, String... indices) {
@@ -74,10 +69,10 @@ public final class QueryWrapper {
         final long totalHits = getTotalHits(searchResponse);
         long tookInMillis = 0;
         while (getReturnedHits(searchResponse) > 0) {
-            tookInMillis+= searchResponse.getTookInMillis();
+            tookInMillis += searchResponse.getTookInMillis();
             response.results(resultBuilder.buildFrom(searchResponse));
 
-            SearchScrollRequest scrollRequest = new SearchScrollRequest( searchResponse.getScrollId())
+            SearchScrollRequest scrollRequest = new SearchScrollRequest(searchResponse.getScrollId())
                .scroll(DEFAULT_KEEP_ALIVE);
             searchResponse = client.searchScroll(scrollRequest).actionGet();
         }

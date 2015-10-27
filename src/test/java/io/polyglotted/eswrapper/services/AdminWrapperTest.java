@@ -77,14 +77,12 @@ public class AdminWrapperTest extends AbstractElasticTest {
     @Test
     public void updateSetting() {
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
-        Map<String, Map<String, String>> originalMap = query.indexStatus(ADMIN_INDICES);
-        assertSettings(originalMap.get(ADMIN_INDICES[0]), "1", null);
-        assertSettings(originalMap.get(ADMIN_INDICES[1]), "1", null);
+        Map<String, String> originalMap = query.indexStatus(ADMIN_ALIAS);
+        assertSettings(originalMap, "1", null);
 
         admin.updateSetting(settingBuilder().numberOfReplicas(2).refreshInterval(-1).build(), ADMIN_ALIAS);
-        Map<String, Map<String, String>> updatedMap = query.indexStatus(ADMIN_INDICES);
-        assertSettings(updatedMap.get(ADMIN_INDICES[0]), "2", "-1");
-        assertSettings(updatedMap.get(ADMIN_INDICES[1]), "2", "-1");
+        Map<String, String> updatedMap = query.indexStatus(ADMIN_ALIAS);
+        assertSettings(updatedMap, "2", "-1");
     }
 
     private static void assertSettings(Map<String, String> settings, String replicas, String interval) {

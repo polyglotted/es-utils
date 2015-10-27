@@ -20,7 +20,6 @@ import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
@@ -35,16 +34,17 @@ import static org.elasticsearch.client.Requests.refreshRequest;
 public final class IndexerWrapper {
     private final Client client;
 
-    public void index(BulkRequest bulkRequest) {
-        index(bulkRequest, strict());
+    public BulkResponse index(BulkRequest bulkRequest) {
+        return index(bulkRequest, strict());
     }
 
-    public void twoPhaseCommit(Indexable indexable) {
+    public List<IndexKey> twoPhaseCommit(Indexable indexable) {
         lockTheIndexOrFail(indexable.index);
         List<SimpleDoc> currentDocs = getCurrent(indexable.index, indexable.updateIds());
         try {
             index(indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key)));
-            index(indexable.writeRequest());
+            BulkResponse bulkResponse = index(indexable.writeRequest());
+            return ImmutableList.copyOf(transform(bulkResponse, IndexKey::from));
 
         } catch (RuntimeException ex) {
             log.error("failed two phase commit", ex);
@@ -78,7 +78,7 @@ public final class IndexerWrapper {
     void lockTheIndexOrFail(String index) {
         try {
             IndexResponse response = client.index(new IndexRequest(index, "$lock", "global")
-               .create(true).source("_val", true)).actionGet();
+               .create(true).source(ImmutableMap.of())).actionGet();
             checkState(response.isCreated(), "unable to lock the index " + index);
         } catch (DocumentAlreadyExistsException dex) {
             throw new IllegalStateException("unable to lock the index " + index);
@@ -121,8 +121,7 @@ public final class IndexerWrapper {
         BulkRequest request = new BulkRequest().refresh(true);
         for(int i=0; i<blocks; i++)
             request.add(new IndexRequest(key.index, key.type, key.id).source(ImmutableMap.of()));
-        BulkResponse bulkResponse = checkNotNull(index(request, strict()));
 
-        return ImmutableList.copyOf(transform(bulkResponse, BulkItemResponse::getVersion));
+        return ImmutableList.copyOf(transform(index(request), BulkItemResponse::getVersion));
     }
 }

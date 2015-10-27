@@ -38,9 +38,8 @@ public class QueryWrapperTest extends AbstractElasticTest {
 
     @Test
     public void testIndexStatus() throws Exception {
-        Map<String, Map<String, String>> settingsMap = query.indexStatus(DUMMY_INDICES);
-        assertSampleValues(settingsMap.get(DUMMY_INDICES[0]));
-        assertSampleValues(settingsMap.get(DUMMY_INDICES[1]));
+        assertSampleValues(query.indexStatus(DUMMY_INDICES[0]));
+        assertSampleValues(query.indexStatus(DUMMY_INDICES[1]));
     }
 
     private static void assertSampleValues(Map<String, String> settings) {
