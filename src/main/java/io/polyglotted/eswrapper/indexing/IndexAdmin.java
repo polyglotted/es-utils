@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 @ToString(includeFieldNames = false, doNotUseGetters = true)
@@ -24,11 +25,7 @@ public final class IndexAdmin {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        IndexAdmin that = (IndexAdmin) o;
-        return index.equals(that.index) && action.equals(that.action) && aliases.equals(that.aliases) &&
-           (setting == null ? that.setting==null : setting.equals(that.setting));
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override

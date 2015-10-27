@@ -1,5 +1,6 @@
 package io.polyglotted.eswrapper.query.request;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static java.util.Arrays.asList;
 import static org.elasticsearch.action.support.IndicesOptions.readIndicesOptions;
 
@@ -27,12 +29,7 @@ public final class QueryHints {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        QueryHints that = (QueryHints) o;
-        return options.equals(that.options) && type.equals(that.type) && timeout==that.timeout
-           && routing.equals(that.routing) && (preference == null ? that.preference == null :
-           preference.equals(that.preference) && fetch == that.fetch);
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override
@@ -54,10 +51,18 @@ public final class QueryHints {
             this.bytes = new BytesStreamInput(new byte[]{value});
         }
 
-        @SneakyThrows
         public IndicesOptions toOptions() {
-            bytes.reset();
-            return readIndicesOptions(bytes);
+            return toOptions(bytes);
+        }
+
+        @VisibleForTesting
+        static IndicesOptions toOptions(StreamInput input) {
+            try {
+                input.reset();
+                return readIndicesOptions(input);
+            } catch (Exception e) {
+                throw new RuntimeException();
+            }
         }
     }
 

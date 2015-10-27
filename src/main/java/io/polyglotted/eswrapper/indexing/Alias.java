@@ -17,6 +17,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.toArray;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.query.ExpressionType.buildFilter;
 import static java.util.Arrays.asList;
 
@@ -35,11 +36,7 @@ public final class Alias {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Alias that = (Alias) o;
-        return alias.equals(that.alias) && indices.equals(that.indices) && remove == that.remove &&
-           (filter == null ? that.filter==null : filter.equals(that.filter));
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override

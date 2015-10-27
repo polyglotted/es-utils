@@ -40,6 +40,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
     public void testIndexStatus() throws Exception {
         assertSampleValues(query.indexStatus(DUMMY_INDICES[0]));
         assertSampleValues(query.indexStatus(DUMMY_INDICES[1]));
+        assertEquals(query.indexStatus("Foo").size(), 0);
     }
 
     private static void assertSampleValues(Map<String, String> settings) {

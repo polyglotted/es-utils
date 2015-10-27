@@ -1,16 +1,30 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableMap;
+import io.polyglotted.eswrapper.query.AggregationType;
+import io.polyglotted.eswrapper.query.QueryResponse;
+import io.polyglotted.eswrapper.query.StandardQuery;
+import io.polyglotted.eswrapper.query.StandardScroll;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.request.Expressions;
 import io.polyglotted.eswrapper.query.request.QueryHints;
 import io.polyglotted.eswrapper.query.request.Sort;
-import io.polyglotted.eswrapper.query.response.Flattened;
-import io.polyglotted.eswrapper.query.response.ResponseHeader;
-import io.polyglotted.eswrapper.query.response.SimpleDoc;
+import io.polyglotted.eswrapper.query.response.*;
 import org.testng.annotations.Test;
 
+import static io.polyglotted.eswrapper.indexing.Alias.aliasBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.eswrapper.indexing.IndexAdmin.IndexAction.FORCE_REFRESH;
+import static io.polyglotted.eswrapper.indexing.IndexAdmin.adminBuilder;
+import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
+import static io.polyglotted.eswrapper.indexing.TransformScript.scriptBuilder;
+import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
+import static io.polyglotted.eswrapper.query.QueryResponse.responseBuilder;
+import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
+import static io.polyglotted.eswrapper.query.request.QueryHints.SearchType.SCAN;
+import static io.polyglotted.eswrapper.query.request.QueryHints.hintsBuilder;
+import static io.polyglotted.eswrapper.query.response.Aggregation.aggregationBuilder;
+import static io.polyglotted.eswrapper.query.response.Bucket.bucketBuilder;
 import static io.polyglotted.eswrapper.query.response.Flattened.flattened;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -24,6 +38,11 @@ public class DataObjectsTest {
     @Test
     public void fieldTypeValues() {
         asList(FieldType.values()).contains(FieldType.valueOf("BINARY"));
+    }
+
+    @Test
+    public void indexAdminActionValues() {
+        asList(IndexAdmin.IndexAction.values()).contains(IndexAdmin.IndexAction.valueOf("CREATE_INDEX"));
     }
 
     @Test
@@ -54,19 +73,69 @@ public class DataObjectsTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void aliasWithNoAliases() {
-        Alias.aliasBuilder().build();
+        aliasBuilder().build();
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void aliasWithNoIndices() {
-        Alias.aliasBuilder().alias("hello").build();
+        aliasBuilder().alias("hello").build();
+    }
+
+    @Test
+    public void indexSettingEqHash() {
+        IndexSetting orig = IndexSetting.with(3, 0);
+        IndexSetting copy = IndexSetting.with(3, 0);
+        IndexSetting other = IndexSetting.with(1, 0);
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void indexAdminEqHash() {
+        IndexAdmin orig = adminBuilder().index("a").build();
+        IndexAdmin copy = adminBuilder().index("a").build();
+        IndexAdmin other = adminBuilder().index("a").action(FORCE_REFRESH).setting(IndexSetting.with(3, 1))
+           .alias(aliasBuilder().alias("a").index("a").build()).build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void aliasEqHash() {
+        Alias orig = aliasBuilder().alias("a").index("a").build();
+        Alias copy = aliasBuilder().alias("a").index("a").build();
+        Alias other = aliasBuilder().alias("b").index("a").build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void typeMappingEqHash() throws Exception {
+        TypeMapping orig = typeBuilder().index("a").type("a").fieldMapping(notAnalyzedStringField("a")).build();
+        TypeMapping copy = typeBuilder().index("a").type("a").fieldMapping(notAnalyzedStringField("a")).build();
+        TypeMapping other = typeBuilder().index("b").type("b").fieldMapping(notAnalyzedStringField("a")).build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void scriptEqHash() {
+        TransformScript orig = scriptBuilder().script("a=b").build();
+        TransformScript copy = scriptBuilder().script("a=b").build();
+        TransformScript other = scriptBuilder().script("c=d").build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void sleeveEqHash() {
+        SleeveDoc<String> orig = new SleeveDoc<>(keyWith("a", "a"), "a");
+        SleeveDoc<String> copy = new SleeveDoc<>(keyWith("a", "a"), "a");
+        SleeveDoc<String> other = new SleeveDoc<>(keyWith("b", "b"), "a");
+        SleeveDoc<String> other2 = new SleeveDoc<>(keyWith("a", "a"), "b");
+        verifyEqualsHashCode(orig, copy, other, other2);
     }
 
     @Test
     public void fieldMappingEqHash() {
         FieldMapping orig = notAnalyzedStringField("a").build();
         FieldMapping copy = notAnalyzedStringField("a").build();
-        FieldMapping other = notAnalyzedStringField("c").build();
+        FieldMapping other = new FieldMapping("b", false, (String) null);
         verifyEqualsHashCode(orig, copy, other);
         verifyComparable(orig, other);
     }
@@ -138,6 +207,63 @@ public class DataObjectsTest {
         ResponseHeader other3 = new ResponseHeader(0, 20, 10, "notsame");
         verifyEqualsHashCode(orig, copy, nil, other1, other2, other3);
         verifyEqualsHashCode(nil, nilCopy, other3);
+    }
+
+    @Test
+    public void standardQueryEqHash() {
+        StandardQuery orig = queryBuilder().build();
+        StandardQuery copy = queryBuilder().build();
+        StandardQuery other = queryBuilder().index("hello").build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void standardScrollEqHash() {
+        StandardScroll orig = new StandardScroll("a", 1L);
+        StandardScroll copy = new StandardScroll("a", 1L);
+        StandardScroll other1 = new StandardScroll("b", 1L);
+        StandardScroll other2 = new StandardScroll("a", 2L);
+        verifyEqualsHashCode(orig, copy, other1, other2);
+    }
+
+    @Test
+    public void queryResponseEqHash() {
+        QueryResponse orig = responseBuilder().header(new ResponseHeader(0, 20, 10, "orig")).build();
+        QueryResponse copy = responseBuilder().header(new ResponseHeader(0, 20, 10, "orig")).build();
+        QueryResponse other = responseBuilder().header(new ResponseHeader(0, 20, 10, "other")).build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void aggregationEqHash() {
+        Aggregation orig = aggregationBuilder().label("a").type(AggregationType.Avg).value("Avg", 25).build();
+        Aggregation copy = aggregationBuilder().label("a").type(AggregationType.Avg).value("Avg", 25).build();
+        Aggregation other = aggregationBuilder().label("b").type(AggregationType.Avg).value("Avg", 25).build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void bucketEqHash() {
+        Bucket orig = bucketBuilder().key("a").keyValue(1).docCount(1L).build();
+        Bucket copy = bucketBuilder().key("a").keyValue(1).docCount(1L).build();
+        Bucket other = bucketBuilder().key("b").keyValue(1).docCount(1L).build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void hintsEqHash() {
+        QueryHints orig = hintsBuilder().build();
+        QueryHints copy = hintsBuilder().build();
+        QueryHints other = hintsBuilder().searchType(SCAN).build();
+        verifyEqualsHashCode(orig, copy, other);
+    }
+
+    @Test
+    public void sortEqHash() {
+        Sort orig = Sort.sortAsc("a");
+        Sort copy = Sort.sortAsc("a");
+        Sort other = Sort.sortDesc("a");
+        verifyEqualsHashCode(orig, copy, other);
     }
 
     @SafeVarargs

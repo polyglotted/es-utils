@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.collect.Iterables.transform;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(includeFieldNames = false, doNotUseGetters = true, of = {"key", "count", "aggregations"})
@@ -24,11 +25,7 @@ public final class Bucket {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Bucket that = (Bucket) o;
-        return key.equals(that.key) && value.equals(that.value) && count == that.count
-           && errors == that.errors && aggregations.equals(that.aggregations);
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override

@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
@@ -19,20 +20,15 @@ public final class TransformScript {
 
     @Override
     public boolean equals(Object o) {
-        return this == o || (!(o == null || getClass() != o.getClass()) &&
-           scriptJson().equals(((TransformScript) o).scriptJson()));
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override
     public int hashCode() {
-        return 31 * scriptJson().hashCode();
+        return Objects.hash(script, params, lang);
     }
 
-    public String scriptJson() {
-        return GSON.toJson(this);
-    }
-
-    public static Builder transformBuilder() {
+    public static Builder scriptBuilder() {
         return new Builder();
     }
 
@@ -51,7 +47,7 @@ public final class TransformScript {
 
         public TransformScript build() {
             return new TransformScript(checkNotNull(script, "script cannot be null"),
-                    params.isEmpty() ? ImmutableMap.of() : ImmutableMap.copyOf(params), lang);
+               ImmutableMap.copyOf(params), lang);
         }
     }
 }

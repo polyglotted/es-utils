@@ -19,6 +19,11 @@ import static org.testng.Assert.assertNotNull;
 
 public class QueryBuilderTest extends QueryBuilder {
 
+    @Test(expectedExceptions = RuntimeException.class)
+    public void testOptionsFail() throws Exception {
+        SearchOptions.toOptions(null);
+    }
+
     @Test
     public void testOptionsFrom() throws Exception {
         for(SearchOptions options : SearchOptions.values()) {

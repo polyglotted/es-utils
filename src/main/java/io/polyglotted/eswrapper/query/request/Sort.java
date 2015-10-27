@@ -7,6 +7,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(includeFieldNames = false, doNotUseGetters = true)
@@ -19,12 +20,7 @@ public final class Sort {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Sort that = (Sort) o;
-        return field.equals(that.field) && order.equals(that.order) && mode.equals(that.mode) &&
-           (unmapped == null ? that.unmapped == null : unmapped.equals(that.unmapped)) &&
-           (missing == null ? that.missing == null : missing.equals(that.missing));
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override

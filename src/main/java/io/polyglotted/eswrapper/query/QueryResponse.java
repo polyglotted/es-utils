@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.query.StandardScroll.fromScrollId;
 
 @RequiredArgsConstructor
@@ -27,10 +28,7 @@ public final class QueryResponse {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        QueryResponse that = (QueryResponse) o;
-        return header.equals(that.header) && results.equals(that.results) && aggregations.equals(that.aggregations);
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override

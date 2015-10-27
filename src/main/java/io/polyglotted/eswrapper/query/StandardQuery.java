@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.query.request.QueryHints.hintsBuilder;
 import static java.util.Arrays.asList;
 
@@ -32,13 +33,7 @@ public final class StandardQuery {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        StandardQuery that = (StandardQuery) o;
-        return indices.equals(that.indices) && types.equals(that.types) && fields.equals(that.fields) &&
-           expressions.equals(that.expressions) && aggregates.equals(that.aggregates) && sorts.equals(that.sorts)
-           && (hints == null ? that.hints == null : hints.equals(that.hints)) && (scroll == null ?
-           that.scroll == null : scroll.equals(that.scroll)) && offset == that.offset && size == that.size;
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override

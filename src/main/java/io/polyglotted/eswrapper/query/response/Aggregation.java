@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(includeFieldNames = false, doNotUseGetters = true, of = {"label", "type", "value"})
@@ -23,11 +24,7 @@ public final class Aggregation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Aggregation that = (Aggregation) o;
-        return label.equals(that.label) && type.equals(that.type) &&
-           value.equals(that.value) && params.equals(that.params);
+        return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));
     }
 
     @Override
@@ -89,11 +86,6 @@ public final class Aggregation {
 
         public Builder param(String key, Object value) {
             paramsMap.put(key, value);
-            return this;
-        }
-
-        public Builder bucket(Bucket.Builder builder) {
-            this.builders.add(builder);
             return this;
         }
 

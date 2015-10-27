@@ -17,7 +17,7 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
 import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
 import static io.polyglotted.eswrapper.indexing.FieldType.BOOLEAN;
 import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
-import static io.polyglotted.eswrapper.indexing.TransformScript.transformBuilder;
+import static io.polyglotted.eswrapper.indexing.TransformScript.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -87,7 +87,7 @@ public class IndexSerializerTest extends IndexSerializer {
     public void transformTypeMapping() {
         String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
            .fieldMapping(notAnalyzedStringField("field1")).fieldMapping(notAnalyzedStringField("field2"))
-           .transform(transformBuilder().script("ctx._source['field2'] = ctx._source['field1']")
+           .transform(scriptBuilder().script("ctx._source['field2'] = ctx._source['field1']")
               .lang("groovy").param("attr1", "attr2")).build());
         //System.out.println("transformTypeMapping=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("transformTypeMapping")));
@@ -97,8 +97,8 @@ public class IndexSerializerTest extends IndexSerializer {
     public void multiTransformTypeMapping() {
         String actual = GSON.toJson(typeBuilder().index("testIndex").type("testType")
            .fieldMapping(notAnalyzedStringField("field1")).fieldMapping(notAnalyzedStringField("field2"))
-           .transform(transformBuilder().script("ctx._source['field2'] = ctx._source['field1']"))
-           .transform(transformBuilder().script("ctx._source['field3'] = ctx._source['field1']")).build());
+           .transform(scriptBuilder().script("ctx._source['field2'] = ctx._source['field1']"))
+           .transform(scriptBuilder().script("ctx._source['field3'] = ctx._source['field1']")).build());
         //System.out.println("multiTransformTypeMapping=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("multiTransformTypeMapping")));
     }

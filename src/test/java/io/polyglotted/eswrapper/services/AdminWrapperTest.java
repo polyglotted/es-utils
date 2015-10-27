@@ -105,6 +105,8 @@ public class AdminWrapperTest extends AbstractElasticTest {
             long sequence = indexer.generateSequence(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence"));
             assertEquals(sequence, counter+1);
         }
+        admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
+        assertEquals(indexer.generateSequence(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence")), 11);
     }
 
     @Test
@@ -113,5 +115,6 @@ public class AdminWrapperTest extends AbstractElasticTest {
         admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
         List<Long> sequences = indexer.generateSequences(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence"), 10);
         assertEquals(sequences, ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
+
     }
 }
