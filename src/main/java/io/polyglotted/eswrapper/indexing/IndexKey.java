@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.search.SearchHit;
 
 import java.io.ByteArrayOutputStream;
@@ -34,12 +35,20 @@ public final class IndexKey implements Comparable<IndexKey> {
         return new IndexKey(index, type, id, version, true);
     }
 
+    public IndexKey version(long version) {
+        return new IndexKey(index, type, id, version, false);
+    }
+
     public static IndexKey keyWith(String type, String id) {
         return keyWith("", type, id);
     }
 
     public static IndexKey keyWith(String index, String type, String id) {
         return new IndexKey(index, type, id, -1, false);
+    }
+
+    public static IndexKey from(IndexResponse response) {
+        return new IndexKey(response.getIndex(), response.getType(), response.getId(), response.getVersion());
     }
 
     public static IndexKey from(BulkItemResponse response) {

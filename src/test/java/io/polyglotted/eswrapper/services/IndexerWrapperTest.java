@@ -11,6 +11,7 @@ import io.polyglotted.eswrapper.query.request.QueryBuilder;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.index.VersionType;
 import org.testng.annotations.Test;
 
@@ -42,6 +43,20 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     @Test
     public void writeEmptyRequest() {
         indexer.index(new BulkRequest().refresh(true), IgnoreErrors.strict());
+    }
+
+    @Test
+    public void writeIndexRequest() {
+        Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
+        long timestamp = 1425494500000L;
+
+        IndexKey key = indexer.index(new IndexRequest(TRADES_INDEX, TRADE_TYPE, trade.address).opType(OpType.CREATE)
+           .version(timestamp).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));
+        assertEquals(key, new IndexKey(TRADES_INDEX, TRADE_TYPE, trade.address, timestamp));
+
+        SimpleDoc simpleDoc = query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address));
+        assertEquals(simpleDoc.version(), timestamp);
+        assertEquals(GSON.fromJson(GSON.toJson(simpleDoc.source), Trade.class), trade);
     }
 
     @Test

@@ -33,6 +33,10 @@ public final class SimpleDoc {
         return key;
     }
 
+    public long version() {
+        return key.version;
+    }
+
     public long longVal(String property) {
         return fromNullable((Long) source.get(property)).or(Long.MIN_VALUE);
     }

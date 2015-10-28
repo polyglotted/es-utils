@@ -2,18 +2,22 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.polyglotted.eswrapper.indexing.IndexKey;
 import io.polyglotted.eswrapper.query.AggregationType;
-import io.polyglotted.eswrapper.query.StandardQuery;
 import io.polyglotted.eswrapper.query.QueryResponse;
+import io.polyglotted.eswrapper.query.StandardQuery;
 import io.polyglotted.eswrapper.query.StandardScroll;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.response.Aggregation;
 import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import io.polyglotted.eswrapper.query.response.ResultBuilder;
+import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequestBuilder;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -28,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.aggregationToRequest;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.scrollRequest;
@@ -54,6 +59,13 @@ public final class QueryWrapper {
         Iterator<String> it = indexToSettings.keysIt();
         return (it.hasNext()) ? ImmutableMap.copyOf(indexToSettings.get(it.next()).getAsMap())
            : ImmutableMap.of();
+    }
+
+    public SimpleDoc get(IndexKey indexKey) {
+        GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
+        checkArgument(response.isExists(), "unable to find document with id " + indexKey.id);
+
+        return new SimpleDoc(indexKey.version(response.getVersion()), ImmutableMap.copyOf(response.getSourceAsMap()));
     }
 
     public Aggregation aggregate(Expression aggs, String... indices) {

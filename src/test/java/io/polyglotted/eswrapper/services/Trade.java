@@ -1,5 +1,6 @@
 package io.polyglotted.eswrapper.services;
 
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -10,6 +11,7 @@ import java.util.List;
 
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
+@EqualsAndHashCode(doNotUseGetters = true)
 @RequiredArgsConstructor
 public class Trade {
     public static final String TRADE_TYPE = "Trade";

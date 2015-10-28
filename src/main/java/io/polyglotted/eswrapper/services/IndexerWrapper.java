@@ -34,6 +34,11 @@ import static org.elasticsearch.client.Requests.refreshRequest;
 public final class IndexerWrapper {
     private final Client client;
 
+    public IndexKey index(IndexRequest indexRequest) {
+        IndexResponse indexResponse = client.index(indexRequest).actionGet();
+        return IndexKey.from(indexResponse);
+    }
+
     public BulkResponse index(BulkRequest bulkRequest) {
         return index(bulkRequest, strict());
     }
@@ -119,7 +124,7 @@ public final class IndexerWrapper {
 
     public List<Long> generateSequences(IndexKey key, int blocks) {
         BulkRequest request = new BulkRequest().refresh(true);
-        for(int i=0; i<blocks; i++)
+        for (int i = 0; i < blocks; i++)
             request.add(new IndexRequest(key.index, key.type, key.id).source(ImmutableMap.of()));
 
         return ImmutableList.copyOf(transform(index(request), BulkItemResponse::getVersion));
