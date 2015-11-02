@@ -26,6 +26,7 @@ public final class StandardQuery {
     public final ImmutableList<Expression> expressions;
     public final ImmutableList<Expression> aggregates;
     public final ImmutableList<Sort> sorts;
+    public final ImmutableList<Integer> subs;
     public final QueryHints hints;
     public final Long scroll;
     public final int offset;
@@ -55,6 +56,7 @@ public final class StandardQuery {
         private final List<Expression> expressions = new ArrayList<>();
         private final List<Expression> aggregates = new ArrayList<>();
         private final List<Sort> sorts = new ArrayList<>();
+        private final List<Integer> subs = new ArrayList<>();
         private QueryHints hints = hintsBuilder().build();
         private Long scrollTimeInMillis = null;
         private int offset = 0;
@@ -94,6 +96,11 @@ public final class StandardQuery {
             return this;
         }
 
+        public Builder sub(Integer... subs) {
+            this.subs.addAll(asList(subs));
+            return this;
+        }
+
         public Builder hints(QueryHints.Builder hintBuilder) {
             return hints(hintBuilder.build());
         }
@@ -105,7 +112,7 @@ public final class StandardQuery {
 
         public StandardQuery build() {
             return new StandardQuery(copyOf(indices), copyOf(types), copyOf(fields), copyOf(expressions),
-               copyOf(aggregates), copyOf(sorts), checkNotNull(hints), scrollTimeInMillis, offset, size);
+               copyOf(aggregates), copyOf(sorts), copyOf(subs), checkNotNull(hints), scrollTimeInMillis, offset, size);
         }
     }
 }
