@@ -123,7 +123,6 @@ public class ExtnGenerator {
 
             Map<String, Object> fieldMap = new LinkedHashMap<>();
             fieldMap.put("id", field.getName());
-            fieldMap.put("name", field.getName());
 
             Map<String, String> defaulteds = Defaulteds.get(clazz);
             if (defaulteds != null && defaulteds.containsKey(field.getName()))
