@@ -17,6 +17,7 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.completeType
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.request.Expressions.in;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,9 +38,11 @@ public class AdminWrapperTest extends AbstractElasticTest {
     public void createTypeAcrossIndices() {
         admin.waitForYellowStatus();
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
+
+        System.out.println(admin.getIndex(ADMIN_ALIAS));
+
         admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
            .fieldMapping(notAnalyzedStringField("a")).build());
-
         String MAPPING = "{\"AdminType\":{\"_all\":{\"enabled\":true,\"analyzer\":\"all_analyzer\"},\"properties\":" +
            "{\"&bytes\":{\"type\":\"binary\"},\"&expiry\":{\"type\":\"long\",\"include_in_all\":false},\"&status\":" +
            "{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true,\"include_in_all\":false},\"a\":" +
@@ -76,7 +79,7 @@ public class AdminWrapperTest extends AbstractElasticTest {
     public void updateAlias() {
         String[] NEW_INDICES = new String[]{"new.test.live", "new.test.history"};
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
-        admin.createIndex(IndexSetting.with(3, 1), NEW_INDICES);
+        admin.createIndex(IndexSetting.with(3, 1), emptyList(), NEW_INDICES);
         admin.createType(typeBuilder().index(NEW_INDICES[0]).type(ADMIN_TYPE)
            .fieldMapping(notAnalyzedStringField("a")).build());
         admin.createType(typeBuilder().index(NEW_INDICES[1]).type(ADMIN_TYPE)

@@ -24,6 +24,7 @@ import static io.polyglotted.eswrapper.services.NamePath.pathsRequest;
 import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
+import static java.util.Collections.emptyList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
@@ -33,7 +34,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
     @Override
     protected void performSetup() {
         admin.dropIndex(DUMMY_INDICES);
-        admin.createIndex(IndexSetting.with(3, 0), DUMMY_INDICES);
+        admin.createIndex(IndexSetting.with(3, 0), emptyList(), DUMMY_INDICES);
     }
 
     @Test
