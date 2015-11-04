@@ -14,9 +14,7 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.nestedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
-import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
-import static io.polyglotted.eswrapper.indexing.FieldType.BOOLEAN;
-import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
+import static io.polyglotted.eswrapper.indexing.FieldType.*;
 import static io.polyglotted.eswrapper.indexing.TransformScript.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
@@ -25,7 +23,26 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class IndexSerializerTest extends IndexSerializer {
-    static java.util.Map<String, String> SERIALISED_DOCS = readAllDocs("files/SerialisedDocs.txt");
+    public static java.util.Map<String, String> SERIALISED_DOCS = readAllDocs("files/SerialisedDocs.txt");
+
+    public static TypeMapping completeTypeMapping(String index) {
+        return typeBuilder().index(index).type("testType")
+           .fieldMapping(notAnalyzedField("field01", BOOLEAN))
+           .fieldMapping(notAnalyzedField("field02", STRING))
+           .fieldMapping(notAnalyzedField("field03", FLOAT))
+           .fieldMapping(notAnalyzedField("field04", DOUBLE))
+           .fieldMapping(notAnalyzedField("field05", BYTE))
+           .fieldMapping(notAnalyzedField("field06", SHORT))
+           .fieldMapping(notAnalyzedField("field07", INTEGER))
+           .fieldMapping(notAnalyzedField("field08", LONG))
+           .fieldMapping(notAnalyzedField("field09", DATE))
+           .fieldMapping(notAnalyzedField("field10", BINARY))
+           .fieldMapping(notAnalyzedField("field11", IP))
+           .fieldMapping(notAnalyzedField("field12", GEO_POINT))
+           .fieldMapping(notAnalyzedField("field13", GEO_SHAPE))
+           .fieldMapping(notAnalyzedField("field14", OBJECT))
+           .build();
+    }
 
     @Test
     public void fieldMapping() {
@@ -64,6 +81,13 @@ public class IndexSerializerTest extends IndexSerializer {
            .fieldMapping(fieldBuilder().field("field1").type(BINARY)).build());
         //System.out.println("simpleFieldTypeMapping=" + actual);
         assertThat(actual, is(SERIALISED_DOCS.get("simpleFieldTypeMapping")));
+    }
+
+    @Test
+    public void completeTypeMapping() {
+        String actual = GSON.toJson(completeTypeMapping("testIndex"));
+        //System.out.println("completeTypeMapping=" + actual);
+        assertThat(actual, is(SERIALISED_DOCS.get("completeTypeMapping")));
     }
 
     @Test

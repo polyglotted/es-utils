@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.indexing;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -13,6 +14,11 @@ public abstract class IndexSerializer {
        .registerTypeAdapter(FieldMapping.Builder.class, new FieldMappingSerializer())
        .registerTypeAdapter(TransformScript.class, new ScriptMappingSerializer())
        .create();
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> indexDeser(String json) {
+        return GSON.fromJson(json, Map.class);
+    }
 
     private static final class TypeMappingSerializer implements JsonSerializer<TypeMapping> {
         @Override
@@ -69,8 +75,8 @@ public abstract class IndexSerializer {
             if (builder.docValues() != null) object.addProperty("doc_values", builder.docValues());
             if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
             if (builder.isAPath()) object.add("fields", context.serialize(FieldMapping.PATH_FIELDS));
-            if (FieldType.NESTED == builder.type() && builder.hasProperties())
-                object.add("properties", context.serialize(builder.properties()));
+            builder.extraProps().entrySet().forEach(extra -> object.add(extra.getKey(), context.serialize(extra.getValue())));
+            if (builder.hasProperties()) object.add("properties", context.serialize(builder.properties()));
             return object;
         }
     }
@@ -80,8 +86,8 @@ public abstract class IndexSerializer {
         public JsonElement serialize(TransformScript script, Type type, JsonSerializationContext context) {
             JsonObject object = new JsonObject();
             object.addProperty("script", script.script);
-            if(!script.params.isEmpty()) object.add("params", context.serialize(script.params));
-            if(script.lang!=null) object.addProperty("lang", script.lang);
+            if (!script.params.isEmpty()) object.add("params", context.serialize(script.params));
+            if (script.lang != null) object.addProperty("lang", script.lang);
             return object;
         }
     }

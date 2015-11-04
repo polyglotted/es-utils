@@ -6,11 +6,15 @@ import com.google.common.collect.Maps;
 import lombok.*;
 import lombok.experimental.Accessors;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
 import static io.polyglotted.eswrapper.indexing.FieldType.LONG;
+import static io.polyglotted.eswrapper.indexing.FieldType.NESTED;
+import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
@@ -97,6 +101,8 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         private boolean isAPath = false;
         @Getter
         private final Map<String, Builder> properties = new TreeMap<>();
+        @Getter
+        private final Map<String, Object> extraProps = new TreeMap<>();
 
         public Builder property(Iterable<Builder> properties) {
             this.properties.putAll(Maps.uniqueIndex(properties, Builder::field));
@@ -104,10 +110,16 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         }
 
         public boolean hasProperties() {
-            return properties.size() > 0;
+            return (type == NESTED || type == OBJECT) && properties.size() > 0;
+        }
+
+        public Builder extra(String name, Object value) {
+            extraProps.put(name, value);
+            return this;
         }
 
         public FieldMapping build() {
+            type.decorateField(this);
             return new FieldMapping(checkNotNull(field, "field cannot be null"), includeInSource, GSON.toJson(this));
         }
     }

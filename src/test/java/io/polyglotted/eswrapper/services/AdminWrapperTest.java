@@ -11,6 +11,9 @@ import java.util.Map;
 import static io.polyglotted.eswrapper.indexing.Alias.aliasBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.indexDeser;
+import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.SERIALISED_DOCS;
+import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.completeTypeMapping;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.request.Expressions.in;
@@ -53,6 +56,23 @@ public class AdminWrapperTest extends AbstractElasticTest {
         admin.dropIndex(ADMIN_ALIAS);
 
         assertThat(admin.indexExists(ADMIN_INDICES), is(false));
+    }
+
+    @Test
+    public void validateCompleteTypeMapping() {
+        admin.createIndex(IndexSetting.with(3, 0), ADMIN_INDICES[0]);
+        admin.createType(completeTypeMapping(ADMIN_INDICES[0]));
+
+        String testType = admin.getMapping(ADMIN_INDICES[0], "testType");
+        assertMapping(testType, SERIALISED_DOCS.get("completeTypeMapping"));
+
+        admin.dropIndex(ADMIN_INDICES[0]);
+    }
+
+    private void assertMapping(String mapping, String resourceJson) {
+        //System.out.println(mapping);
+        //System.out.println(resourceJson);
+        assertThat(indexDeser(mapping), is(indexDeser(resourceJson)));
     }
 
     @Test

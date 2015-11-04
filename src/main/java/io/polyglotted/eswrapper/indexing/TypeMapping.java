@@ -60,7 +60,7 @@ public final class TypeMapping {
         private final Set<String> sourceIncludes = new TreeSet<>();
         private final Set<FieldMapping> fieldMappings = new TreeSet<>();
         private final List<TransformScript> transformScripts = new ArrayList<>();
-        private final Map<String, Object> metaData = new HashMap<>();
+        private final Map<String, Object> metaData = new LinkedHashMap<>();
 
         public Builder fieldMapping(FieldMapping.Builder mapping) {
             return fieldMapping(mapping.build());
