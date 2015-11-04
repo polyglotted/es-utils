@@ -5,7 +5,7 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
 
 public abstract class IndexSerializer {
 
@@ -68,7 +68,7 @@ public abstract class IndexSerializer {
         @Override
         public JsonElement serialize(FieldMapping.Builder builder, Type type, JsonSerializationContext context) {
             JsonObject object = new JsonObject();
-            object.addProperty("type", toLowerCase(checkNotNull(builder.type(), "type cannot be null")));
+            if (builder.type() != OBJECT) object.addProperty("type", toLowerCase(builder.type()));
             if (builder.indexed() != null) object.addProperty("index", toLowerCase(builder.indexed()));
             if (builder.analyzer() != null) object.addProperty("analyzer", builder.analyzer());
             if (builder.stored() != null) object.addProperty("store", builder.stored());

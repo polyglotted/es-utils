@@ -11,10 +11,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.Indexed.NOT_ANALYZED;
 import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
 import static io.polyglotted.eswrapper.indexing.FieldType.LONG;
 import static io.polyglotted.eswrapper.indexing.FieldType.NESTED;
 import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
+import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
@@ -62,16 +64,20 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         return new Builder();
     }
 
+    public static FieldMapping.Builder objectField(String field) {
+        return simpleField(field, OBJECT);
+    }
+
     public static FieldMapping.Builder nestedField(String field) {
-        return simpleField(field, FieldType.NESTED);
+        return simpleField(field, NESTED);
     }
 
     public static FieldMapping.Builder notAnalyzedStringField(String field) {
-        return notAnalyzedField(field, FieldType.STRING).docValues(true);
+        return notAnalyzedField(field, STRING).docValues(true);
     }
 
     public static FieldMapping.Builder notAnalyzedField(String field, FieldType fieldType) {
-        return simpleField(field, fieldType).indexed(Indexed.NOT_ANALYZED).stored(null);
+        return simpleField(field, fieldType).indexed(NOT_ANALYZED).stored(null);
     }
 
     public static FieldMapping.Builder simpleField(String field, FieldType fieldType) {
@@ -119,7 +125,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         }
 
         public FieldMapping build() {
-            type.decorateField(this);
+            checkNotNull(type, "type cannot be null").decorateField(this);
             return new FieldMapping(checkNotNull(field, "field cannot be null"), includeInSource, GSON.toJson(this));
         }
     }

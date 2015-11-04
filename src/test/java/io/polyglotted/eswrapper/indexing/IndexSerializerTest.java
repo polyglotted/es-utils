@@ -13,11 +13,13 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.fieldBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.nestedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.objectField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
 import static io.polyglotted.eswrapper.indexing.FieldType.*;
 import static io.polyglotted.eswrapper.indexing.TransformScript.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,10 +39,11 @@ public class IndexSerializerTest extends IndexSerializer {
            .fieldMapping(notAnalyzedField("field08", LONG))
            .fieldMapping(notAnalyzedField("field09", DATE))
            .fieldMapping(notAnalyzedField("field10", BINARY))
-           .fieldMapping(notAnalyzedField("field11", IP))
-           .fieldMapping(notAnalyzedField("field12", GEO_POINT))
-           .fieldMapping(notAnalyzedField("field13", GEO_SHAPE))
-           .fieldMapping(notAnalyzedField("field14", OBJECT))
+           .fieldMapping(nestedField("field11").property(singleton(notAnalyzedStringField("inner1"))))
+           .fieldMapping(notAnalyzedField("field12", IP))
+           .fieldMapping(notAnalyzedField("field13", GEO_POINT))
+           .fieldMapping(notAnalyzedField("field14", GEO_SHAPE))
+           .fieldMapping(objectField("field15").property(singleton(notAnalyzedStringField("inner2"))))
            .build();
     }
 

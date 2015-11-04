@@ -63,16 +63,13 @@ public class AdminWrapperTest extends AbstractElasticTest {
         admin.createIndex(IndexSetting.with(3, 0), ADMIN_INDICES[0]);
         admin.createType(completeTypeMapping(ADMIN_INDICES[0]));
 
-        String testType = admin.getMapping(ADMIN_INDICES[0], "testType");
-        assertMapping(testType, SERIALISED_DOCS.get("completeTypeMapping"));
+        String expected = SERIALISED_DOCS.get("completeTypeMapping");
+        String actual = admin.getMapping(ADMIN_INDICES[0], "testType");
+        //System.out.println(expected);
+        //System.out.println(actual);
+        assertThat(indexDeser(actual), is(indexDeser(expected)));
 
         admin.dropIndex(ADMIN_INDICES[0]);
-    }
-
-    private void assertMapping(String mapping, String resourceJson) {
-        //System.out.println(mapping);
-        //System.out.println(resourceJson);
-        assertThat(indexDeser(mapping), is(indexDeser(resourceJson)));
     }
 
     @Test
