@@ -1,6 +1,8 @@
 package io.polyglotted.eswrapper.query.request;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import io.polyglotted.eswrapper.query.AggregationType;
 import io.polyglotted.eswrapper.query.ExpressionType;
 import io.polyglotted.eswrapper.query.StandardQuery;
@@ -12,9 +14,8 @@ import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
-import java.util.List;
-
 import static com.google.common.collect.Iterables.toArray;
+import static java.util.Collections.singleton;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 import static org.elasticsearch.common.unit.TimeValue.timeValueSeconds;
@@ -45,7 +46,7 @@ public abstract class QueryBuilder {
     public static SearchRequest queryToRequest(StandardQuery query, FilterBuilder postFilter) {
         SearchRequest request = new SearchRequest(toStrArray(query.indices)).types(toStrArray(query.types));
         SearchSourceBuilder builder = new SearchSourceBuilder().version(true);
-        setFields(builder, query.fields);
+        setFields(builder, Iterables.concat(query.fields, singleton("_parent")));
         setHints(request, builder, query.hints);
         setFilters(builder, query);
         setAggregations(builder, query);
@@ -57,9 +58,8 @@ public abstract class QueryBuilder {
     }
 
     @VisibleForTesting
-    static void setFields(SearchSourceBuilder builder, List<String> fields) {
-        if (fields.isEmpty()) return;
-        builder.fields(fields);
+    static void setFields(SearchSourceBuilder builder, Iterable<String> fields) {
+        builder.fields(ImmutableList.copyOf(fields));
         builder.fetchSource(true);
     }
 

@@ -20,6 +20,7 @@ import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
@@ -43,6 +44,16 @@ public final class IndexerWrapper {
         return index(bulkRequest, strict());
     }
 
+    public List<IndexKey> bulkIndex(Indexable indexable, IgnoreErrors ignoreErrors) {
+        try {
+            BulkResponse bulkResponse = index(indexable.writeRequest(), ignoreErrors);
+            return ImmutableList.copyOf(transform(checkNotNull(bulkResponse), IndexKey::from));
+
+        } finally {
+            forceRefresh(indexable.index);
+        }
+    }
+
     public List<IndexKey> twoPhaseCommit(Indexable indexable) {
         lockTheIndexOrFail(indexable.index);
         List<SimpleDoc> currentDocs = getCurrent(indexable.index, indexable.updateIds());
@@ -59,8 +70,12 @@ public final class IndexerWrapper {
 
         } finally {
             unlockIndex(indexable.index);
-            client.admin().indices().refresh(refreshRequest(indexable.index)).actionGet();
+            forceRefresh(indexable.index);
         }
+    }
+
+    private void forceRefresh(String index) {
+        client.admin().indices().refresh(refreshRequest(index)).actionGet();
     }
 
     @VisibleForTesting

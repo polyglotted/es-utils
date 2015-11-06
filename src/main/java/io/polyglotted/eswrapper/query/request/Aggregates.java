@@ -16,6 +16,7 @@ import static com.google.common.collect.ImmutableMap.of;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.filterValues;
 import static io.polyglotted.eswrapper.query.AggregationType.*;
+import static io.polyglotted.eswrapper.query.request.Expression.ValueKey;
 import static io.polyglotted.eswrapper.query.request.Expression.withMap;
 
 public abstract class Aggregates {
@@ -115,6 +116,10 @@ public abstract class Aggregates {
     public static Builder dateHistogramBuilder(String label, String field, String interval, String format) {
         return aggsBuilder(true).oper(DateHistogram.name()).label(label).arg(FieldKey, field)
            .arg(IntervalKey, interval).arg(FormatKey, format);
+    }
+
+    public static Builder filterAggBuilder(String label, Expression filter) {
+        return aggsBuilder(true).oper(Filter.name()).label(label).arg(ValueKey, filter);
     }
 
     private static Builder aggsBuilder(boolean canHaveChildren) {

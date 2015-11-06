@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogram;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -17,15 +18,14 @@ import org.elasticsearch.search.aggregations.metrics.stats.Stats;
 
 import java.util.Map;
 
-import static io.polyglotted.eswrapper.query.request.Aggregates.*;
+import static io.polyglotted.eswrapper.query.ExpressionType.buildFilter;
+import static io.polyglotted.eswrapper.query.request.Aggregates.AscKey;
+import static io.polyglotted.eswrapper.query.request.Aggregates.FieldKey;
+import static io.polyglotted.eswrapper.query.request.Aggregates.FormatKey;
+import static io.polyglotted.eswrapper.query.request.Aggregates.IntervalKey;
+import static io.polyglotted.eswrapper.query.request.Aggregates.OrderKey;
+import static io.polyglotted.eswrapper.query.request.Aggregates.SizeKey;
 import static io.polyglotted.eswrapper.query.response.Aggregation.aggregationBuilder;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.avg;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.count;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.dateHistogram;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.max;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.min;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.stats;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.sum;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -187,6 +187,35 @@ public enum AggregationType {
                 for (Expression child : expr.children) {
                     bucketBuilder.aggregation(getInternal(child, bucket.getAggregations()));
                 }
+            }
+            return builder;
+        }
+    },
+    Filter(true, true) {
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
+            return (T) ImmutableList.copyOf(buckets);
+        }
+
+        @Override
+        AbstractAggregationBuilder buildFrom(Expression expr) {
+            FilterAggregationBuilder builder = filter(expr.label).filter(buildFilter(expr.valueArg()));
+            for (Expression child : expr.children) {
+                builder.subAggregation(build(child));
+            }
+            return builder;
+        }
+
+        @Override
+        Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
+            org.elasticsearch.search.aggregations.bucket.filter.Filter filter = aggregations.get(expr.label);
+            Aggregation.Builder builder = aggregationBuilder().label(expr.label)
+               .type(AggregationType.Filter);
+
+            Bucket.Builder bucketBuilder = builder.bucketBuilder().key(expr.label).docCount(filter.getDocCount());
+            for (Expression child : expr.children) {
+                bucketBuilder.aggregation(getInternal(child, filter.getAggregations()));
             }
             return builder;
         }

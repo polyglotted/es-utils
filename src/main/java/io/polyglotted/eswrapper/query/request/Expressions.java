@@ -26,6 +26,10 @@ public abstract class Expressions {
         return and(exists(STATUS_FIELD), exists(EXPIRY_FIELD));
     }
 
+    public static Expression all() {
+        return withLabel(ExpressionType.All, "");
+    }
+
     public static Expression ids(String... ids) {
         return withValue(ExpressionType.Ids, "", ImmutableList.copyOf(asList(ids)));
     }

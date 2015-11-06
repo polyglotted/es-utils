@@ -1,9 +1,9 @@
 package io.polyglotted.eswrapper.services;
 
 import io.polyglotted.eswrapper.AbstractElasticTest;
-import io.polyglotted.eswrapper.indexing.*;
-import io.polyglotted.eswrapper.query.StandardQuery;
+import io.polyglotted.eswrapper.indexing.FieldType;
 import io.polyglotted.eswrapper.query.QueryResponse;
+import io.polyglotted.eswrapper.query.StandardQuery;
 import io.polyglotted.eswrapper.query.request.Aggregates;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.response.Aggregation;
@@ -143,6 +143,20 @@ public class AggregationsTest extends AbstractElasticTest {
         assertEquals(iterator.next(), flattened("2015-02-01", "SA", 1L));
         assertEquals(iterator.next(), flattened("2015-03-01", "EMEA", 3L));
         assertEquals(iterator.next(), flattened("2015-03-01", "NA", 3L));
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    public void getFilterDateHisto() throws Exception {
+        Builder filter = filterAggBuilder("regionEmea", equalsTo(FieldRegion, "EMEA"))
+           .add(dateHistogramBuilder("dates", FieldDate, "month", "yyyy-MMM"));
+        Aggregation aggs = indexAndAggregate(filter.build());
+
+        Iterator<Flattened> iterator = Flattened.flatten(aggs).iterator();
+        assertEquals(iterator.next(), flattened("regionEmea", "2015-Jan", 5L));
+        assertEquals(iterator.next(), flattened("regionEmea", "2015-Feb", 3L));
+        assertEquals(iterator.next(), flattened("regionEmea", "2015-Mar", 3L));
+        assertFalse(iterator.hasNext());
     }
 
     private Aggregation indexAndAggregate(Expression aggs) {

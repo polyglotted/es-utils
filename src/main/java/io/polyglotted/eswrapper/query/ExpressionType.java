@@ -11,6 +11,12 @@ import static org.elasticsearch.index.query.MatchQueryBuilder.Type.PHRASE_PREFIX
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 
 public enum ExpressionType {
+    All {
+        @Override
+        FilterBuilder buildFrom(Expression expr) {
+            return matchAllFilter();
+        }
+    },
     Ids {
         @Override
         FilterBuilder buildFrom(Expression expr) {

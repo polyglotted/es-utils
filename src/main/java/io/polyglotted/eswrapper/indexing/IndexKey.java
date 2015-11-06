@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHitField;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -15,6 +16,7 @@ import java.io.OutputStream;
 
 import static com.google.common.collect.ComparisonChain.start;
 import static io.polyglotted.eswrapper.indexing.KeyUtil.generateUuid;
+import static java.util.UUID.randomUUID;
 
 @Getter
 @Accessors(fluent = true)
@@ -52,6 +54,10 @@ public final class IndexKey implements Comparable<IndexKey> {
         return keyWithParent(index, type, id, null);
     }
 
+    public static IndexKey keyWithParent(String type, String parent) {
+        return keyWithParent("", type, randomUUID().toString(), parent);
+    }
+
     public static IndexKey keyWithParent(String type, String id, String parent) {
         return keyWithParent("", type, id, parent);
     }
@@ -69,7 +75,13 @@ public final class IndexKey implements Comparable<IndexKey> {
     }
 
     public static IndexKey from(SearchHit searchHit) {
-        return new IndexKey(searchHit.getIndex(), searchHit.getType(), searchHit.getId(), searchHit.getVersion());
+        return new IndexKey(searchHit.getIndex(), searchHit.getType(), searchHit.getId(),
+           searchHit.getVersion(), false, getParent(searchHit));
+    }
+
+    private static String getParent(SearchHit searchHit) {
+        SearchHitField field = searchHit.field("_parent");
+        return field == null ? null : (String) field.value();
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static io.polyglotted.eswrapper.query.AggregationType.*;
+import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.testng.Assert.assertEquals;
 
@@ -42,6 +43,9 @@ public class AggregatesTest extends Aggregates {
            {Statistics.buildFrom(stats("hello", "world")), "{\"aggregations\":{\"hello\":{\"stats\":{\"field\":\"world\"}}}}"},
            {DateHistogram.buildFrom(dateHistogram("hello", "world", "year")), "{\"aggregations\":{\"hello\"" +
               ":{\"date_histogram\":{\"field\":\"world\",\"interval\":\"year\",\"format\":\"yyyy-MM-dd\"}}}}"},
+           {Filter.buildFrom(filterAggBuilder("hello", equalsTo("a", "b")).add(sumBuilder("x", "y")).build()),
+              "{\"aggregations\":{\"hello\":{\"filter\":{\"term\":{\"a\":\"b\"}}," +
+                 "\"aggregations\":{\"x\":{\"sum\":{\"field\":\"y\"}}}}}}"},
         };
     }
 

@@ -14,6 +14,7 @@ public class ExpressionsTest extends Expressions {
     @DataProvider
     public static Object[][] expressionInputs() {
         return new Object[][]{
+           {All.buildFrom(all()), "{\"match_all\":{}}"},
            {Ids.buildFrom(ids("ab", "cd")), "{\"ids\":{\"types\":[],\"values\":[\"ab\",\"cd\"]}}"},
            {Eq.buildFrom(equalsTo("hello", "world")), "{\"term\":{\"hello\":\"world\"}}"},
            {Gte.buildFrom(greaterThanEquals("hello", "world")),

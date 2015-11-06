@@ -26,7 +26,7 @@ public class QueryBuilderTest extends QueryBuilder {
 
     @Test
     public void testOptionsFrom() throws Exception {
-        for(SearchOptions options : SearchOptions.values()) {
+        for (SearchOptions options : SearchOptions.values()) {
             assertNotNull(options.toOptions());
         }
         assertEquals(SearchOptions.valueOf("LENIENT_EXPAND_OPEN").toOptions(), lenientExpandOpen());
@@ -36,8 +36,8 @@ public class QueryBuilderTest extends QueryBuilder {
     public void testHintsAndFrom() throws Exception {
         StandardQuery query = queryBuilder().field("b").offset(10).hints(hintsBuilder().indicesOptions(STRICT_EXPAND_OPEN)
            .fetchSource(false).preference("").routing("a").searchType(COUNT).timeoutInSeconds(10)).build();
-        assertEquals(convertToJson(queryToRequest(query, null).source(), false, false), "{\"from\":10,\"size\":10," +
-           "\"timeout\":10000,\"query\":{\"match_all\":{}},\"version\":true,\"_source\":false,\"fields\":\"b\"}");
+        assertEquals(convertToJson(queryToRequest(query, null).source(), false, false), "{\"from\":10,\"size\":10,\"" +
+           "timeout\":10000,\"query\":{\"match_all\":{}},\"version\":true,\"_source\":false,\"fields\":[\"b\",\"_parent\"]}");
     }
 
     @Test
@@ -45,9 +45,9 @@ public class QueryBuilderTest extends QueryBuilder {
         StandardQuery query = queryBuilder().expression(equalsTo("a", "a"), equalsTo("b", "b"))
            .scrollTimeInMillis(3000L).sort(sortBuilder().field("a").missing("hi").order(SortOrder.DESC)
               .unmappedType("type").mode(SortMode.NONE)).build();
-        assertEquals(convertToJson(queryToRequest(query, null).source(), false, false), "{\"size\":10," +
-           "\"timeout\":10000,\"query\":{\"constant_score\":{\"filter\":{\"and\":{\"filters\":[{\"term\":" +
-           "{\"a\":\"a\"}},{\"term\":{\"b\":\"b\"}}]}}}},\"version\":true,\"sort\":[{\"a\":{\"order\":\"desc\"," +
-           "\"missing\":\"hi\",\"unmapped_type\":\"type\"}}]}");
+        assertEquals(convertToJson(queryToRequest(query, null).source(), false, false), "{\"size\":10,\"timeout\":10000," +
+           "\"query\":{\"constant_score\":{\"filter\":{\"and\":{\"filters\":[{\"term\":{\"a\":\"a\"}},{\"term\":" +
+           "{\"b\":\"b\"}}]}}}},\"version\":true,\"_source\":{\"includes\":[],\"excludes\":[]},\"fields\":" +
+           "\"_parent\",\"sort\":[{\"a\":{\"order\":\"desc\",\"missing\":\"hi\",\"unmapped_type\":\"type\"}}]}");
     }
 }
