@@ -9,6 +9,7 @@ import java.util.List;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
 import static io.polyglotted.eswrapper.query.request.Expression.withArray;
+import static io.polyglotted.eswrapper.query.request.Expression.withLabel;
 import static io.polyglotted.eswrapper.query.request.Expression.withMap;
 import static io.polyglotted.eswrapper.query.request.Expression.withOnlyChildren;
 import static io.polyglotted.eswrapper.query.request.Expression.withValue;
@@ -88,11 +89,15 @@ public abstract class Expressions {
     }
 
     public static Expression exists(String field) {
-        return new Expression(ExpressionType.Exists.name(), field, ImmutableMap.of(), ImmutableList.of());
+        return withLabel(ExpressionType.Exists, field);
     }
 
     public static Expression missing(String field) {
-        return new Expression(ExpressionType.Missing.name(), field, ImmutableMap.of(), ImmutableList.of());
+        return withLabel(ExpressionType.Missing, field);
+    }
+
+    public static Expression type(String type) {
+        return withLabel(ExpressionType.Type, type);
     }
 
     public static Expression json(String json) {

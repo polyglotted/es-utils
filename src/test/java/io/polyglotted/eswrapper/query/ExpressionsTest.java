@@ -38,6 +38,7 @@ public class ExpressionsTest extends Expressions {
            {Exists.buildFrom(exists("hello")), "{\"exists\":{\"field\":\"hello\"}}"},
            {Missing.buildFrom(missing("hello")),
               "{\"missing\":{\"field\":\"hello\",\"null_value\":true,\"existence\":true}}"},
+           {Type.buildFrom(type("hello")), "{\"type\":{\"value\":\"hello\"}}"},
            {Json.buildFrom(json("{\"query\":{\"match_phrase\":{\"_all\":{\"query\":\"commodity\",\"slop\":20}}}}")),
               "{\"wrapper\":{\"filter\":\"eyJxdWVyeSI6eyJtYXRjaF9waHJhc2UiOnsiX2FsbCI6eyJxdWVyeSI6ImNvbW1vZGl0eSIsInNsb3AiOjIwfX19fQ==\"}}"},
            {And.buildFrom(and(equalsTo("hello", "world"))), "{\"and\":{\"filters\":[{\"term\":{\"hello\":\"world\"}}]}}"},

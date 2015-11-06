@@ -20,7 +20,7 @@ public enum ExpressionType {
     Eq {
         @Override
         FilterBuilder buildFrom(Expression expr) {
-            return termFilter(expr.label, expr.stringArg());
+            return termFilter(expr.label, expr.valueArg());
         }
     },
     Gte {
@@ -56,7 +56,7 @@ public enum ExpressionType {
     Ne {
         @Override
         FilterBuilder buildFrom(Expression expr) {
-            return notFilter(termFilter(expr.label, expr.stringArg()));
+            return notFilter(termFilter(expr.label, expr.valueArg()));
         }
     },
     In {
@@ -95,6 +95,12 @@ public enum ExpressionType {
         @Override
         FilterBuilder buildFrom(Expression expr) {
             return missingFilter(expr.label).existence(true).nullValue(true);
+        }
+    },
+    Type {
+        @Override
+        FilterBuilder buildFrom(Expression expr) {
+            return typeFilter(expr.label);
         }
     },
     Json {

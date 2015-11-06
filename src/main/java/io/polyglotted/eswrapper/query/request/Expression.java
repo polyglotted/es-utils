@@ -35,6 +35,10 @@ public final class Expression {
         return new Expression(expressionType.name(), checkNotNull(label), ImmutableMap.of(), ImmutableList.copyOf(list));
     }
 
+    public static Expression withLabel(ExpressionType expressionType, String label) {
+        return new Expression(expressionType.name(), checkNotNull(label), ImmutableMap.of(), ImmutableList.of());
+    }
+
     public <T> T valueArg() {
         return argFor(ValueKey, null);
     }
