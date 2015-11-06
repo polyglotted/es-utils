@@ -36,10 +36,18 @@ public abstract class IndexSerializer {
                 source.add("includes", context.serialize(mapping.includes));
             }
 
-            JsonObject all = new JsonObject();
-            mainType.add("_all", all);
-            all.addProperty("enabled", true);
-            all.addProperty("analyzer", "all_analyzer");
+            if (mapping.parent != null) {
+                JsonObject parent = new JsonObject();
+                parent.addProperty("type", mapping.parent);
+                mainType.add("_parent", parent);
+            }
+
+            if (mapping.all != null) {
+                JsonObject all = new JsonObject();
+                mainType.add("_all", all);
+                all.addProperty("enabled", mapping.all);
+                if (mapping.analyzer != null) all.addProperty("analyzer", mapping.analyzer);
+            }
 
             if (!mapping.meta.isEmpty())
                 mainType.add("_meta", context.serialize(mapping.meta));
@@ -51,12 +59,14 @@ public abstract class IndexSerializer {
                     mainType.add("transform", context.serialize(mapping.scripts.get(0)));
             }
 
-            JsonObject properties = new JsonObject();
-            mainType.add("properties", properties);
-            for (FieldMapping field : FieldMapping.PRIVATE_FIELDS)
-                properties.add(field.field, context.serialize(field.mapping));
-            for (FieldMapping field : mapping.mappings)
-                properties.add(field.field, context.serialize(field.mapping));
+            if (!mapping.mappings.isEmpty()) {
+                JsonObject properties = new JsonObject();
+                mainType.add("properties", properties);
+                for (FieldMapping field : FieldMapping.PRIVATE_FIELDS)
+                    properties.add(field.field, context.serialize(field.mapping));
+                for (FieldMapping field : mapping.mappings)
+                    properties.add(field.field, context.serialize(field.mapping));
+            }
 
             JsonObject result = new JsonObject();
             result.add(mapping.type, mainType);

@@ -9,7 +9,6 @@ import static com.google.common.collect.Iterables.transform;
 import static org.elasticsearch.index.query.FilterBuilders.*;
 import static org.elasticsearch.index.query.MatchQueryBuilder.Type.PHRASE_PREFIX;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.prefixQuery;
 
 public enum ExpressionType {
     Ids {
@@ -51,7 +50,7 @@ public enum ExpressionType {
     Prefix {
         @Override
         FilterBuilder buildFrom(Expression expr) {
-            return queryFilter(prefixQuery(expr.label, expr.stringArg()));
+            return prefixFilter(expr.label, expr.stringArg());
         }
     },
     Ne {
@@ -126,6 +125,18 @@ public enum ExpressionType {
         @Override
         FilterBuilder buildFrom(Expression expr) {
             return nestedFilter(expr.label, aggregateFilters(expr.children)[0]);
+        }
+    },
+    HasParent {
+        @Override
+        FilterBuilder buildFrom(Expression expr) {
+            return hasParentFilter(expr.label, aggregateFilters(expr.children)[0]);
+        }
+    },
+    HasChild {
+        @Override
+        FilterBuilder buildFrom(Expression expr) {
+            return hasChildFilter(expr.label, aggregateFilters(expr.children)[0]);
         }
     };
 

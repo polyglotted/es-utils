@@ -20,6 +20,7 @@ import static io.polyglotted.eswrapper.query.request.Expressions.in;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.testng.Assert.assertEquals;
 
@@ -38,8 +39,7 @@ public class AdminWrapperTest extends AbstractElasticTest {
     public void createTypeAcrossIndices() {
         admin.waitForYellowStatus();
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
-
-        System.out.println(admin.getIndex(ADMIN_ALIAS));
+        assertThat(admin.getIndex(ADMIN_ALIAS), is(notNullValue()));
 
         admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
            .fieldMapping(notAnalyzedStringField("a")).build());
@@ -64,7 +64,7 @@ public class AdminWrapperTest extends AbstractElasticTest {
     @Test
     public void validateCompleteTypeMapping() {
         admin.createIndex(IndexSetting.with(3, 0), ADMIN_INDICES[0]);
-        admin.createType(completeTypeMapping(ADMIN_INDICES[0]));
+        admin.createType(completeTypeMapping(ADMIN_INDICES[0]).build());
 
         String expected = SERIALISED_DOCS.get("completeTypeMapping");
         String actual = admin.getMapping(ADMIN_INDICES[0], "testType");

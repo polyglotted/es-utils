@@ -2,6 +2,7 @@ package io.polyglotted.eswrapper.query.response;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import io.polyglotted.eswrapper.indexing.IndexKey;
 import org.elasticsearch.action.search.SearchResponse;
 
@@ -23,4 +24,9 @@ public interface ResultBuilder<T> {
         ImmutableMap<String, Object> source = (hit.getSource() == null) ? ImmutableMap.of() : copyOf(hit.getSource());
         return new SimpleDoc(IndexKey.from(hit), source);
     }));
+
+    static <T> ResultBuilder<T> SimpleObjectBuilder(final Gson gson, Class<T> clazz) {
+        return response -> ImmutableList.copyOf(transform(response.getHits(),
+           hit -> hit.isSourceEmpty() ? null : gson.fromJson(hit.sourceAsString(), clazz)));
+    }
 }

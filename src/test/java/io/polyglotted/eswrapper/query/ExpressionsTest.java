@@ -24,7 +24,7 @@ public class ExpressionsTest extends Expressions {
               "{\"range\":{\"hello\":{\"from\":null,\"to\":\"world\",\"include_lower\":true,\"include_upper\":true}}}"},
            {Lt.buildFrom(lessThan("hello", "world")),
               "{\"range\":{\"hello\":{\"from\":null,\"to\":\"world\",\"include_lower\":true,\"include_upper\":false}}}"},
-           {Prefix.buildFrom(prefix("hello", "world")), "{\"query\":{\"prefix\":{\"hello\":\"world\"}}}"},
+           {Prefix.buildFrom(prefix("hello", "world")), "{\"prefix\":{\"hello\":\"world\"}}"},
            {Ne.buildFrom(notEquals("hello", "world")), "{\"not\":{\"filter\":{\"term\":{\"hello\":\"world\"}}}}"},
            {In.buildFrom(in("hello", "foo", "bar")), "{\"terms\":{\"hello\":[\"foo\",\"bar\"]}}"},
            {In.buildFrom(in("hello", 25, 32)), "{\"terms\":{\"hello\":[25,32]}}"},
@@ -49,6 +49,10 @@ public class ExpressionsTest extends Expressions {
            {Not.buildFrom(not(equalsTo("hello", "world"))), "{\"not\":{\"filter\":{\"term\":{\"hello\":\"world\"}}}}"},
            {Nested.buildFrom(nested("foo.bar", equalsTo("hello", "world"))),
               "{\"nested\":{\"filter\":{\"term\":{\"hello\":\"world\"}},\"path\":\"foo.bar\"}}"},
+           {HasParent.buildFrom(hasParent("foo.bar", equalsTo("hello", "world"))),
+              "{\"has_parent\":{\"filter\":{\"term\":{\"hello\":\"world\"}},\"parent_type\":\"foo.bar\"}}"},
+           {HasChild.buildFrom(hasChild("foo.bar", equalsTo("hello", "world"))),
+              "{\"has_child\":{\"filter\":{\"term\":{\"hello\":\"world\"}},\"child_type\":\"foo.bar\"}}"},
         };
     }
 

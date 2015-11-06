@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 
 import java.util.*;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.of;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
@@ -18,8 +17,11 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 public final class TypeMapping {
     public final String index;
     public final String type;
+    public final String parent;
     public final boolean strict;
     public final boolean store;
+    public final Boolean all;
+    public final String analyzer;
     public final ImmutableSet<String> includes;
     public final ImmutableSet<FieldMapping> mappings;
     public final ImmutableList<TransformScript> scripts;
@@ -55,8 +57,11 @@ public final class TypeMapping {
     public static class Builder {
         private String index;
         private String type;
+        private String parent;
         private boolean strict = false;
         private boolean storeSource = true;
+        private Boolean allEnabled = true;
+        private String allAnalyzer = "all_analyzer";
         private final Set<String> sourceIncludes = new TreeSet<>();
         private final Set<FieldMapping> fieldMappings = new TreeSet<>();
         private final List<TransformScript> transformScripts = new ArrayList<>();
@@ -87,10 +92,9 @@ public final class TypeMapping {
         }
 
         public TypeMapping build() {
-            checkArgument(!fieldMappings.isEmpty(), "atleast one field must be indexed");
             return new TypeMapping(checkNotNull(index, "index cannot be null"), checkNotNull(type, "type cannot be null"),
-               strict, storeSource, ImmutableSet.copyOf(sourceIncludes), ImmutableSet.copyOf(fieldMappings),
-               ImmutableList.copyOf(transformScripts), ImmutableMap.copyOf(metaData));
+               parent, strict, storeSource, allEnabled, allAnalyzer, ImmutableSet.copyOf(sourceIncludes),
+               ImmutableSet.copyOf(fieldMappings), ImmutableList.copyOf(transformScripts), ImmutableMap.copyOf(metaData));
         }
     }
 }

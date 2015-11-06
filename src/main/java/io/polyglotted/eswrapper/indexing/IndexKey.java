@@ -1,8 +1,10 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.annotations.VisibleForTesting;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.search.SearchHit;
@@ -14,6 +16,8 @@ import java.io.OutputStream;
 import static com.google.common.collect.ComparisonChain.start;
 import static io.polyglotted.eswrapper.indexing.KeyUtil.generateUuid;
 
+@Getter
+@Accessors(fluent = true)
 @RequiredArgsConstructor
 @ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class IndexKey implements Comparable<IndexKey> {
@@ -22,9 +26,10 @@ public final class IndexKey implements Comparable<IndexKey> {
     public final String id;
     public final long version;
     public final boolean delete;
+    public final String parent;
 
     public IndexKey(String index, String type, String id, long version) {
-        this(index, type, id, version, false);
+        this(index, type, id, version, false, null);
     }
 
     public String uniqueId() {
@@ -32,19 +37,27 @@ public final class IndexKey implements Comparable<IndexKey> {
     }
 
     public IndexKey delete() {
-        return new IndexKey(index, type, id, version, true);
+        return new IndexKey(index, type, id, version, true, null);
     }
 
     public IndexKey version(long version) {
-        return new IndexKey(index, type, id, version, false);
+        return new IndexKey(index, type, id, version, false, null);
     }
 
     public static IndexKey keyWith(String type, String id) {
-        return keyWith("", type, id);
+        return keyWithParent("", type, id, null);
     }
 
     public static IndexKey keyWith(String index, String type, String id) {
-        return new IndexKey(index, type, id, -1, false);
+        return keyWithParent(index, type, id, null);
+    }
+
+    public static IndexKey keyWithParent(String type, String id, String parent) {
+        return keyWithParent("", type, id, parent);
+    }
+
+    public static IndexKey keyWithParent(String index, String type, String id, String parent) {
+        return new IndexKey(index, type, id, -1, false, parent);
     }
 
     public static IndexKey from(IndexResponse response) {

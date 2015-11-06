@@ -122,4 +122,12 @@ public abstract class Expressions {
     public static Expression nested(String path, Expression expression) {
         return withOnlyChildren(ExpressionType.Nested, path, singletonList(expression));
     }
+
+    public static Expression hasParent(String parentType, Expression expression) {
+        return withOnlyChildren(ExpressionType.HasParent, parentType, singletonList(expression));
+    }
+
+    public static Expression hasChild(String childType, Expression expression) {
+        return withOnlyChildren(ExpressionType.HasChild, childType, singletonList(expression));
+    }
 }
