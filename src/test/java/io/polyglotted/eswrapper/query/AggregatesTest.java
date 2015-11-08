@@ -46,6 +46,9 @@ public class AggregatesTest extends Aggregates {
            {Filter.buildFrom(filterAggBuilder("hello", equalsTo("a", "b")).add(sumBuilder("x", "y")).build()),
               "{\"aggregations\":{\"hello\":{\"filter\":{\"term\":{\"a\":\"b\"}}," +
                  "\"aggregations\":{\"x\":{\"sum\":{\"field\":\"y\"}}}}}}"},
+           {Children.buildFrom(childrenAggBuilder("hello", "world").add(sumBuilder("x", "y")).build()),
+              "{\"aggregations\":{\"hello\":{\"children\":{\"type\":\"world\"}," +
+                 "\"aggregations\":{\"x\":{\"sum\":{\"field\":\"y\"}}}}}}"},
         };
     }
 

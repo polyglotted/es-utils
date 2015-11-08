@@ -9,6 +9,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.children.Children;
+import org.elasticsearch.search.aggregations.bucket.children.ChildrenBuilder;
 import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogram;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramBuilder;
@@ -216,6 +218,35 @@ public enum AggregationType {
             Bucket.Builder bucketBuilder = builder.bucketBuilder().key(expr.label).docCount(filter.getDocCount());
             for (Expression child : expr.children) {
                 bucketBuilder.aggregation(getInternal(child, filter.getAggregations()));
+            }
+            return builder;
+        }
+    },
+    Children(true, true) {
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
+            return (T) ImmutableList.copyOf(buckets);
+        }
+
+        @Override
+        AbstractAggregationBuilder buildFrom(Expression expr) {
+            ChildrenBuilder builder = children(expr.label).childType(expr.stringArg());
+            for (Expression child : expr.children) {
+                builder.subAggregation(build(child));
+            }
+            return builder;
+        }
+
+        @Override
+        Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
+            Children children = aggregations.get(expr.label);
+            Aggregation.Builder builder = aggregationBuilder().label(expr.label)
+               .type(AggregationType.Filter);
+
+            Bucket.Builder bucketBuilder = builder.bucketBuilder().key(expr.label).docCount(children.getDocCount());
+            for (Expression child : expr.children) {
+                bucketBuilder.aggregation(getInternal(child, children.getAggregations()));
             }
             return builder;
         }

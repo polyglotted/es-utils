@@ -122,6 +122,10 @@ public abstract class Aggregates {
         return aggsBuilder(true).oper(Filter.name()).label(label).arg(ValueKey, filter);
     }
 
+    public static Builder childrenAggBuilder(String label, String type) {
+        return aggsBuilder(true).oper(Children.name()).label(label).arg(ValueKey, type);
+    }
+
     private static Builder aggsBuilder(boolean canHaveChildren) {
         return new Builder(canHaveChildren);
     }
