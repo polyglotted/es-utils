@@ -81,9 +81,9 @@ public class IndexableTest extends AbstractElasticTest {
         List<IndexKey> updates = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
            new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/010", T1));
         mutations.add(new SleeveDoc<>(updates.get(0),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), true));
         mutations.add(new SleeveDoc<>(updates.get(1),
-           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0)));
+           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0), true));
 
         //deletes
         List<IndexKey> deletes = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
@@ -136,12 +136,12 @@ public class IndexableTest extends AbstractElasticTest {
 
         List<SleeveDoc<Trade>> update1 = ImmutableList.of(new SleeveDoc<>(
            new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), true));
         indexer.twoPhaseCommit(indexable(update1, T2));
 
         List<SleeveDoc<Trade>> update2 = ImmutableList.of(new SleeveDoc<>(
            new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 18.0)));
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 18.0), true));
         try {
             indexer.twoPhaseCommit(indexable(update2, T2));
             fail();

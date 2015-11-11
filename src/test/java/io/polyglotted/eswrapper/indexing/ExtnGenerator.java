@@ -72,7 +72,7 @@ public class ExtnGenerator {
        .put(TransformScript.class, singletonList("script"))
        .put(TypeMapping.class, asList("index", "type", "strict", "store"))
        .put(IndexKey.class, asList("index", "type", "id", "version", "delete"))
-       .put(SleeveDoc.class, asList("key", "source")).put(Sort.class, asList("field", "order", "mode"))
+       .put(SleeveDoc.class, asList("key", "source", "ancestry")).put(Sort.class, asList("field", "order", "mode"))
        .put(QueryHints.class, asList("options", "type", "timeout", "fetch"))
        .put(Aggregation.class, asList("label", "type", "value"))
        .put(Bucket.class, asList("key", "value", "count", "errors"))
@@ -84,7 +84,8 @@ public class ExtnGenerator {
     private static final ImmutableMap<Class<?>, Map<String, String>> Defaulteds = ImmutableMap.<Class<?>, Map<String, String>>builder()
        .put(Alias.class, of("remove", "false")).put(IndexAdmin.class, of("action", "CREATE_INDEX"))
        .put(FieldMapping.class, of("include", "false")).put(TypeMapping.class, of("strict", "false", "store", "true"))
-       .put(IndexKey.class, of("index", "", "delete", "false")).put(Sort.class, of("order", "ASC", "mode", "NONE"))
+       .put(IndexKey.class, of("index", "", "delete", "false")).put(SleeveDoc.class, of("ancestry", "false"))
+       .put(Sort.class, of("order", "ASC", "mode", "NONE"))
        .put(QueryHints.class, of("options", "LENIENT_EXPAND_OPEN", "type", "QUERY_THEN_FETCH",
           "timeout", "10", "fetch", "true")).put(Bucket.class, of("count", "-1", "errors", "0"))
        .put(StandardQuery.class, of("offset", "0", "size", "10")).put(StandardScroll.class, of("scroll", "5000"))
@@ -103,13 +104,14 @@ public class ExtnGenerator {
             boolean isConst = isEnum(clazz);
 
             Map<String, Object> inner = new LinkedHashMap<>();
-            inner.put("_mode", isConst ? "constant" : "definition");
+            inner.put("_type", isConst ? "constant" : "definition");
             inner.put("fqn", toTraitFqn(clazz.getSimpleName()));
             inner.put("traitRef", traitRefStart--);
             inner.put("desc", entry.getValue());
             if (isConst) inner.put("values", enumValues(clazz));
             else inner.put("properties", props(clazz, localTraits));
             inner.put("tags", tagsFrom(clazz));
+            inner.put("user", "System");
 
             result.add(inner);
         }

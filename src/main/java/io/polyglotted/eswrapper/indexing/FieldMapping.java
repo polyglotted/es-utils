@@ -132,6 +132,10 @@ public final class FieldMapping implements Comparable<FieldMapping> {
             return extra("fields", RAW_FIELDS);
         }
 
+        public Builder copyTo(String field) {
+            return extra("copy_to", field);
+        }
+
         public Builder extra(String name, Object value) {
             extraProps.put(name, value);
             return this;

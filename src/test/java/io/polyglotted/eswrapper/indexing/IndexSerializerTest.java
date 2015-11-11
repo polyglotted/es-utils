@@ -21,6 +21,7 @@ import static io.polyglotted.eswrapper.indexing.TransformScript.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -109,6 +110,10 @@ public class IndexSerializerTest extends IndexSerializer {
            {typeBuilder().index("testIndex").type("testType").allEnabled(false).allAnalyzer(null), "disabledAllMapping"},
 
            {typeBuilder().index("testIndex").type("testType").allAnalyzer("my_analyzer"), "customAllMapping"},
+
+           {typeBuilder().index("testIndex").type("Parent").allEnabled(false).allAnalyzer(null).fieldMapping(notAnalyzedStringField("target")
+              .copyTo("freetext")).fieldMapping(simpleField("freetext", STRING).analyzer("all_analyzer"))
+              .fieldMapping(nestedField("child").property(singletonList(notAnalyzedField("effect", STRING).copyTo("freetext")))), "copyToMapping"},
         };
     }
 

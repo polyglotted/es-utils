@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
+import static io.polyglotted.eswrapper.indexing.FieldMapping.nestedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
@@ -19,6 +20,7 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
+import static io.polyglotted.eswrapper.query.request.Expressions.textAnywhere;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.request.Sort.sortAsc;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.NullBuilder;
@@ -26,6 +28,9 @@ import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleDocBui
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleObjectBuilder;
 import static io.polyglotted.eswrapper.services.NamePath.NAMEPATH_TYPE;
 import static io.polyglotted.eswrapper.services.NamePath.pathsRequest;
+import static io.polyglotted.eswrapper.services.Nested.NESTED_TYPE;
+import static io.polyglotted.eswrapper.services.Nested.nestedRequest;
+import static io.polyglotted.eswrapper.services.Nested.nesteds;
 import static io.polyglotted.eswrapper.services.SortableText.SORTABLE_TYPE;
 import static io.polyglotted.eswrapper.services.SortableText.sortables;
 import static io.polyglotted.eswrapper.services.SortableText.textsRequest;
@@ -33,6 +38,7 @@ import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
@@ -96,6 +102,21 @@ public class QueryWrapperTest extends AbstractElasticTest {
            .build(), null, SimpleObjectBuilder(GSON, SortableText.class)).resultsAs(SortableText.class);
         assertNotEquals(unsorteds, sorteds);
         assertEquals(sorteds, sortables());
+    }
+
+    @Test
+    public void testCopyToField() {
+        admin.createType(typeBuilder().index(DUMMY_INDICES[1]).type(NESTED_TYPE).allEnabled(false).allAnalyzer(null)
+           .fieldMapping(notAnalyzedStringField("target").copyTo("freetext"))
+           .fieldMapping(simpleField("freetext", STRING).analyzer("all_analyzer"))
+           .fieldMapping(nestedField("child").property(singletonList(notAnalyzedField("effect", STRING)
+              .copyTo("freetext")))).build());
+        indexer.index(nestedRequest(DUMMY_INDICES[1]));
+
+        List<Nested> nesteds = query.search(queryBuilder().index(DUMMY_INDICES).sort(sortAsc("target")).expression(
+           textAnywhere("freetext", "proud.don")).build(), null, SimpleObjectBuilder(GSON, Nested.class))
+           .resultsAs(Nested.class);
+        assertEquals(nesteds, nesteds().subList(1, 3));
     }
 
     @Test
