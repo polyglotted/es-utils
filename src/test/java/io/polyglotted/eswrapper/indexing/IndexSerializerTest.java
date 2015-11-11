@@ -91,6 +91,9 @@ public class IndexSerializerTest extends IndexSerializer {
            {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedStringField("name"))
               .fieldMapping(notAnalyzedStringField("path").isAPath(true)), "setAsPathTypeMapping"},
 
+           {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedStringField("name"))
+              .fieldMapping(simpleField("rawable", STRING).addRawFields()), "addRawFieldsTypeMapping"},
+
            {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedStringField("field1")).metaData("myName", "myVal"), "metaTypeMapping"},
 
            {typeBuilder().index("testIndex").type("NestedObj").fieldMapping(notAnalyzedStringField("target").isAPath(true)).fieldMapping(nestedField("axiom")
@@ -112,22 +115,19 @@ public class IndexSerializerTest extends IndexSerializer {
     @Test(dataProvider = "typeMappingInputs")
     public void validTypeMapping(TypeMapping.Builder type, String expectedKey) {
         String actual = GSON.toJson(type.build());
-        //System.out.println(expectedKey + "=" + actual);
-        assertThat(actual, is(SERIALISED_DOCS.get(expectedKey)));
+        assertThat(expectedKey + "=" + actual, actual, is(SERIALISED_DOCS.get(expectedKey)));
     }
 
     @Test
     public void sequenceMapping() {
         String actual = TypeMapping.forcedMappingJson("Sequence");
-        //System.out.println("sequenceMapping=" + actual);
-        assertThat(actual, is(SERIALISED_DOCS.get("sequenceMapping")));
+        assertThat("sequenceMapping=" + actual, actual, is(SERIALISED_DOCS.get("sequenceMapping")));
     }
 
     @Test
     public void defaultIndexSetting() {
         String actual = IndexSetting.with(5, 1).createJson();
-        //System.out.println("defaultIndexSetting=" + actual);
-        assertThat(actual, is(SERIALISED_DOCS.get("defaultIndexSetting")));
+        assertThat("defaultIndexSetting=" + actual, actual, is(SERIALISED_DOCS.get("defaultIndexSetting")));
     }
 
     @Test

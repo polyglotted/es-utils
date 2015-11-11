@@ -84,7 +84,6 @@ public abstract class IndexSerializer {
             if (builder.stored() != null) object.addProperty("store", builder.stored());
             if (builder.docValues() != null) object.addProperty("doc_values", builder.docValues());
             if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
-            if (builder.isAPath()) object.add("fields", context.serialize(FieldMapping.PATH_FIELDS));
             builder.extraProps().entrySet().forEach(extra -> object.add(extra.getKey(), context.serialize(extra.getValue())));
             if (builder.hasProperties()) object.add("properties", context.serialize(builder.properties()));
             return object;

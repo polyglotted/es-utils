@@ -28,8 +28,10 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(simpleField(BYTES_FIELD, BINARY).build(),
        simpleField(EXPIRY_FIELD, LONG).includeInAll(false).build(),
        notAnalyzedStringField(STATUS_FIELD).docValues(true).includeInAll(false).build());
-    static final Map<String, Object> PATH_FIELDS = ImmutableMap.of("tree", ImmutableMap.of("type", "string",
+    private static final Map<String, Object> PATH_FIELDS = ImmutableMap.of("tree", ImmutableMap.of("type", "string",
        "analyzer", "path_analyzer"));
+    private static final Map<String, Object> RAW_FIELDS = ImmutableMap.of("raw", ImmutableMap.of("type", "string",
+       "index", "not_analyzed", "doc_values", true));
 
     public final String field;
     public final boolean include;
@@ -104,8 +106,6 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         @Getter
         private Boolean docValues = null;
         @Getter
-        private boolean isAPath = false;
-        @Getter
         private final Map<String, Builder> properties = new TreeMap<>();
         @Getter
         private final Map<String, Object> extraProps = new TreeMap<>();
@@ -117,6 +117,19 @@ public final class FieldMapping implements Comparable<FieldMapping> {
 
         public boolean hasProperties() {
             return (type == NESTED || type == OBJECT) && properties.size() > 0;
+        }
+
+        @SuppressWarnings("unused")
+        public Builder isAPath(boolean bool) {
+            return isAPath();
+        }
+
+        public Builder isAPath() {
+            return extra("fields", PATH_FIELDS);
+        }
+
+        public Builder addRawFields() {
+            return extra("fields", RAW_FIELDS);
         }
 
         public Builder extra(String name, Object value) {

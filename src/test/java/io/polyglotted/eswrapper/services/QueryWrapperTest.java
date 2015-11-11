@@ -13,19 +13,28 @@ import java.util.Map;
 
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
+import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.queryToRequest;
+import static io.polyglotted.eswrapper.query.request.Sort.sortAsc;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.NullBuilder;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleObjectBuilder;
 import static io.polyglotted.eswrapper.services.NamePath.NAMEPATH_TYPE;
 import static io.polyglotted.eswrapper.services.NamePath.pathsRequest;
+import static io.polyglotted.eswrapper.services.SortableText.SORTABLE_TYPE;
+import static io.polyglotted.eswrapper.services.SortableText.sortables;
+import static io.polyglotted.eswrapper.services.SortableText.textsRequest;
 import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
 import static java.util.Collections.emptyList;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 
 public class QueryWrapperTest extends AbstractElasticTest {
@@ -68,12 +77,25 @@ public class QueryWrapperTest extends AbstractElasticTest {
     @Test
     public void testPathHierarchy() {
         admin.createType(typeBuilder().index(DUMMY_INDICES[1]).type(NAMEPATH_TYPE).fieldMapping(
-           notAnalyzedStringField("name")).fieldMapping(notAnalyzedStringField("path").isAPath(true)).build());
+           notAnalyzedStringField("name")).fieldMapping(notAnalyzedStringField("path").isAPath()).build());
         indexer.index(pathsRequest(DUMMY_INDICES[1]));
         QueryResponse response = query.search(queryBuilder().index(DUMMY_INDICES).size(20)
            .expression(equalsTo("path.tree", "/users/aux")).build(), null, SimpleDocBuilder);
         List<SimpleDoc> simpleDocs = response.resultsAs(SimpleDoc.class);
         assertEquals(simpleDocs.size(), 2);
+    }
+
+    @Test
+    public void testRawFieldQuery() {
+        admin.createType(typeBuilder().index(DUMMY_INDICES[1]).type(SORTABLE_TYPE).fieldMapping(
+           notAnalyzedStringField("name")).fieldMapping(simpleField("desc", STRING).addRawFields()).build());
+        indexer.index(textsRequest(DUMMY_INDICES[1]));
+        List<SortableText> unsorteds = query.search(queryBuilder().index(DUMMY_INDICES).sort(sortAsc("desc"))
+           .build(), null, SimpleObjectBuilder(GSON, SortableText.class)).resultsAs(SortableText.class);
+        List<SortableText> sorteds = query.search(queryBuilder().index(DUMMY_INDICES).sort(sortAsc("desc.raw"))
+           .build(), null, SimpleObjectBuilder(GSON, SortableText.class)).resultsAs(SortableText.class);
+        assertNotEquals(unsorteds, sorteds);
+        assertEquals(sorteds, sortables());
     }
 
     @Test
