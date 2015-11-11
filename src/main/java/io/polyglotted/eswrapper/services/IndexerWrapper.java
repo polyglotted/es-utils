@@ -7,6 +7,7 @@ import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.eswrapper.indexing.IndexKey;
 import io.polyglotted.eswrapper.indexing.Indexable;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
+import io.polyglotted.eswrapper.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -18,16 +19,20 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.query.request.QueryBuilder.idRequest;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.validation.ValidException.checkValidity;
+import static io.polyglotted.eswrapper.validation.Validator.EMPTY_VALIDATOR;
 import static org.elasticsearch.client.Requests.refreshRequest;
 
 @Slf4j
@@ -55,8 +60,12 @@ public final class IndexerWrapper {
     }
 
     public List<IndexKey> twoPhaseCommit(Indexable indexable) {
+        return twoPhaseCommit(indexable, EMPTY_VALIDATOR);
+    }
+
+    public List<IndexKey> twoPhaseCommit(Indexable indexable, Validator validator) {
         lockTheIndexOrFail(indexable.index);
-        List<SimpleDoc> currentDocs = getCurrent(indexable.index, indexable.updateIds());
+        List<SimpleDoc> currentDocs = validateAndGet(indexable, validator);
         try {
             index(indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key)));
             BulkResponse bulkResponse = index(indexable.writeRequest());
@@ -72,6 +81,13 @@ public final class IndexerWrapper {
             unlockIndex(indexable.index);
             forceRefresh(indexable.index);
         }
+    }
+
+    private List<SimpleDoc> validateAndGet(Indexable indexable, Validator validator) {
+        Collection<String> updateIds = indexable.updateIds();
+        List<SimpleDoc> currentDocs = getCurrent(indexable.index, toArray(updateIds, String.class));
+        checkValidity(validator.validate(updateIds));
+        return currentDocs;
     }
 
     private void forceRefresh(String index) {

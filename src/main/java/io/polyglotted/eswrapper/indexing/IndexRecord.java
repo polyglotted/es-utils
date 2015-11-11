@@ -18,7 +18,7 @@ import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
 @RequiredArgsConstructor
 @ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class IndexRecord {
-    @Delegate
+    @Delegate(excludes = KeyExclude.class)
     public final IndexKey indexKey;
     public final Action action;
     public final String source;
@@ -105,5 +105,13 @@ public final class IndexRecord {
             return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action,
                checkNotNull(source, "source cannot be null"));
         }
+    }
+
+    @SuppressWarnings("unused")
+    private interface KeyExclude {
+        String index();
+        int compareTo(IndexKey other);
+        IndexKey delete();
+        IndexKey version(long version);
     }
 }

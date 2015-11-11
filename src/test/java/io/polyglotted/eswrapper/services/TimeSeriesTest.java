@@ -85,7 +85,7 @@ public class TimeSeriesTest extends AbstractElasticTest {
         Expression expr = or(hasParent(SRA_TYPE, equalsTo(CAT_FIELD, "series")),
            hasParent(SRB_TYPE, equalsTo(CAT_FIELD, "series")), equalsTo(CAT_FIELD, "series"));
 
-        Aggregates.Builder histo = termBuilder("id", "_parent").add(dateHistogramBuilder("dates", "date", "week")
+        Aggregates.Builder histo = termBuilder("id", "_parent").add(dateHistogramBuilder("dates", "date", "2w")
            .add(avgBuilder("avg", "value")));
         Expression aggr = filterAggBuilder("applies-to", between("date",
            ZonedDateTime.of(2015, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toInstant().toEpochMilli(),
@@ -103,7 +103,7 @@ public class TimeSeriesTest extends AbstractElasticTest {
             iterator.next();
             flattenCount++;
         }
-        assertThat(flattenCount, is(44));
+        assertThat(flattenCount, is(22));
     }
 
     @Test

@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.toArray;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,8 +31,8 @@ public final class Indexable {
     public final long timestamp;
     public final ImmutableList<IndexRecord> records;
 
-    public String[] updateIds() {
-        return toArray(transform(filter(records, IndexRecord::isUpdate), IndexRecord::id), String.class);
+    public Collection<String> updateIds() {
+        return transform(filter(records, IndexRecord::isUpdate), IndexRecord::id);
     }
 
     public Collection<IndexKey> updateKeys() {

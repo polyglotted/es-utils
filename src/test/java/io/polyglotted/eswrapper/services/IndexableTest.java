@@ -8,6 +8,7 @@ import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.*;
 import io.polyglotted.eswrapper.query.request.Expression;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
+import io.polyglotted.eswrapper.validation.ValidException;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -36,6 +37,7 @@ import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
+import static io.polyglotted.eswrapper.validation.Validity.validityBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
@@ -150,6 +152,12 @@ public class IndexableTest extends AbstractElasticTest {
                startsWith("record not found"));
         }
         assertThat(fetchRecords(HISTORY_INDEX).size(), is(1));
+    }
+
+    @Test(expectedExceptions = ValidException.class)
+    public void failedValidation() {
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1),
+           currentDocs -> validityBuilder().memo("a", "induced fail").build());
     }
 
     private void assertHistory(Iterable<IndexKey> indexKeys, long version, String status, long expiry) {
