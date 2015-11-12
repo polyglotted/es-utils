@@ -1,6 +1,7 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -13,8 +14,11 @@ import org.elasticsearch.search.SearchHitField;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import static com.google.common.collect.ComparisonChain.start;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.Action.DELETE;
 import static io.polyglotted.eswrapper.indexing.KeyUtil.generateUuid;
 import static java.util.UUID.randomUUID;
 
@@ -76,7 +80,12 @@ public final class IndexKey implements Comparable<IndexKey> {
 
     public static IndexKey from(SearchHit searchHit) {
         return new IndexKey(searchHit.getIndex(), searchHit.getType(), searchHit.getId(),
-           searchHit.getVersion(), false, getParent(searchHit));
+           searchHit.getVersion(), isDeleted(searchHit), getParent(searchHit));
+    }
+
+    private static boolean isDeleted(SearchHit searchHit) {
+        Map<String, Object> source = searchHit.isSourceEmpty() ? ImmutableMap.of() : searchHit.sourceAsMap();
+        return DELETE.status.equals(source.get(STATUS_FIELD));
     }
 
     private static String getParent(SearchHit searchHit) {

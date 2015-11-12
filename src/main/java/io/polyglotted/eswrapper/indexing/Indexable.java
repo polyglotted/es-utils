@@ -23,6 +23,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -61,7 +63,7 @@ public final class Indexable {
 
     private static Map<String, Object> mapFrom(SimpleDoc simpleDoc, IndexRecord.Action action, long timestamp) {
         return ImmutableMap.<String, Object>builder().putAll(simpleDoc.source)
-           .put("&status", action.status).put("&expiry", timestamp).build();
+           .put(STATUS_FIELD, action.status).put(EXPIRY_FIELD, timestamp).build();
     }
 
     private void validateCurrentDocs(Map<IndexKey, SimpleDoc> currentDocs) {

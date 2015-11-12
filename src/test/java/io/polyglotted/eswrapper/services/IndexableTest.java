@@ -168,6 +168,7 @@ public class IndexableTest extends AbstractElasticTest {
             SimpleDoc doc = updatedItems.get(id);
             assertThat(doc.key().id, is(id));
             assertThat(doc.key().version, is(version));
+            assertThat(doc.key.delete, is("deleted".equals(status)));
             assertThat(doc.strVal(STATUS_FIELD), is(status));
             assertThat(doc.longVal(EXPIRY_FIELD), is(expiry));
         }
