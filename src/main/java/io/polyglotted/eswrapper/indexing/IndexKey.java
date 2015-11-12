@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 import static com.google.common.collect.ComparisonChain.start;
+import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.Action.DELETE;
 import static io.polyglotted.eswrapper.indexing.KeyUtil.generateUuid;
@@ -89,7 +90,7 @@ public final class IndexKey implements Comparable<IndexKey> {
     }
 
     private static String getParent(SearchHit searchHit) {
-        SearchHitField field = searchHit.field("_parent");
+        SearchHitField field = searchHit.field(PARENT_META);
         return field == null ? null : (String) field.value();
     }
 

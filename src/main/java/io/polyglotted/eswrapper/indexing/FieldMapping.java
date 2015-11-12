@@ -13,7 +13,7 @@ import java.util.TreeMap;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.Indexed.NOT_ANALYZED;
 import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
-import static io.polyglotted.eswrapper.indexing.FieldType.LONG;
+import static io.polyglotted.eswrapper.indexing.FieldType.DATE;
 import static io.polyglotted.eswrapper.indexing.FieldType.NESTED;
 import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
 import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
@@ -23,10 +23,15 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 @ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class FieldMapping implements Comparable<FieldMapping> {
     public static final String BYTES_FIELD = "&bytes";
+    public static final String TIMESTAMP_FIELD = "&timestamp";
     public static final String EXPIRY_FIELD = "&expiry";
+    public static final String ANCESTOR_FIELD = "&ancestor";
     public static final String STATUS_FIELD = "&status";
+
     static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(simpleField(BYTES_FIELD, BINARY).build(),
-       simpleField(EXPIRY_FIELD, LONG).includeInAll(false).build(),
+       simpleField(TIMESTAMP_FIELD, DATE).includeInAll(false).build(),
+       simpleField(EXPIRY_FIELD, DATE).includeInAll(false).build(),
+       notAnalyzedStringField(ANCESTOR_FIELD).docValues(true).includeInAll(false).build(),
        notAnalyzedStringField(STATUS_FIELD).docValues(true).includeInAll(false).build());
     private static final Map<String, Object> PATH_FIELDS = ImmutableMap.of("tree", ImmutableMap.of("type", "string",
        "analyzer", "path_analyzer"));

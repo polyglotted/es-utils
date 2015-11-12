@@ -5,6 +5,10 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 import java.util.Map;
 
+import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
+import static io.polyglotted.eswrapper.ElasticConstants.META_META;
+import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
+import static io.polyglotted.eswrapper.ElasticConstants.SOURCE_META;
 import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
 
 public abstract class IndexSerializer {
@@ -28,29 +32,29 @@ public abstract class IndexSerializer {
 
             JsonObject source = new JsonObject();
             if (!mapping.store) {
-                mainType.add("_source", source);
+                mainType.add(SOURCE_META, source);
                 source.addProperty("enabled", false);
 
             } else if (!mapping.includes.isEmpty()) {
-                mainType.add("_source", source);
+                mainType.add(SOURCE_META, source);
                 source.add("includes", context.serialize(mapping.includes));
             }
 
             if (mapping.parent != null) {
                 JsonObject parent = new JsonObject();
                 parent.addProperty("type", mapping.parent);
-                mainType.add("_parent", parent);
+                mainType.add(PARENT_META, parent);
             }
 
             if (mapping.all != null) {
                 JsonObject all = new JsonObject();
-                mainType.add("_all", all);
+                mainType.add(ALL_META, all);
                 all.addProperty("enabled", mapping.all);
                 if (mapping.analyzer != null) all.addProperty("analyzer", mapping.analyzer);
             }
 
             if (!mapping.meta.isEmpty())
-                mainType.add("_meta", context.serialize(mapping.meta));
+                mainType.add(META_META, context.serialize(mapping.meta));
 
             if (!mapping.scripts.isEmpty()) {
                 if (mapping.scripts.size() > 1)

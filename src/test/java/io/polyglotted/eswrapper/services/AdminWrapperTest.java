@@ -43,13 +43,10 @@ public class AdminWrapperTest extends AbstractElasticTest {
 
         admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
            .fieldMapping(notAnalyzedStringField("a")).build());
-        String MAPPING = "{\"AdminType\":{\"_all\":{\"enabled\":true,\"analyzer\":\"all_analyzer\"},\"properties\":" +
-           "{\"&bytes\":{\"type\":\"binary\"},\"&expiry\":{\"type\":\"long\",\"include_in_all\":false},\"&status\":" +
-           "{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true,\"include_in_all\":false},\"a\":" +
-           "{\"type\":\"string\",\"index\":\"not_analyzed\",\"doc_values\":true}}}}";
+        String MAPPING = SERIALISED_DOCS.get("adminWrapperMapping");
+        assertThat(admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), is(MAPPING));
         assertThat(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE), is(MAPPING));
         assertThat(admin.getMapping(ADMIN_INDICES[1], ADMIN_TYPE), is(MAPPING));
-        assertThat(admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), is(MAPPING));
 
         //test no-op actions
         admin.createIndex(IndexSetting.with(5, 2), ADMIN_INDICES[0]);
@@ -68,8 +65,6 @@ public class AdminWrapperTest extends AbstractElasticTest {
 
         String expected = SERIALISED_DOCS.get("completeTypeMapping");
         String actual = admin.getMapping(ADMIN_INDICES[0], "testType");
-        //System.out.println(expected);
-        //System.out.println(actual);
         assertThat(indexDeser(actual), is(indexDeser(expected)));
 
         admin.dropIndex(ADMIN_INDICES[0]);

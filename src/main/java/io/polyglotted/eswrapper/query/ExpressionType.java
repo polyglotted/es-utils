@@ -6,6 +6,7 @@ import org.elasticsearch.index.query.FilterBuilder;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
+import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
 import static org.elasticsearch.index.query.FilterBuilders.*;
 import static org.elasticsearch.index.query.MatchQueryBuilder.Type.PHRASE_PREFIX;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -81,7 +82,7 @@ public enum ExpressionType {
     Text {
         @Override
         FilterBuilder buildFrom(Expression expr) {
-            String field = isNullOrEmpty(expr.label) ? "_all" : expr.label;
+            String field = isNullOrEmpty(expr.label) ? ALL_META : expr.label;
             return queryFilter(matchQuery(field, expr.valueArg()).type(PHRASE_PREFIX));
         }
     },

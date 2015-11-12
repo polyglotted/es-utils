@@ -123,6 +123,17 @@ public class IndexSerializerTest extends IndexSerializer {
         assertThat(expectedKey + "=" + actual, actual, is(SERIALISED_DOCS.get(expectedKey)));
     }
 
+    @Test(enabled = false)
+    public void printAll() {
+        Object[][] inputs = typeMappingInputs();
+        for(Object[] items : inputs) {
+            TypeMapping.Builder type = (TypeMapping.Builder) items[0];
+            String expectedKey = (String) items[1];
+            String actual = GSON.toJson(type.build());
+            System.out.println(expectedKey + "=" + actual);
+        }
+    }
+
     @Test
     public void sequenceMapping() {
         String actual = TypeMapping.forcedMappingJson("Sequence");

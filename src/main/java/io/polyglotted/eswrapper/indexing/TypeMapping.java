@@ -10,6 +10,9 @@ import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.of;
+import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
+import static io.polyglotted.eswrapper.ElasticConstants.SOURCE_META;
+import static io.polyglotted.eswrapper.ElasticConstants.TYPE_META;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -43,8 +46,8 @@ public final class TypeMapping {
     }
 
     public static String forcedMappingJson(String type) {
-        return GSON.toJson(of(type, of("_source", of("enabled", 0), "_all", of("enabled", 0),
-           "_type", of("index", "no"), "enabled", 0)));
+        return GSON.toJson(of(type, of(SOURCE_META, of("enabled", 0), ALL_META, of("enabled", 0),
+           TYPE_META, of("index", "no"), "enabled", 0)));
     }
 
     public static Builder typeBuilder() {

@@ -15,6 +15,7 @@ import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import static com.google.common.collect.Iterables.toArray;
+import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static java.util.Collections.singleton;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
@@ -46,7 +47,7 @@ public abstract class QueryBuilder {
     public static SearchRequest queryToRequest(StandardQuery query, FilterBuilder postFilter) {
         SearchRequest request = new SearchRequest(toStrArray(query.indices)).types(toStrArray(query.types));
         SearchSourceBuilder builder = new SearchSourceBuilder().version(true);
-        setFields(builder, Iterables.concat(query.fields, singleton("_parent")));
+        setFields(builder, Iterables.concat(query.fields, singleton(PARENT_META)));
         setHints(request, builder, query.hints);
         setFilters(builder, query);
         setAggregations(builder, query);
