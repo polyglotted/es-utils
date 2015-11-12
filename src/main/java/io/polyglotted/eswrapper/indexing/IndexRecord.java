@@ -1,5 +1,6 @@
 package io.polyglotted.eswrapper.indexing;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -13,6 +14,8 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.VersionType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.ANCESTOR_FIELD;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.TIMESTAMP_FIELD;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
 
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public final class IndexRecord {
     public final IndexKey indexKey;
     public final Action action;
     public final String source;
+    public final String ancestor;
 
     public IndexKey key() {
         return indexKey;
@@ -52,15 +56,15 @@ public final class IndexRecord {
             @Override
             public ActionRequest request(IndexRecord record, String index, long timestamp) {
                 log.debug("creating new record " + record.id() + " at " + index);
-                return new IndexRequest(index, record.type(), record.id()).source(record.source).create(true)
-                   .parent(record.parent()).versionType(VersionType.EXTERNAL).version(timestamp);
+                return new IndexRequest(index, record.type(), record.id()).source(sourceOf(record, timestamp))
+                   .create(true).parent(record.parent()).versionType(VersionType.EXTERNAL).version(timestamp);
             }
         },
         UPDATE("expired") {
             @Override
             public ActionRequest request(IndexRecord record, String index, long timestamp) {
                 log.debug("updating record " + record.id() + " at " + index);
-                return new IndexRequest(index, record.type(), record.id()).source(record.source)
+                return new IndexRequest(index, record.type(), record.id()).source(sourceOf(record, timestamp))
                    .parent(record.parent()).versionType(VersionType.EXTERNAL_GTE).version(timestamp);
             }
         },
@@ -75,6 +79,18 @@ public final class IndexRecord {
         public final String status;
 
         public abstract ActionRequest request(IndexRecord record, String index, long timestamp);
+    }
+
+    @VisibleForTesting
+    static String sourceOf(IndexRecord record, long timestamp) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(record.source.substring(0, record.source.length() - 1));
+        if(record.source.length() > 2) builder.append(",");
+        builder.append("\"").append(TIMESTAMP_FIELD).append("\":").append(timestamp);
+        if (record.ancestor != null) {
+            builder.append(",\"").append(ANCESTOR_FIELD).append("\":\"").append(record.ancestor).append("\"");
+        }
+        return builder.append("}").toString();
     }
 
     public static Builder createRecord(String type, String location) {
@@ -100,18 +116,22 @@ public final class IndexRecord {
         public final IndexKey indexKey;
         public final Action action;
         private String source;
+        private String ancestor;
 
         public IndexRecord build() {
             return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action,
-               checkNotNull(source, "source cannot be null"));
+               checkNotNull(source, "source cannot be null"), ancestor);
         }
     }
 
     @SuppressWarnings("unused")
     private interface KeyExclude {
         String index();
+
         int compareTo(IndexKey other);
+
         IndexKey delete();
+
         IndexKey version(long version);
     }
 }

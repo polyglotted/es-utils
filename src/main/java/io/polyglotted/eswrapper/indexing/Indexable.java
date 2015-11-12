@@ -25,6 +25,7 @@ import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
+import static io.polyglotted.eswrapper.indexing.ReflUtil.fieldValue;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -49,6 +50,7 @@ public final class Indexable {
 
             String uniqueId = record.uniqueId();
             log.debug("creating archive record " + uniqueId + " for " + record.id() + " at " + index);
+            fieldValue(record, "ancestor", uniqueId);
 
             request.add(new IndexRequest(index, record.type(), uniqueId).create(true)
                .versionType(VersionType.EXTERNAL).version(record.version())
