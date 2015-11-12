@@ -25,6 +25,7 @@ import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.IndexKeyBuilder;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.trade;
+import static io.polyglotted.eswrapper.services.Trade.tradeFromMap;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
 import static java.util.Collections.singletonList;
 import static org.testng.Assert.assertEquals;
@@ -56,7 +57,7 @@ public class IndexerWrapperTest extends AbstractElasticTest {
 
         SimpleDoc simpleDoc = query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address));
         assertEquals(simpleDoc.version(), timestamp);
-        assertEquals(GSON.fromJson(GSON.toJson(simpleDoc.source), Trade.class), trade);
+        assertEquals(tradeFromMap(simpleDoc.source), trade);
     }
 
     @Test

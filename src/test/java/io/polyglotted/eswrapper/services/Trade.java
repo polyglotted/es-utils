@@ -8,6 +8,7 @@ import org.elasticsearch.index.VersionType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
@@ -72,5 +73,9 @@ public class Trade {
                .source(GSON.toJson(trade)));
         }
         return bulkRequest;
+    }
+
+    public static Trade tradeFromMap(Map<String, ?> source) {
+        return GSON.fromJson(GSON.toJson(source), Trade.class);
     }
 }

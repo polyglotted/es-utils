@@ -6,6 +6,8 @@ import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.query.QueryResponse;
 import io.polyglotted.eswrapper.query.response.ResponseHeader;
 import io.polyglotted.eswrapper.query.response.SimpleDoc;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.index.VersionType;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
 import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
+import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
@@ -26,6 +29,7 @@ import static io.polyglotted.eswrapper.query.request.Sort.sortAsc;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.NullBuilder;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleDocBuilder;
 import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleObjectBuilder;
+import static io.polyglotted.eswrapper.query.response.SourceBuilder.DEFAULT_BUILDER;
 import static io.polyglotted.eswrapper.services.NamePath.NAMEPATH_TYPE;
 import static io.polyglotted.eswrapper.services.NamePath.pathsRequest;
 import static io.polyglotted.eswrapper.services.Nested.NESTED_TYPE;
@@ -36,6 +40,7 @@ import static io.polyglotted.eswrapper.services.SortableText.sortables;
 import static io.polyglotted.eswrapper.services.SortableText.textsRequest;
 import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
+import static io.polyglotted.eswrapper.services.Trade.trade;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -136,5 +141,23 @@ public class QueryWrapperTest extends AbstractElasticTest {
         QueryResponse queryResponse = query.simpleScroll(queryToRequest(queryBuilder()
            .index(DUMMY_INDICES[0]).build(), null), NullBuilder);
         assertEquals(queryResponse.header, new ResponseHeader(0, 20, 20, null));
+    }
+
+    @Test
+    public void testGetAs() {
+        indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
+        Map<String, ?> stringMap = query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/001"), DEFAULT_BUILDER);
+        assertNotNull(stringMap);
+    }
+
+    @Test
+    public void testGetAsTrade() {
+        Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
+        long timestamp = 1425494500000L;
+        indexer.index(new IndexRequest(DUMMY_INDICES[0], TRADE_TYPE, trade.address).opType(IndexRequest.OpType.CREATE)
+           .version(timestamp).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));
+
+        Trade actual = query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, trade.address), Trade::tradeFromMap);
+        assertEquals(actual, trade);
     }
 }

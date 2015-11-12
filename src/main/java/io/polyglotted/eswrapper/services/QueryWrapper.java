@@ -8,10 +8,7 @@ import io.polyglotted.eswrapper.query.QueryResponse;
 import io.polyglotted.eswrapper.query.StandardQuery;
 import io.polyglotted.eswrapper.query.StandardScroll;
 import io.polyglotted.eswrapper.query.request.Expression;
-import io.polyglotted.eswrapper.query.response.Aggregation;
-import io.polyglotted.eswrapper.query.response.ResponseHeader;
-import io.polyglotted.eswrapper.query.response.ResultBuilder;
-import io.polyglotted.eswrapper.query.response.SimpleDoc;
+import io.polyglotted.eswrapper.query.response.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequestBuilder;
@@ -66,6 +63,13 @@ public final class QueryWrapper {
         checkArgument(response.isExists(), "unable to find document with id " + indexKey.id);
 
         return new SimpleDoc(indexKey.version(response.getVersion()), ImmutableMap.copyOf(response.getSourceAsMap()));
+    }
+
+    public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) {
+        GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
+        checkArgument(response.isExists(), "unable to find document with id " + indexKey.id);
+
+        return builder.buildFrom(response.getSourceAsMap());
     }
 
     public Aggregation aggregate(Expression aggs, String... indices) {
