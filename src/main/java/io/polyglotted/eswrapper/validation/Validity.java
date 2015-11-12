@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.validation;
 import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@ToString(doNotUseGetters = true, includeFieldNames = false)
 @RequiredArgsConstructor
 public final class Validity {
     public final List<Memo> memos;
@@ -32,14 +34,19 @@ public final class Validity {
         return new Builder();
     }
 
+    public static Validity validity(String key, String message) {
+        return validityBuilder().memo(key, message).build();
+    }
+
     public static Validity valid() {
         return new Validity(ImmutableList.of());
     }
 
+    @ToString(doNotUseGetters = true, includeFieldNames = false)
     @RequiredArgsConstructor
     public static class Memo {
-        private final String key;
-        private final String message;
+        public final String key;
+        public final String message;
 
         @Override
         public boolean equals(Object o) {

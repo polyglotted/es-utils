@@ -37,7 +37,7 @@ import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
-import static io.polyglotted.eswrapper.validation.Validity.validityBuilder;
+import static io.polyglotted.eswrapper.validation.Validity.validity;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
@@ -157,7 +157,7 @@ public class IndexableTest extends AbstractElasticTest {
     @Test(expectedExceptions = ValidException.class)
     public void failedValidation() {
         indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1),
-           currentDocs -> validityBuilder().memo("a", "induced fail").build());
+           currentDocs -> validity("a", "induced fail"));
     }
 
     private void assertHistory(Iterable<IndexKey> indexKeys, long version, String status, long expiry) {
