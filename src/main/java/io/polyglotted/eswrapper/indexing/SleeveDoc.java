@@ -18,13 +18,14 @@ public final class SleeveDoc<T> {
     public final IndexKey key;
     public final T source;
     public final boolean ancestry;
+    public final boolean stored;
 
     public static <T> List<SleeveDoc<T>> createSleeves(List<T> objects, Function<T, SleeveDoc<T>> newSleeveFunction) {
         return Lists.transform(objects, newSleeveFunction);
     }
 
     public static <T> SleeveDoc<T> newSleeve(T object, Function<T, IndexKey> keyFunction) {
-        return new SleeveDoc<>(keyFunction.apply(object), object, false);
+        return new SleeveDoc<>(keyFunction.apply(object), object, false, true);
     }
 
     public static <T> List<SleeveDoc<T>> deleteSleeves(List<IndexKey> keys) {
@@ -32,7 +33,7 @@ public final class SleeveDoc<T> {
     }
 
     public static <T> SleeveDoc<T> deleteSleeve(IndexKey key) {
-        return new SleeveDoc<>(key.delete(), null, true);
+        return new SleeveDoc<>(key.delete(), null, true, true);
     }
 
     public boolean isNew() {
