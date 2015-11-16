@@ -7,14 +7,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequestBuilder;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
+import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest;
-import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
-import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
@@ -26,7 +25,7 @@ import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableList;
+import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.io.stream.BytesStreamOutput;
 import org.elasticsearch.common.settings.Settings;
@@ -42,8 +41,6 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.forcedMappingJson;
-import static org.elasticsearch.action.admin.indices.get.GetIndexRequest.Feature.ALIASES;
-import static org.elasticsearch.action.admin.indices.get.GetIndexRequest.Feature.SETTINGS;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.client.Requests.indexAliasesRequest;
@@ -81,36 +78,39 @@ public final class AdminWrapper {
     }
 
     @SneakyThrows(IOException.class)
-    public String getIndex(String index) {
-        IndicesAdminClient indicesAdmin = client.admin().indices();
-        GetIndexResponse response = indicesAdmin.getIndex(new GetIndexRequest().indices(index)
-           .indicesOptions(lenientExpandOpen()).features(ALIASES, SETTINGS)).actionGet();
+    public String getIndex(String... indices) {
+        ClusterStateResponse stateResponse = client.admin().cluster().prepareState()
+           .setIndices(indices).execute().actionGet();
+        MetaData indexMetaDatas = stateResponse.getState().metaData();
 
         XContentBuilder builder = new XContentBuilder(xContent(JSON), new BytesStreamOutput());
-        builder.startObject();
-        builder.startObject(index);
+        builder.startArray();
+        ImmutableOpenMap<String, IndexMetaData> getIndices = indexMetaDatas.getIndices();
+        Iterator<String> indexIt = getIndices.keysIt();
+        while (indexIt.hasNext()) {
+            String index = indexIt.next();
+            IndexMetaData metaData = getIndices.get(index);
+            builder.startObject();
+            builder.startObject(index);
 
-        builder.startObject(new XContentBuilderString("aliases"));
-        ImmutableOpenMap<String, ImmutableList<AliasMetaData>> indexToAliases = response.aliases();
-        Iterator<String> aIt = indexToAliases.keysIt();
-        if (aIt.hasNext()) {
-            for (AliasMetaData alias : indexToAliases.get(aIt.next())) {
+            builder.startObject(new XContentBuilderString("aliases"));
+            ImmutableOpenMap<String, AliasMetaData> aliases = metaData.aliases();
+            Iterator<String> aIt = aliases.keysIt();
+            while (aIt.hasNext()) {
+                AliasMetaData alias = aliases.get(aIt.next());
                 AliasMetaData.Builder.toXContent(alias, builder, EMPTY_PARAMS);
             }
-        }
-        builder.endObject();
+            builder.endObject();
 
-        builder.startObject(new XContentBuilderString("settings"));
-        ImmutableOpenMap<String, Settings> indexToSettings = response.settings();
-        Iterator<String> sIt = indexToSettings.keysIt();
-        if(sIt.hasNext()) {
-            Settings settings = indexToSettings.get(sIt.next());
+            builder.startObject(new XContentBuilderString("settings"));
+            Settings settings = metaData.settings();
             settings.toXContent(builder, EMPTY_PARAMS);
-        }
-        builder.endObject();
+            builder.endObject();
 
-        builder.endObject();
-        builder.endObject();
+            builder.endObject();
+            builder.endObject();
+        }
+        builder.endArray();
         return convertToJson(builder.bytes(), false, false);
     }
 

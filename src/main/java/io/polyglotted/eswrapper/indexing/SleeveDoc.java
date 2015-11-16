@@ -28,12 +28,16 @@ public final class SleeveDoc<T> {
         return new SleeveDoc<>(keyFunction.apply(object), object, false, true);
     }
 
+    public static <T> SleeveDoc<T> newSleeveNotStored(T object, Function<T, IndexKey> keyFunction) {
+        return new SleeveDoc<>(keyFunction.apply(object), object, false, false);
+    }
+
     public static <T> List<SleeveDoc<T>> deleteSleeves(List<IndexKey> keys) {
         return Lists.transform(keys, SleeveDoc::deleteSleeve);
     }
 
     public static <T> SleeveDoc<T> deleteSleeve(IndexKey key) {
-        return new SleeveDoc<>(key.delete(), null, true, true);
+        return new SleeveDoc<>(key.delete(), null, true, false);
     }
 
     public boolean isNew() {
