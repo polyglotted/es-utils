@@ -1,8 +1,10 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 
 import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
@@ -18,10 +20,16 @@ public abstract class IndexSerializer {
        .registerTypeAdapter(FieldMapping.Builder.class, new FieldMappingSerializer())
        .registerTypeAdapter(TransformScript.class, new ScriptMappingSerializer())
        .create();
+    public static final Type LIST_TYPE = new TypeToken<List<Map<String, Object>>>() {}.getType();
 
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> indexDeser(String json) {
+    public static Map<String, Object> deserMap(String json) {
         return GSON.fromJson(json, Map.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<Map<String, Object>> deserList(String json) {
+        return GSON.fromJson(json, LIST_TYPE);
     }
 
     private static final class TypeMappingSerializer implements JsonSerializer<TypeMapping> {

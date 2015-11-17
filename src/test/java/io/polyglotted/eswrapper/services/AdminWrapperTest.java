@@ -8,10 +8,12 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.Alias.aliasBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
-import static io.polyglotted.eswrapper.indexing.IndexSerializer.indexDeser;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.deserList;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.deserMap;
 import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.SERIALISED_DOCS;
 import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.completeTypeMapping;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
@@ -19,9 +21,7 @@ import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.request.Expressions.in;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.testng.Assert.assertEquals;
 
@@ -40,8 +40,6 @@ public class AdminWrapperTest extends AbstractElasticTest {
     public void createTypeAcrossIndices() {
         admin.waitForYellowStatus();
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
-        assertThat(admin.getIndex(), is(equalTo(admin.getIndex(ADMIN_ALIAS))));
-        assertThat(admin.getIndex(), is(not(equalTo(admin.getIndex(ADMIN_INDICES[0])))));
 
         admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
            .fieldMapping(notAnalyzedStringField("a")).build());
@@ -61,13 +59,33 @@ public class AdminWrapperTest extends AbstractElasticTest {
     }
 
     @Test
+    public void validateGetIndices() {
+        admin.createIndex(IndexSetting.with(3, 0), ImmutableList.of(), "first", "second", "third", "fourth");
+        admin.updateAliases(aliasBuilder().alias("TestAlias").index("second", "fourth").build());
+
+        assertIndexData(new String[]{"first", "second", "third", "fourth"});
+        assertIndexData(new String[]{"fourth"}, "fourth");
+        assertIndexData(new String[]{"first", "second"}, "first", "second");
+        assertIndexData(new String[]{"second", "fourth"}, "TestAlias");
+
+        admin.dropIndex("first", "second", "third", "fourth");
+    }
+
+    private void assertIndexData(String[] expected, String... originals) {
+        String data = admin.getIndex(originals);
+        Map<String, Map<String, Object>> indexMap = uniqueIndex(deserList(data), i -> i.keySet().iterator().next());
+        for (String index : expected)
+            assertThat(data, indexMap.containsKey(index), is(true));
+    }
+
+    @Test
     public void validateCompleteTypeMapping() {
         admin.createIndex(IndexSetting.with(3, 0), ADMIN_INDICES[0]);
         admin.createType(completeTypeMapping(ADMIN_INDICES[0]).build());
 
         String expected = SERIALISED_DOCS.get("completeTypeMapping");
         String actual = admin.getMapping(ADMIN_INDICES[0], "testType");
-        assertThat(indexDeser(actual), is(indexDeser(expected)));
+        assertThat(deserMap(actual), is(deserMap(expected)));
 
         admin.dropIndex(ADMIN_INDICES[0]);
     }
@@ -118,9 +136,9 @@ public class AdminWrapperTest extends AbstractElasticTest {
     public void generateSequence() {
         admin.createIndex(settingBuilder().numberOfShards(1).autoExpandReplicas().build(), ADMIN_INDICES[0]);
         admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
-        for(long counter=0; counter<10; counter++) {
+        for (long counter = 0; counter < 10; counter++) {
             long sequence = indexer.generateSequence(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence"));
-            assertEquals(sequence, counter+1);
+            assertEquals(sequence, counter + 1);
         }
         admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
         assertEquals(indexer.generateSequence(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence")), 11);
