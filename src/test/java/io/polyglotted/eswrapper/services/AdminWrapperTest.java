@@ -79,6 +79,12 @@ public class AdminWrapperTest extends AbstractElasticTest {
     }
 
     @Test
+    public void validateEmptyIndices() {
+        String data = admin.getIndex();
+        assertThat(data, is("[]"));
+    }
+
+    @Test
     public void validateCompleteTypeMapping() {
         admin.createIndex(IndexSetting.with(3, 0), ADMIN_INDICES[0]);
         admin.createType(completeTypeMapping(ADMIN_INDICES[0]).build());

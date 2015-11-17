@@ -111,7 +111,7 @@ public final class AdminWrapper {
             builder.endObject();
         }
         builder.endArray();
-        return convertToJson(builder.bytes(), false, false);
+        return builder.bytes().length() > 2 ? convertToJson(builder.bytes(), false) : builder.bytes().toUtf8();
     }
 
     public void updateSetting(IndexSetting setting, String... indices) {
