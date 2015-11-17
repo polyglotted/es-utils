@@ -81,7 +81,7 @@ public class ExtnGenerator {
     private static final ImmutableMap<Class<?>, List<String>> Requireds = ImmutableMap.<Class<?>, List<String>>builder()
        .put(Expression.class, asList("operation", "label"))
        .put(Alias.class, asList("alias", "remove"))
-       .put(IndexAdmin.class, asList("index", "action"))
+       .put(IndexAdmin.class, singletonList("action"))
        .put(FieldMapping.class, asList("field", "include"))
        .put(TransformScript.class, singletonList("script"))
        .put(TypeMapping.class, asList("index", "type", "strict", "store"))
