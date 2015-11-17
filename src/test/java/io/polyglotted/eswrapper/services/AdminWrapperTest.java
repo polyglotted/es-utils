@@ -80,7 +80,7 @@ public class AdminWrapperTest extends AbstractElasticTest {
 
     @Test
     public void validateEmptyIndices() {
-        String data = admin.getIndex();
+        String data = admin.getIndex("non-existent");
         assertThat(data, is("[]"));
     }
 
