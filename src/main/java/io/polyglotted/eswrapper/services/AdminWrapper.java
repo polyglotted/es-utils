@@ -77,13 +77,17 @@ public final class AdminWrapper {
         }
     }
 
-    @SneakyThrows(IOException.class)
-    public String getIndex(String... indices) {
+    public MetaData getMeta(String... indices) {
         ClusterStateResponse stateResponse = client.admin().cluster().prepareState()
            .setIndices(indices).execute().actionGet();
-        MetaData indexMetaDatas = stateResponse.getState().metaData();
+        return stateResponse.getState().metaData();
+    }
 
+    @SneakyThrows(IOException.class)
+    public String getIndex(String... indices) {
+        MetaData indexMetaDatas = getMeta(indices);
         XContentBuilder builder = new XContentBuilder(xContent(JSON), new BytesStreamOutput());
+
         builder.startArray();
         ImmutableOpenMap<String, IndexMetaData> getIndices = indexMetaDatas.getIndices();
         Iterator<String> indexIt = getIndices.keysIt();
