@@ -125,15 +125,16 @@ public class ExtnGenerator {
             localTraits.put(clazz, traitRefStart);
             boolean isConst = isEnum(clazz);
 
-            Map<String, Object> inner = new LinkedHashMap<>();
+            Map<String, Object> inner = new TreeMap<>();
             inner.put("_type", isConst ? "constant" : "definition");
-            inner.put("fqn", toTraitFqn(clazz.getSimpleName()));
-            inner.put("traitRef", traitRefStart--);
             inner.put("desc", entry.getValue());
-            if (isConst) inner.put("values", enumValues(clazz));
-            else inner.put("properties", props(clazz, localTraits));
+            inner.put("fqn", toTraitFqn(clazz.getSimpleName()));
+            if (!isConst) inner.put("properties", props(clazz, localTraits));
             inner.put("tags", tagsFrom(clazz));
+            inner.put("traitRef", traitRefStart--);
             inner.put("user", "System");
+            if (isConst) inner.put("values", enumValues(clazz));
+
 
             result.add(inner);
         }
@@ -145,7 +146,7 @@ public class ExtnGenerator {
         for (Field field : clazz.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers())) continue;
 
-            Map<String, Object> fieldMap = new LinkedHashMap<>();
+            Map<String, Object> fieldMap = new TreeMap<>();
             fieldMap.put("id", field.getName());
 
             Map<String, String> defaulteds = Defaulteds.get(clazz);
