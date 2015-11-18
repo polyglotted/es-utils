@@ -40,6 +40,14 @@ public final class SleeveDoc<T> {
         return new SleeveDoc<>(key.delete(), null, true, false);
     }
 
+    public IndexKey key() {
+        return key;
+    }
+
+    public String id() {
+        return key.id;
+    }
+
     public boolean isNew() {
         return key.version <= 0;
     }
