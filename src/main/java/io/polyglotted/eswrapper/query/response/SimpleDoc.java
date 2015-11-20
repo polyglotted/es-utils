@@ -37,8 +37,20 @@ public final class SimpleDoc {
         return key.version;
     }
 
+    public boolean boolVal(String property) {
+        return fromNullable((Boolean) source.get(property)).or(false);
+    }
+
+    public int intVal(String property) {
+        return fromNullable((Integer) source.get(property)).or(Integer.MIN_VALUE);
+    }
+
     public long longVal(String property) {
         return fromNullable((Long) source.get(property)).or(Long.MIN_VALUE);
+    }
+
+    public long longStrVal(String property) {
+        return Long.parseLong(strVal(property));
     }
 
     public String strVal(String property) {

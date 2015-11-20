@@ -30,6 +30,11 @@ public final class TypeMapping {
     public final ImmutableList<TransformScript> scripts;
     public final ImmutableMap<String, Object> meta;
 
+    public TypeMapping typeCopyWith(String index) {
+        return new TypeMapping(index, this.type, this.parent, this.strict, this.store, this.all,
+           this.analyzer, this.includes, this.mappings, this.scripts, this.meta);
+    }
+
     @Override
     public boolean equals(Object o) {
         return this == o || (!(o == null || getClass() != o.getClass()) &&
