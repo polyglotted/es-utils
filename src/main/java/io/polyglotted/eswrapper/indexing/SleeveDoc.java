@@ -61,6 +61,14 @@ public final class SleeveDoc<T> {
            : (isDelete() ? deleteRecord(key) : updateRecord(key).source(function.apply(source)).build());
     }
 
+    public SleeveDoc<T> updateSleeve(T update) {
+        return new SleeveDoc<>(key, update, ancestry, stored);
+    }
+
+    public SleeveDoc<T> updateSleeve(Function<T, T> updateFunction) {
+        return new SleeveDoc<>(key, updateFunction.apply(source), ancestry, stored);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
