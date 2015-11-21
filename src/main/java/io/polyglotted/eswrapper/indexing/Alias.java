@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.cluster.metadata.AliasAction;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -32,6 +33,10 @@ public final class Alias {
     public IndicesAliasesRequest.AliasActions action() {
         return new IndicesAliasesRequest.AliasActions(remove ? AliasAction.Type.REMOVE : AliasAction.Type.ADD,
            toArray(indices, String.class), new String[]{alias}).filter(buildFilter(filter));
+    }
+
+    public List<String> indices() {
+        return indices;
     }
 
     @Override
