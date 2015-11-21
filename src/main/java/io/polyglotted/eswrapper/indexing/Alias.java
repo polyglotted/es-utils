@@ -1,6 +1,7 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import io.polyglotted.eswrapper.query.request.Expression;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +64,11 @@ public final class Alias {
         private boolean remove = false;
 
         public Builder index(String... indices) {
-            this.indices.addAll(asList(indices));
+            return index(asList(indices));
+        }
+
+        public Builder index(Iterable<String> indices) {
+            Iterables.addAll(this.indices, indices);
             return this;
         }
 
