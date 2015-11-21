@@ -10,9 +10,9 @@ import lombok.experimental.Accessors;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.cluster.metadata.AliasAction;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -53,7 +53,7 @@ public final class Alias {
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
         private String alias;
-        private final List<String> indices = new ArrayList<>();
+        private final Set<String> indices = new TreeSet<>();
         private Expression filter;
         private boolean remove = false;
 
