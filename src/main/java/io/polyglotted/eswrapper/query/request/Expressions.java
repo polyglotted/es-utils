@@ -31,7 +31,11 @@ public abstract class Expressions {
     }
 
     public static Expression ids(String... ids) {
-        return withValue(ExpressionType.Ids, "", ImmutableList.copyOf(asList(ids)));
+        return ids(asList(ids));
+    }
+
+    public static Expression ids(Iterable<String> ids) {
+        return withValue(ExpressionType.Ids, "", ImmutableList.copyOf(ids));
     }
 
     public static Expression equalsTo(String field, Object value) {
