@@ -48,6 +48,14 @@ public final class SleeveDoc<T> {
         return key.id;
     }
 
+    public String index() {
+        return key.index;
+    }
+
+    public T source() {
+        return source;
+    }
+
     public boolean isNew() {
         return key.version <= 0;
     }
