@@ -50,7 +50,7 @@ public class ParentChildTest extends AbstractElasticTest {
         Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
         Indexable indexable = indexableBuilder().timestamp(timestamp).index(PC_INDEX).records(asList(
            createRecord(PORTFOLIO_TYPE, portfolio.address).source(GSON.toJson(portfolio)).build(),
-           createRecord(keyWithParent(TRADE_TYPE, trade.address, portfolio.address)).source(GSON.toJson(trade)).build()
+           createRecord(keyWithParent("", TRADE_TYPE, trade.address, portfolio.address)).source(GSON.toJson(trade)).build()
         )).build();
         indexer.twoPhaseCommit(indexable);
 

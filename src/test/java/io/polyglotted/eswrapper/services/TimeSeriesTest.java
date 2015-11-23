@@ -24,6 +24,7 @@ import java.time.ZonedDateTime;
 import java.util.Iterator;
 import java.util.List;
 
+import static io.polyglotted.eswrapper.indexing.Bundling.bundlingBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.FieldType.DATE;
@@ -133,24 +134,24 @@ public class TimeSeriesTest extends AbstractElasticTest {
         )).build();
         indexer.twoPhaseCommit(indexable);
 
-        indexer.bulkIndex(indexableBuilder().timestamp(ts2).index(TS_INDEX)
-           .records(makePoints(PTA_TYPE, a.id, 100)).build(), strict());
+        indexer.bulkIndex(bundlingBuilder().timestamp(ts2)
+           .records(makePoints(TS_INDEX, PTA_TYPE, a.id, 100)).build(), strict());
 
-        indexer.bulkIndex(indexableBuilder().timestamp(ts2).index(TS_INDEX)
-           .records(makePoints(PTB_TYPE, b1.id, 100)).build(), strict());
+        indexer.bulkIndex(bundlingBuilder().timestamp(ts2)
+           .records(makePoints(TS_INDEX, PTB_TYPE, b1.id, 100)).build(), strict());
 
-        indexer.bulkIndex(indexableBuilder().timestamp(ts2).index(TS_INDEX)
-           .records(makePoints(PTB_TYPE, b2.id, 100)).build(), strict());
+        indexer.bulkIndex(bundlingBuilder().timestamp(ts2)
+           .records(makePoints(TS_INDEX, PTB_TYPE, b2.id, 100)).build(), strict());
     }
 
-    private static List<IndexRecord> makePoints(String type, String parent, int numPoints) {
+    private static List<IndexRecord> makePoints(String index, String type, String parent, int numPoints) {
         ZonedDateTime dateTime = Instant.ofEpochMilli(1446336000000L).atZone(UTC);
         SecureRandom random = new SecureRandom();
 
         ImmutableList.Builder<IndexRecord.Builder> records = ImmutableList.builder();
         for (int i = 0; i < numPoints; i++) {
             Point point = new Point(dateTime.toInstant().toEpochMilli(), random.nextDouble());
-            records.add(createRecord(keyWithParent(type, parent)).source(GSON.toJson(point)));
+            records.add(createRecord(keyWithParent(index, type, parent)).source(GSON.toJson(point)));
 
             dateTime = dateTime.minusWeeks(1);
         }

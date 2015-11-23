@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.services;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.polyglotted.eswrapper.indexing.Bundling;
 import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.eswrapper.indexing.IndexKey;
 import io.polyglotted.eswrapper.indexing.Indexable;
@@ -49,13 +50,13 @@ public final class IndexerWrapper {
         return index(bulkRequest, strict());
     }
 
-    public List<IndexKey> bulkIndex(Indexable indexable, IgnoreErrors ignoreErrors) {
+    public List<IndexKey> bulkIndex(Bundling bundling, IgnoreErrors ignoreErrors) {
         try {
-            BulkResponse bulkResponse = index(indexable.writeRequest(), ignoreErrors);
+            BulkResponse bulkResponse = index(bundling.writeRequest(), ignoreErrors);
             return ImmutableList.copyOf(transform(checkNotNull(bulkResponse), IndexKey::from));
 
         } finally {
-            forceRefresh(indexable.index);
+            forceRefresh(bundling.indices());
         }
     }
 
@@ -90,8 +91,8 @@ public final class IndexerWrapper {
         return currentDocs;
     }
 
-    private void forceRefresh(String index) {
-        client.admin().indices().refresh(refreshRequest(index)).actionGet();
+    private void forceRefresh(String... indices) {
+        client.admin().indices().refresh(refreshRequest(indices)).actionGet();
     }
 
     @VisibleForTesting

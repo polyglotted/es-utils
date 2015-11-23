@@ -21,7 +21,6 @@ import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.Action.DELETE;
 import static io.polyglotted.eswrapper.indexing.KeyUtil.generateUuid;
-import static java.util.UUID.randomUUID;
 
 @Getter
 @Accessors(fluent = true)
@@ -59,12 +58,8 @@ public final class IndexKey implements Comparable<IndexKey> {
         return keyWithParent(index, type, id, null);
     }
 
-    public static IndexKey keyWithParent(String type, String parent) {
-        return keyWithParent("", type, randomUUID().toString(), parent);
-    }
-
-    public static IndexKey keyWithParent(String type, String id, String parent) {
-        return keyWithParent("", type, id, parent);
+    public static IndexKey keyWithParent(String index, String type, String parent) {
+        return keyWithParent(index, type, "", parent);
     }
 
     public static IndexKey keyWithParent(String index, String type, String id, String parent) {

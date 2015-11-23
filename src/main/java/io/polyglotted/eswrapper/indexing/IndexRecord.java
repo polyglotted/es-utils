@@ -14,6 +14,8 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.VersionType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.ANCESTOR_FIELD;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.TIMESTAMP_FIELD;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
@@ -54,15 +56,18 @@ public final class IndexRecord {
     public enum Action {
         CREATE("new") {
             @Override
-            public ActionRequest request(IndexRecord record, String index, long timestamp) {
-                log.debug("creating new record " + record.id() + " at " + index);
-                return new IndexRequest(index, record.type(), record.id()).source(sourceOf(record, timestamp))
+            public ActionRequest request(IndexRecord record, String indexIn, long timestamp) {
+                final String index = firstAvailableIndex(record, indexIn);
+                final String id = emptyToNull(record.id()); //auto-generate
+                log.debug("creating new record " + id + " at " + index);
+                return new IndexRequest(index, record.type(), id).source(sourceOf(record, timestamp))
                    .create(true).parent(record.parent()).versionType(VersionType.EXTERNAL).version(timestamp);
             }
         },
         UPDATE("expired") {
             @Override
-            public ActionRequest request(IndexRecord record, String index, long timestamp) {
+            public ActionRequest request(IndexRecord record, String indexIn, long timestamp) {
+                final String index = firstAvailableIndex(record, indexIn);
                 log.debug("updating record " + record.id() + " at " + index);
                 return new IndexRequest(index, record.type(), record.id()).source(sourceOf(record, timestamp))
                    .parent(record.parent()).versionType(VersionType.EXTERNAL_GTE).version(timestamp);
@@ -70,7 +75,8 @@ public final class IndexRecord {
         },
         DELETE("deleted") {
             @Override
-            public ActionRequest request(IndexRecord record, String index, long timestamp) {
+            public ActionRequest request(IndexRecord record, String indexIn, long timestamp) {
+                final String index = firstAvailableIndex(record, indexIn);
                 log.debug("deleting record " + record.id() + " at " + index);
                 return new DeleteRequest(index, record.type(), record.id());
             }
@@ -82,10 +88,15 @@ public final class IndexRecord {
     }
 
     @VisibleForTesting
+    static String firstAvailableIndex(IndexRecord record, String indexIn) {
+        return (!isNullOrEmpty(indexIn)) ? indexIn : checkNotNull(emptyToNull(record.index()), "no index found");
+    }
+
+    @VisibleForTesting
     static String sourceOf(IndexRecord record, long timestamp) {
         StringBuilder builder = new StringBuilder();
         builder.append(record.source.substring(0, record.source.length() - 1));
-        if(record.source.length() > 2) builder.append(",");
+        if (record.source.length() > 2) builder.append(",");
         builder.append("\"").append(TIMESTAMP_FIELD).append("\":").append(timestamp);
         if (record.ancestor != null) {
             builder.append(",\"").append(ANCESTOR_FIELD).append("\":\"").append(record.ancestor).append("\"");
@@ -126,8 +137,6 @@ public final class IndexRecord {
 
     @SuppressWarnings("unused")
     private interface KeyExclude {
-        String index();
-
         int compareTo(IndexKey other);
 
         IndexKey delete();
