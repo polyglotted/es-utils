@@ -18,7 +18,7 @@ public abstract class IndexSerializer {
     public static final Gson GSON = new GsonBuilder()
        .registerTypeAdapter(TypeMapping.class, new TypeMappingSerializer())
        .registerTypeAdapter(FieldMapping.Builder.class, new FieldMappingSerializer())
-       .registerTypeAdapter(TransformScript.class, new ScriptMappingSerializer())
+       .registerTypeAdapter(Script.class, new ScriptMappingSerializer())
        .create();
     public static final Type LIST_TYPE = new TypeToken<List<Map<String, Object>>>() {}.getType();
 
@@ -39,13 +39,13 @@ public abstract class IndexSerializer {
             if (mapping.strict) mainType.addProperty("dynamic", "strict");
 
             JsonObject source = new JsonObject();
-            if (!mapping.store) {
+            if (!mapping.storeSource) {
                 mainType.add(SOURCE_META, source);
                 source.addProperty("enabled", false);
 
-            } else if (!mapping.includes.isEmpty()) {
+            } else if (!mapping.sourceIncludes.isEmpty()) {
                 mainType.add(SOURCE_META, source);
-                source.add("includes", context.serialize(mapping.includes));
+                source.add("includes", context.serialize(mapping.sourceIncludes));
             }
 
             if (mapping.parent != null) {
@@ -54,11 +54,11 @@ public abstract class IndexSerializer {
                 mainType.add(PARENT_META, parent);
             }
 
-            if (mapping.all != null) {
+            if (mapping.allEnabled != null) {
                 JsonObject all = new JsonObject();
                 mainType.add(ALL_META, all);
-                all.addProperty("enabled", mapping.all);
-                if (mapping.analyzer != null) all.addProperty("analyzer", mapping.analyzer);
+                all.addProperty("enabled", mapping.allEnabled);
+                if (mapping.allAnalyzer != null) all.addProperty("analyzer", mapping.allAnalyzer);
             }
 
             if (!mapping.meta.isEmpty())
@@ -71,12 +71,12 @@ public abstract class IndexSerializer {
                     mainType.add("transform", context.serialize(mapping.scripts.get(0)));
             }
 
-            if (!mapping.mappings.isEmpty()) {
+            if (!mapping.fieldMappings.isEmpty()) {
                 JsonObject properties = new JsonObject();
                 mainType.add("properties", properties);
                 for (FieldMapping field : FieldMapping.PRIVATE_FIELDS)
                     properties.add(field.field, context.serialize(field.mapping));
-                for (FieldMapping field : mapping.mappings)
+                for (FieldMapping field : mapping.fieldMappings)
                     properties.add(field.field, context.serialize(field.mapping));
             }
 
@@ -102,9 +102,9 @@ public abstract class IndexSerializer {
         }
     }
 
-    private static final class ScriptMappingSerializer implements JsonSerializer<TransformScript> {
+    private static final class ScriptMappingSerializer implements JsonSerializer<Script> {
         @Override
-        public JsonElement serialize(TransformScript script, Type type, JsonSerializationContext context) {
+        public JsonElement serialize(Script script, Type type, JsonSerializationContext context) {
             JsonObject object = new JsonObject();
             object.addProperty("script", script.script);
             if (!script.params.isEmpty()) object.add("params", context.serialize(script.params));

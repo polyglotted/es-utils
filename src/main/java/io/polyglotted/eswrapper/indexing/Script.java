@@ -13,7 +13,7 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 @ToString(includeFieldNames = false, doNotUseGetters = true)
-public final class TransformScript {
+public final class Script {
     public final String script;
     public final ImmutableMap<String, Object> params;
     public final String lang;
@@ -45,8 +45,8 @@ public final class TransformScript {
             return this;
         }
 
-        public TransformScript build() {
-            return new TransformScript(checkNotNull(script, "script cannot be null"),
+        public Script build() {
+            return new Script(checkNotNull(script, "script cannot be null"),
                ImmutableMap.copyOf(params), lang);
         }
     }

@@ -17,7 +17,7 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringFi
 import static io.polyglotted.eswrapper.indexing.FieldMapping.objectField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
 import static io.polyglotted.eswrapper.indexing.FieldType.*;
-import static io.polyglotted.eswrapper.indexing.TransformScript.scriptBuilder;
+import static io.polyglotted.eswrapper.indexing.Script.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;

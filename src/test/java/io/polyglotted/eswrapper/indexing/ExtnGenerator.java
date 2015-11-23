@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Primitives;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.polyglotted.eswrapper.indexing.IndexAdmin.IndexAction;
 import io.polyglotted.eswrapper.query.QueryResponse;
 import io.polyglotted.eswrapper.query.StandardQuery;
 import io.polyglotted.eswrapper.query.StandardScroll;
@@ -54,12 +53,7 @@ public class ExtnGenerator {
     private static final ImmutableMap<Class<?>, String> SearchClasses = ImmutableMap.<Class<?>, String>builder()
        .put(Expression.class, "search expression")
        .put(Alias.class, "index alias")
-       .put(IndexSetting.class, "index settings")
-       .put(IndexAction.class, "index action constants")
-       .put(IndexAdmin.class, "index admin")
-       .put(FieldMapping.class, "index field mapping")
-       .put(TransformScript.class, "transformation script")
-       .put(TypeMapping.class, "type mapping")
+       .put(Script.class, "transformation script")
        .put(IndexKey.class, "index key")
        .put(SleeveDoc.class, "indexing sleeve")
        .put(SortOrder.class, "sort order constants")
@@ -81,10 +75,7 @@ public class ExtnGenerator {
     private static final ImmutableMap<Class<?>, List<String>> Requireds = ImmutableMap.<Class<?>, List<String>>builder()
        .put(Expression.class, asList("operation", "label"))
        .put(Alias.class, asList("alias", "remove"))
-       .put(IndexAdmin.class, singletonList("action"))
-       .put(FieldMapping.class, asList("field", "include"))
-       .put(TransformScript.class, singletonList("script"))
-       .put(TypeMapping.class, asList("index", "type", "strict", "store"))
+       .put(Script.class, singletonList("script"))
        .put(IndexKey.class, asList("index", "type", "id", "version", "delete"))
        .put(SleeveDoc.class, asList("key", "source", "ancestry", "stored"))
        .put(Sort.class, asList("field", "order", "mode"))
@@ -100,9 +91,6 @@ public class ExtnGenerator {
 
     private static final ImmutableMap<Class<?>, Map<String, String>> Defaulteds = ImmutableMap.<Class<?>, Map<String, String>>builder()
        .put(Alias.class, of("remove", "false"))
-       .put(IndexAdmin.class, of("action", "CREATE_INDEX"))
-       .put(FieldMapping.class, of("include", "false"))
-       .put(TypeMapping.class, of("strict", "false", "store", "true"))
        .put(IndexKey.class, of("index", "", "delete", "false"))
        .put(SleeveDoc.class, of("ancestry", "false", "stored", "true"))
        .put(Sort.class, of("order", "ASC", "mode", "NONE"))

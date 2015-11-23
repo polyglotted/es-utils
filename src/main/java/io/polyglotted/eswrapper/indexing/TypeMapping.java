@@ -22,17 +22,17 @@ public final class TypeMapping {
     public final String type;
     public final String parent;
     public final boolean strict;
-    public final boolean store;
-    public final Boolean all;
-    public final String analyzer;
-    public final ImmutableSet<String> includes;
-    public final ImmutableSet<FieldMapping> mappings;
-    public final ImmutableList<TransformScript> scripts;
+    public final boolean storeSource;
+    public final Boolean allEnabled;
+    public final String allAnalyzer;
+    public final ImmutableSet<String> sourceIncludes;
+    public final ImmutableSet<FieldMapping> fieldMappings;
+    public final ImmutableList<Script> scripts;
     public final ImmutableMap<String, Object> meta;
 
     public TypeMapping typeCopyWith(String index) {
-        return new TypeMapping(index, this.type, this.parent, this.strict, this.store, this.all,
-           this.analyzer, this.includes, this.mappings, this.scripts, this.meta);
+        return new TypeMapping(index, this.type, this.parent, this.strict, this.storeSource, this.allEnabled,
+           this.allAnalyzer, this.sourceIncludes, this.fieldMappings, this.scripts, this.meta);
     }
 
     @Override
@@ -72,7 +72,7 @@ public final class TypeMapping {
         private String allAnalyzer = "all_analyzer";
         private final Set<String> sourceIncludes = new TreeSet<>();
         private final Set<FieldMapping> fieldMappings = new TreeSet<>();
-        private final List<TransformScript> transformScripts = new ArrayList<>();
+        private final List<Script> scripts = new ArrayList<>();
         private final Map<String, Object> metaData = new LinkedHashMap<>();
 
         public Builder fieldMapping(FieldMapping.Builder mapping) {
@@ -81,16 +81,16 @@ public final class TypeMapping {
 
         public Builder fieldMapping(FieldMapping mapping) {
             fieldMappings.add(mapping);
-            if (mapping.include) sourceIncludes.add(mapping.field);
+            if (mapping.includeInSource) sourceIncludes.add(mapping.field);
             return this;
         }
 
-        public Builder transform(TransformScript.Builder script) {
+        public Builder transform(Script.Builder script) {
             return transform(script.build());
         }
 
-        public Builder transform(TransformScript script) {
-            transformScripts.add(script);
+        public Builder transform(Script script) {
+            scripts.add(script);
             return this;
         }
 
@@ -102,7 +102,7 @@ public final class TypeMapping {
         public TypeMapping build() {
             return new TypeMapping(checkNotNull(index, "index cannot be null"), checkNotNull(type, "type cannot be null"),
                parent, strict, storeSource, allEnabled, allAnalyzer, ImmutableSet.copyOf(sourceIncludes),
-               ImmutableSet.copyOf(fieldMappings), ImmutableList.copyOf(transformScripts), ImmutableMap.copyOf(metaData));
+               ImmutableSet.copyOf(fieldMappings), ImmutableList.copyOf(scripts), ImmutableMap.copyOf(metaData));
         }
     }
 }

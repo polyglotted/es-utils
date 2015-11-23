@@ -15,10 +15,8 @@ import org.testng.annotations.Test;
 
 import static io.polyglotted.eswrapper.indexing.Alias.aliasBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
-import static io.polyglotted.eswrapper.indexing.IndexAdmin.IndexAction.FORCE_REFRESH;
-import static io.polyglotted.eswrapper.indexing.IndexAdmin.adminBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
-import static io.polyglotted.eswrapper.indexing.TransformScript.scriptBuilder;
+import static io.polyglotted.eswrapper.indexing.Script.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.QueryResponse.responseBuilder;
 import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
@@ -41,11 +39,6 @@ public class DataObjectsTest {
     @Test
     public void fieldTypeValues() {
         asList(FieldType.values()).contains(FieldType.valueOf("BINARY"));
-    }
-
-    @Test
-    public void indexAdminActionValues() {
-        asList(IndexAdmin.IndexAction.values()).contains(IndexAdmin.IndexAction.valueOf("CREATE_INDEX"));
     }
 
     @Test
@@ -93,15 +86,6 @@ public class DataObjectsTest {
     }
 
     @Test
-    public void indexAdminEqHash() {
-        IndexAdmin orig = adminBuilder().index("a").build();
-        IndexAdmin copy = adminBuilder().index("a").build();
-        IndexAdmin other = adminBuilder().index("a").action(FORCE_REFRESH).setting(IndexSetting.with(3, 1))
-           .alias(aliasBuilder().alias("a").index("a").build()).build();
-        verifyEqualsHashCode(orig, copy, other);
-    }
-
-    @Test
     public void aliasEqHash() {
         Alias orig = aliasBuilder().alias("a").index("a").build();
         Alias copy = aliasBuilder().alias("a").index("a").build();
@@ -119,9 +103,9 @@ public class DataObjectsTest {
 
     @Test
     public void scriptEqHash() {
-        TransformScript orig = scriptBuilder().script("a=b").build();
-        TransformScript copy = scriptBuilder().script("a=b").build();
-        TransformScript other = scriptBuilder().script("c=d").build();
+        Script orig = scriptBuilder().script("a=b").build();
+        Script copy = scriptBuilder().script("a=b").build();
+        Script other = scriptBuilder().script("c=d").build();
         verifyEqualsHashCode(orig, copy, other);
     }
 

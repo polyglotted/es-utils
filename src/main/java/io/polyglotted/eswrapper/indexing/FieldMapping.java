@@ -39,12 +39,12 @@ public final class FieldMapping implements Comparable<FieldMapping> {
        "index", "not_analyzed", "doc_values", true));
 
     public final String field;
-    public final boolean include;
+    public final boolean includeInSource;
     public final ImmutableMap<String, Object> mapping;
 
     @SuppressWarnings("unchecked")
-    public FieldMapping(String field, boolean include, String mappingJson) {
-        this(field, include, (mappingJson == null) ? ImmutableMap.of() : ImmutableMap.copyOf(GSON.fromJson(mappingJson, Map.class)));
+    public FieldMapping(String field, boolean includeInSource, String mappingJson) {
+        this(field, includeInSource, (mappingJson == null) ? ImmutableMap.of() : ImmutableMap.copyOf(GSON.fromJson(mappingJson, Map.class)));
     }
 
     @Override
