@@ -105,7 +105,7 @@ public class ExtnGenerator {
 
     public static void main(String ar[]) {
 
-        int traitRefStart = -33;
+        int traitRefStart = -38;
         Map<Class<?>, Integer> localTraits = new LinkedHashMap<>();
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map.Entry<Class<?>, String> entry : SearchClasses.entrySet()) {
