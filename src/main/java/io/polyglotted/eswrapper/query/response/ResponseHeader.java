@@ -1,18 +1,19 @@
 package io.polyglotted.eswrapper.query.response;
 
+import com.google.common.collect.ImmutableList;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.elasticsearch.action.search.SearchResponse;
 
-import java.util.Objects;
+import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 
 @RequiredArgsConstructor
 @ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class ResponseHeader {
-    public final long millis;
-    public final long hits;
-    public final long returned;
-    public final String id;
+    public final long tookInMillis;
+    public final long totalHits;
+    public final long returnedHits;
+    public final String scrollId;
 
     public static ResponseHeader headerFrom(SearchResponse response) {
         return new ResponseHeader(response.getTookInMillis(), getTotalHits(response),
@@ -29,16 +30,16 @@ public final class ResponseHeader {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ResponseHeader that = (ResponseHeader) o;
-        return (hits == that.hits) && (returned == that.returned) &&
-           (id == null ? that.id == null : id.equals(that.id));
+        return this == o || (!(o == null || getClass() != o.getClass()) &&
+           equalizer().equals(((ResponseHeader) o).equalizer()));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(hits, returned, id);
+        return 31 * equalizer().hashCode();
+    }
+
+    private String equalizer() {
+        return GSON.toJson(ImmutableList.of(totalHits, returnedHits, scrollId == null ? "" : scrollId));
     }
 }

@@ -82,7 +82,7 @@ public class ExtnGenerator {
        .put(QueryHints.class, asList("searchOptions", "searchType", "timeoutInSeconds", "fetchSource"))
        .put(Aggregation.class, asList("label", "type", "value"))
        .put(Bucket.class, asList("key", "value", "count", "errors"))
-       .put(ResponseHeader.class, asList("millis", "hits", "returned"))
+       .put(ResponseHeader.class, asList("tookInMillis", "totalHits", "returnedHits"))
        .put(SimpleDoc.class, singletonList("key"))
        .put(StandardQuery.class, asList("hints", "offset", "size"))
        .put(StandardScroll.class, asList("id", "scroll"))
