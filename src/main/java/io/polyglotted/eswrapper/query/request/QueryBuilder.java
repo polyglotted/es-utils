@@ -41,14 +41,14 @@ public abstract class QueryBuilder {
     }
 
     public static SearchScrollRequest scrollRequest(StandardScroll scroll) {
-        return new SearchScrollRequest(scroll.id).scroll(timeValueMillis(scroll.scroll));
+        return new SearchScrollRequest(scroll.scrollId).scroll(timeValueMillis(scroll.scrollTimeInMillis));
     }
 
     public static SearchRequest queryToRequest(StandardQuery query, FilterBuilder postFilter) {
         SearchRequest request = new SearchRequest(toStrArray(query.indices)).types(toStrArray(query.types));
         SearchSourceBuilder builder = new SearchSourceBuilder().version(true);
         setFields(builder, Iterables.concat(query.fields, singleton(PARENT_META)));
-        setHints(request, builder, query.hints);
+        setHints(request, builder, query.queryHints);
         setFilters(builder, query);
         setAggregations(builder, query);
         setOrder(builder, query);
@@ -101,8 +101,8 @@ public abstract class QueryBuilder {
 
     private static void setScrollOrLimits(SearchRequest request, SearchSourceBuilder builder, StandardQuery query) {
         builder.size(query.size);
-        if (query.scroll != null) {
-            request.scroll(timeValueMillis(query.scroll));
+        if (query.scrollTimeInMillis != null) {
+            request.scroll(timeValueMillis(query.scrollTimeInMillis));
         } else {
             builder.from(query.offset);
         }

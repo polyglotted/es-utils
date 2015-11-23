@@ -84,8 +84,8 @@ public class ExtnGenerator {
        .put(Bucket.class, asList("key", "value", "count", "errors"))
        .put(ResponseHeader.class, asList("tookInMillis", "totalHits", "returnedHits"))
        .put(SimpleDoc.class, singletonList("key"))
-       .put(StandardQuery.class, asList("hints", "offset", "size"))
-       .put(StandardScroll.class, asList("id", "scroll"))
+       .put(StandardQuery.class, asList("queryHints", "offset", "size"))
+       .put(StandardScroll.class, asList("scrollId", "scrollTimeInMillis"))
        .put(QueryResponse.class, singletonList("header"))
        .build();
 
@@ -98,7 +98,7 @@ public class ExtnGenerator {
           "timeoutInSeconds", "10", "fetchSource", "true"))
        .put(Bucket.class, of("count", "-1", "errors", "0"))
        .put(StandardQuery.class, of("offset", "0", "size", "10"))
-       .put(StandardScroll.class, of("scroll", "5000"))
+       .put(StandardScroll.class, of("scrollTimeInMillis", "5000"))
        .build();
 
     private static Gson GSON = new GsonBuilder().create();

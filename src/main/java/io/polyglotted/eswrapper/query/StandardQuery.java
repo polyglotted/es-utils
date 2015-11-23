@@ -26,9 +26,9 @@ public final class StandardQuery {
     public final ImmutableList<Expression> expressions;
     public final ImmutableList<Expression> aggregates;
     public final ImmutableList<Sort> sorts;
-    public final ImmutableList<Integer> subs;
-    public final QueryHints hints;
-    public final Long scroll;
+    public final ImmutableList<Integer> substitutions;
+    public final QueryHints queryHints;
+    public final Long scrollTimeInMillis;
     public final int offset;
     public final int size;
 
@@ -39,7 +39,7 @@ public final class StandardQuery {
 
     @Override
     public int hashCode() {
-        return Objects.hash(indices, types, fields, expressions, aggregates, scroll, hints, scroll, offset, size);
+        return Objects.hash(GSON.toJson(this));
     }
 
     public static Builder queryBuilder() {
