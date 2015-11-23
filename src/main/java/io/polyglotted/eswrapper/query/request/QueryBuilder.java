@@ -66,13 +66,13 @@ public abstract class QueryBuilder {
 
     @VisibleForTesting
     static void setHints(SearchRequest request, SearchSourceBuilder builder, QueryHints hints) {
-        request.indicesOptions(hints.options.toOptions());
-        request.searchType(hints.type.toType());
+        request.indicesOptions(hints.searchOptions.toOptions());
+        request.searchType(hints.searchType.toType());
         request.preference(hints.preference);
         String[] routings = toStrArray(hints.routing);
         if (routings.length > 0) request.routing(routings);
-        if (!hints.fetch) builder.fetchSource(false);
-        builder.timeout(timeValueSeconds(hints.timeout));
+        if (!hints.fetchSource) builder.fetchSource(false);
+        builder.timeout(timeValueSeconds(hints.timeoutInSeconds));
     }
 
     @VisibleForTesting

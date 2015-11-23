@@ -79,7 +79,7 @@ public class ExtnGenerator {
        .put(IndexKey.class, asList("index", "type", "id", "version", "delete"))
        .put(Sleeve.class, asList("key", "stored"))
        .put(Sort.class, asList("field", "order", "mode"))
-       .put(QueryHints.class, asList("options", "type", "timeout", "fetch"))
+       .put(QueryHints.class, asList("searchOptions", "searchType", "timeoutInSeconds", "fetchSource"))
        .put(Aggregation.class, asList("label", "type", "value"))
        .put(Bucket.class, asList("key", "value", "count", "errors"))
        .put(ResponseHeader.class, asList("millis", "hits", "returned"))
@@ -94,8 +94,8 @@ public class ExtnGenerator {
        .put(IndexKey.class, of("index", "", "delete", "false"))
        .put(Sleeve.class, of("stored", "true"))
        .put(Sort.class, of("order", "ASC", "mode", "NONE"))
-       .put(QueryHints.class, of("options", "LENIENT_EXPAND_OPEN", "type", "QUERY_THEN_FETCH",
-          "timeout", "10", "fetch", "true"))
+       .put(QueryHints.class, of("searchOptions", "LENIENT_EXPAND_OPEN", "searchType", "QUERY_THEN_FETCH",
+          "timeoutInSeconds", "10", "fetchSource", "true"))
        .put(Bucket.class, of("count", "-1", "errors", "0"))
        .put(StandardQuery.class, of("offset", "0", "size", "10"))
        .put(StandardScroll.class, of("scroll", "5000"))

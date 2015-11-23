@@ -20,12 +20,12 @@ import static org.elasticsearch.action.support.IndicesOptions.readIndicesOptions
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class QueryHints {
-    public final SearchOptions options;
-    public final SearchType type;
-    public final int timeout;
+    public final SearchOptions searchOptions;
+    public final SearchType searchType;
+    public final int timeoutInSeconds;
     public final ImmutableList<String> routing;
     public final String preference;
-    public final boolean fetch;
+    public final boolean fetchSource;
 
     @Override
     public boolean equals(Object o) {
@@ -34,7 +34,7 @@ public final class QueryHints {
 
     @Override
     public int hashCode() {
-        return Objects.hash(options, type, timeout, routing, preference, fetch);
+        return Objects.hash(searchOptions, searchType, timeoutInSeconds, routing, preference, fetchSource);
     }
 
     @SuppressWarnings("unused")
