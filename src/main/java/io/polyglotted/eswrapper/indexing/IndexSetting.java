@@ -42,6 +42,7 @@ public final class IndexSetting {
         return GSON.toJson(map);
     }
 
+    @SuppressWarnings("unchecked")
     public String updateJson() {
         return GSON.toJson(filterKeys(map, not(or(SHARDS_PREDICATE, MAPPING_PREDICATE, ANALYSIS_PREDICATE))));
     }

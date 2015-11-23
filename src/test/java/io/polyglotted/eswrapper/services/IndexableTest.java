@@ -24,9 +24,9 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
-import static io.polyglotted.eswrapper.indexing.SleeveDoc.createSleeves;
-import static io.polyglotted.eswrapper.indexing.SleeveDoc.deleteSleeves;
-import static io.polyglotted.eswrapper.indexing.SleeveDoc.newSleeve;
+import static io.polyglotted.eswrapper.indexing.Sleeve.createSleeves;
+import static io.polyglotted.eswrapper.indexing.Sleeve.deleteSleeves;
+import static io.polyglotted.eswrapper.indexing.Sleeve.newSleeve;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.query.request.Expressions.archiveIndex;
@@ -71,7 +71,7 @@ public class IndexableTest extends AbstractElasticTest {
     public void updateRecords() {
         indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
 
-        List<SleeveDoc<Trade>> mutations = Lists.newArrayList();
+        List<Sleeve<Trade>> mutations = Lists.newArrayList();
 
         //creates
         mutations.addAll(createSleeves(ImmutableList.of(
@@ -80,10 +80,10 @@ public class IndexableTest extends AbstractElasticTest {
 
         List<IndexKey> updates = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
            new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/010", T1));
-        mutations.add(new SleeveDoc<>(updates.get(0),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), true, true));
-        mutations.add(new SleeveDoc<>(updates.get(1),
-           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0), true, true));
+        mutations.add(new Sleeve<>(updates.get(0),
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), null, true));
+        mutations.add(new Sleeve<>(updates.get(1),
+           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0), null, true));
 
         //deletes
         List<IndexKey> deletes = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
@@ -134,14 +134,14 @@ public class IndexableTest extends AbstractElasticTest {
     public void secondUpdateShouldFail() {
         indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
 
-        List<SleeveDoc<Trade>> update1 = ImmutableList.of(new SleeveDoc<>(
+        List<Sleeve<Trade>> update1 = ImmutableList.of(new Sleeve<>(
            new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), true, true));
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), null, true));
         indexer.twoPhaseCommit(indexable(update1, T2));
 
-        List<SleeveDoc<Trade>> update2 = ImmutableList.of(new SleeveDoc<>(
+        List<Sleeve<Trade>> update2 = ImmutableList.of(new Sleeve<>(
            new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 18.0), true, true));
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 18.0), null, true));
         try {
             indexer.twoPhaseCommit(indexable(update2, T2));
             fail();
@@ -179,17 +179,17 @@ public class IndexableTest extends AbstractElasticTest {
            SimpleDocBuilder).resultsAs(SimpleDoc.class);
     }
 
-    private static Indexable indexable(Iterable<SleeveDoc<Trade>> sleeveDocs, long t1) {
+    private static Indexable indexable(Iterable<Sleeve<Trade>> sleeveDocs, long t1) {
         return indexableBuilder().index(INDEXABLE_INDEX).timestamp(t1)
            .records(sleeveToRecords(sleeveDocs))
            .build();
     }
 
-    private static Iterable<IndexRecord> sleeveToRecords(Iterable<SleeveDoc<Trade>> sleeveDocs) {
+    private static Iterable<IndexRecord> sleeveToRecords(Iterable<Sleeve<Trade>> sleeveDocs) {
         return transform(sleeveDocs, doc -> doc.toRecord(GSON::toJson));
     }
 
-    private static Function<Trade, SleeveDoc<Trade>> newSleeveFunction() {
+    private static Function<Trade, Sleeve<Trade>> newSleeveFunction() {
         return input -> newSleeve(input, (i) -> keyWith(TRADE_TYPE, i.address));
     }
 }

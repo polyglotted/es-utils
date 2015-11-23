@@ -111,10 +111,10 @@ public class DataObjectsTest {
 
     @Test
     public void sleeveEqHash() {
-        SleeveDoc<String> orig = new SleeveDoc<>(keyWith("a", "a"), "a", false, true);
-        SleeveDoc<String> copy = new SleeveDoc<>(keyWith("a", "a"), "a", false, true);
-        SleeveDoc<String> other = new SleeveDoc<>(keyWith("b", "b"), "a", false, true);
-        SleeveDoc<String> other2 = new SleeveDoc<>(keyWith("a", "a"), "b", false, true);
+        Sleeve<String> orig = new Sleeve<>(keyWith("a", "a"), "a", null, true);
+        Sleeve<String> copy = new Sleeve<>(keyWith("a", "a"), "a", null, true);
+        Sleeve<String> other = new Sleeve<>(keyWith("b", "b"), "a", null, true);
+        Sleeve<String> other2 = new Sleeve<>(keyWith("a", "a"), "b", null, true);
         verifyEqualsHashCode(orig, copy, other, other2);
     }
 

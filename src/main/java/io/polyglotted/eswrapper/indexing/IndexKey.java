@@ -43,11 +43,11 @@ public final class IndexKey implements Comparable<IndexKey> {
     }
 
     public IndexKey delete() {
-        return new IndexKey(index, type, id, version, true, null);
+        return new IndexKey(index, type, id, version, true, parent);
     }
 
     public IndexKey version(long version) {
-        return new IndexKey(index, type, id, version, false, null);
+        return new IndexKey(index, type, id, version, false, parent);
     }
 
     public static IndexKey keyWith(String type, String id) {
