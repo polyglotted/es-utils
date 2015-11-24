@@ -77,6 +77,11 @@ public final class TypeMapping {
             return this;
         }
 
+        public Builder fieldMapping(Collection<FieldMapping> mappings) {
+            fieldMappings.addAll(mappings);
+            return this;
+        }
+
         public Builder transform(Script.Builder script) {
             return transform(script.build());
         }
