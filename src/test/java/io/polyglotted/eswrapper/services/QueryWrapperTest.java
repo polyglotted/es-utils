@@ -111,7 +111,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
 
     @Test
     public void testCopyToField() {
-        admin.createType(typeBuilder().index(DUMMY_INDICES[1]).type(NESTED_TYPE).allEnabled(false).allAnalyzer(null)
+        admin.createType(typeBuilder().index(DUMMY_INDICES[1]).type(NESTED_TYPE).allAnalyzer(null)
            .fieldMapping(notAnalyzedStringField("target").copyTo("freetext"))
            .fieldMapping(simpleField("freetext", STRING).analyzer("all_analyzer"))
            .fieldMapping(nestedField("child").property(singletonList(notAnalyzedField("effect", STRING)

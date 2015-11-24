@@ -12,12 +12,14 @@ import static io.polyglotted.eswrapper.ElasticConstants.META_META;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.ElasticConstants.SOURCE_META;
 import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
+import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
+import static io.polyglotted.eswrapper.indexing.Indexed.NOT_ANALYZED;
 
 public abstract class IndexSerializer {
 
     public static final Gson GSON = new GsonBuilder()
        .registerTypeAdapter(TypeMapping.class, new TypeMappingSerializer())
-       .registerTypeAdapter(FieldMapping.Builder.class, new FieldMappingSerializer())
+       .registerTypeAdapter(FieldMapping.class, new FieldMappingSerializer())
        .registerTypeAdapter(Script.class, new ScriptMappingSerializer())
        .create();
     public static final Type LIST_TYPE = new TypeToken<List<Map<String, Object>>>() {}.getType();
@@ -54,12 +56,10 @@ public abstract class IndexSerializer {
                 mainType.add(PARENT_META, parent);
             }
 
-            if (mapping.allEnabled != null) {
-                JsonObject all = new JsonObject();
-                mainType.add(ALL_META, all);
-                all.addProperty("enabled", mapping.allEnabled);
-                if (mapping.allAnalyzer != null) all.addProperty("analyzer", mapping.allAnalyzer);
-            }
+            JsonObject all = new JsonObject();
+            mainType.add(ALL_META, all);
+            all.addProperty("enabled", mapping.allAnalyzer != null);
+            if (mapping.allAnalyzer != null) all.addProperty("analyzer", mapping.allAnalyzer);
 
             if (!mapping.meta.isEmpty())
                 mainType.add(META_META, context.serialize(mapping.meta));
@@ -75,9 +75,9 @@ public abstract class IndexSerializer {
                 JsonObject properties = new JsonObject();
                 mainType.add("properties", properties);
                 for (FieldMapping field : FieldMapping.PRIVATE_FIELDS)
-                    properties.add(field.field, context.serialize(field.mapping));
+                    properties.add(field.field, context.serialize(field));
                 for (FieldMapping field : mapping.fieldMappings)
-                    properties.add(field.field, context.serialize(field.mapping));
+                    properties.add(field.field, context.serialize(field));
             }
 
             JsonObject result = new JsonObject();
@@ -86,18 +86,21 @@ public abstract class IndexSerializer {
         }
     }
 
-    private static final class FieldMappingSerializer implements JsonSerializer<FieldMapping.Builder> {
+    private static final class FieldMappingSerializer implements JsonSerializer<FieldMapping> {
         @Override
-        public JsonElement serialize(FieldMapping.Builder builder, Type type, JsonSerializationContext context) {
+        public JsonElement serialize(FieldMapping field, Type type, JsonSerializationContext context) {
             JsonObject object = new JsonObject();
-            if (builder.type() != OBJECT) object.addProperty("type", toLowerCase(builder.type()));
-            if (builder.indexed() != null) object.addProperty("index", toLowerCase(builder.indexed()));
-            if (builder.analyzer() != null) object.addProperty("analyzer", builder.analyzer());
-            if (builder.stored() != null) object.addProperty("store", builder.stored());
-            if (builder.docValues() != null) object.addProperty("doc_values", builder.docValues());
-            if (builder.includeInAll() != null) object.addProperty("include_in_all", builder.includeInAll());
-            builder.extraProps().entrySet().forEach(extra -> object.add(extra.getKey(), context.serialize(extra.getValue())));
-            if (builder.hasProperties()) object.add("properties", context.serialize(builder.properties()));
+            if (field.type != OBJECT) object.addProperty("type", toLowerCase(field.type));
+            object.addProperty("index", decorateIndex(field));
+            object.addProperty("analyzer", field.analyzer);
+            object.addProperty("store", field.stored);
+            object.addProperty("doc_values", field.docValues);
+            object.addProperty("copy_to", field.copyTo);
+            field.type.extra(object);
+            object.addProperty("include_in_all", field.includeInAll);
+            field.argsMap.entrySet().forEach(arg -> object.add(arg.getKey(), context.serialize(arg.getValue())));
+            if (field.hasFields()) object.add("fields", context.serialize(field.properties));
+            else if (field.hasProperties()) object.add("properties", context.serialize(field.properties));
             return object;
         }
     }
@@ -115,5 +118,10 @@ public abstract class IndexSerializer {
 
     private static String toLowerCase(Object value) {
         return String.valueOf(value).toLowerCase();
+    }
+
+    private static String decorateIndex(FieldMapping field) {
+        Indexed indexed = (field.type != STRING && field.indexed == NOT_ANALYZED) ? null : field.indexed;
+        return indexed == null ? null : toLowerCase(indexed);
     }
 }

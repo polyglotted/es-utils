@@ -23,17 +23,11 @@ public final class TypeMapping {
     public final String parent;
     public final boolean strict;
     public final boolean storeSource;
-    public final Boolean allEnabled;
     public final String allAnalyzer;
     public final ImmutableSet<String> sourceIncludes;
     public final ImmutableSet<FieldMapping> fieldMappings;
     public final ImmutableList<Script> scripts;
     public final ImmutableMap<String, Object> meta;
-
-    public TypeMapping typeCopyWith(String index) {
-        return new TypeMapping(index, this.type, this.parent, this.strict, this.storeSource, this.allEnabled,
-           this.allAnalyzer, this.sourceIncludes, this.fieldMappings, this.scripts, this.meta);
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -68,7 +62,6 @@ public final class TypeMapping {
         private String parent;
         private boolean strict = false;
         private boolean storeSource = true;
-        private Boolean allEnabled = true;
         private String allAnalyzer = "all_analyzer";
         private final Set<String> sourceIncludes = new TreeSet<>();
         private final Set<FieldMapping> fieldMappings = new TreeSet<>();
@@ -81,7 +74,6 @@ public final class TypeMapping {
 
         public Builder fieldMapping(FieldMapping mapping) {
             fieldMappings.add(mapping);
-            if (mapping.includeInSource) sourceIncludes.add(mapping.field);
             return this;
         }
 
@@ -94,6 +86,11 @@ public final class TypeMapping {
             return this;
         }
 
+        public Builder include(String field) {
+            sourceIncludes.add(field);
+            return this;
+        }
+
         public Builder metaData(String name, Object value) {
             metaData.put(name, value);
             return this;
@@ -101,7 +98,7 @@ public final class TypeMapping {
 
         public TypeMapping build() {
             return new TypeMapping(checkNotNull(index, "index cannot be null"), checkNotNull(type, "type cannot be null"),
-               parent, strict, storeSource, allEnabled, allAnalyzer, ImmutableSet.copyOf(sourceIncludes),
+               parent, strict, storeSource, allAnalyzer, ImmutableSet.copyOf(sourceIncludes),
                ImmutableSet.copyOf(fieldMappings), ImmutableList.copyOf(scripts), ImmutableMap.copyOf(metaData));
         }
     }

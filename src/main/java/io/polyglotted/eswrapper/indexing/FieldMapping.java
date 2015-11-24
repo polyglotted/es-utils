@@ -2,7 +2,6 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import lombok.*;
 import lombok.experimental.Accessors;
 
@@ -11,15 +10,19 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.Indexed.NOT_ANALYZED;
+import static com.google.common.collect.ImmutableMap.copyOf;
+import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.FieldType.BINARY;
 import static io.polyglotted.eswrapper.indexing.FieldType.DATE;
 import static io.polyglotted.eswrapper.indexing.FieldType.NESTED;
 import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
 import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
-import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
+import static io.polyglotted.eswrapper.indexing.Indexed.NOT_ANALYZED;
+import static java.util.Collections.singleton;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 @ToString(includeFieldNames = false, doNotUseGetters = true)
 public final class FieldMapping implements Comparable<FieldMapping> {
     public static final String BYTES_FIELD = "&bytes";
@@ -28,24 +31,25 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     public static final String ANCESTOR_FIELD = "&ancestor";
     public static final String STATUS_FIELD = "&status";
 
-    static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(simpleField(BYTES_FIELD, BINARY).build(),
-       simpleField(TIMESTAMP_FIELD, DATE).includeInAll(false).build(),
-       simpleField(EXPIRY_FIELD, DATE).includeInAll(false).build(),
+    static final List<FieldMapping> PRIVATE_FIELDS = ImmutableList.of(
        notAnalyzedStringField(ANCESTOR_FIELD).docValues(true).includeInAll(false).build(),
-       notAnalyzedStringField(STATUS_FIELD).docValues(true).includeInAll(false).build());
-    private static final Map<String, Object> PATH_FIELDS = ImmutableMap.of("tree", ImmutableMap.of("type", "string",
-       "analyzer", "path_analyzer"));
-    private static final Map<String, Object> RAW_FIELDS = ImmutableMap.of("raw", ImmutableMap.of("type", "string",
-       "index", "not_analyzed", "doc_values", true));
+       simpleField(BYTES_FIELD, BINARY).build(),
+       simpleField(EXPIRY_FIELD, DATE).includeInAll(false).build(),
+       notAnalyzedStringField(STATUS_FIELD).docValues(true).includeInAll(false).build(),
+       simpleField(TIMESTAMP_FIELD, DATE).includeInAll(false).build());
 
+    @Getter
     public final String field;
-    public final boolean includeInSource;
-    public final ImmutableMap<String, Object> mapping;
-
-    @SuppressWarnings("unchecked")
-    public FieldMapping(String field, boolean includeInSource, String mappingJson) {
-        this(field, includeInSource, (mappingJson == null) ? ImmutableMap.of() : ImmutableMap.copyOf(GSON.fromJson(mappingJson, Map.class)));
-    }
+    public final FieldType type;
+    public final Indexed indexed;
+    public final String analyzer;
+    public final String copyTo;
+    public final Boolean docValues;
+    public final Boolean includeInAll;
+    public final Boolean hasFields;
+    public final Boolean stored;
+    public final ImmutableMap<String, Object> argsMap;
+    public final ImmutableMap<String, FieldMapping> properties;
 
     @Override
     public boolean equals(Object o) {
@@ -62,9 +66,12 @@ public final class FieldMapping implements Comparable<FieldMapping> {
         return (other == null) ? -1 : field.compareTo(other.field);
     }
 
-    @SuppressWarnings("unused")
-    public enum Indexed {
-        NOT_ANALYZED, ANALYZED, NO
+    public boolean hasProperties() {
+        return (type == NESTED || type == OBJECT) && properties.size() > 0;
+    }
+
+    public boolean hasFields() {
+        return Boolean.TRUE.equals(hasFields) && properties.size() > 0;
     }
 
     public static Builder fieldBuilder() {
@@ -84,7 +91,7 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     }
 
     public static FieldMapping.Builder notAnalyzedField(String field, FieldType fieldType) {
-        return simpleField(field, fieldType).indexed(NOT_ANALYZED).stored(null);
+        return simpleField(field, fieldType).indexed(NOT_ANALYZED);
     }
 
     public static FieldMapping.Builder simpleField(String field, FieldType fieldType) {
@@ -95,60 +102,41 @@ public final class FieldMapping implements Comparable<FieldMapping> {
     @Accessors(fluent = true, chain = true)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
-        @Getter
         private String field;
-        @Getter
         private FieldType type;
-        private boolean includeInSource = false;
-        @Getter
         private Indexed indexed = null;
-        @Getter
-        private String analyzer;
-        @Getter
-        private Boolean stored = null;
-        @Getter
-        private Boolean includeInAll = null;
-        @Getter
+        private String analyzer = null;
+        private String copyTo = null;
         private Boolean docValues = null;
-        @Getter
-        private final Map<String, Builder> properties = new TreeMap<>();
-        @Getter
-        private final Map<String, Object> extraProps = new TreeMap<>();
+        private Boolean includeInAll = null;
+        private Boolean hasFields = null;
+        private Boolean stored = null;
+        private final Map<String, Object> args = new TreeMap<>();
+        private final Map<String, FieldMapping> properties = new TreeMap<>();
 
         public Builder property(Iterable<Builder> properties) {
-            this.properties.putAll(Maps.uniqueIndex(properties, Builder::field));
+            this.properties.putAll(uniqueIndex(transform(properties, Builder::build), FieldMapping::field));
             return this;
         }
 
-        public boolean hasProperties() {
-            return (type == NESTED || type == OBJECT) && properties.size() > 0;
-        }
-
-        @SuppressWarnings("unused")
-        public Builder isAPath(boolean bool) {
-            return isAPath();
-        }
-
         public Builder isAPath() {
-            return extra("fields", PATH_FIELDS);
+            hasFields(true);
+            return property(singleton(simpleField("tree", STRING).analyzer("path_analyzer")));
         }
 
         public Builder addRawFields() {
-            return extra("fields", RAW_FIELDS);
-        }
-
-        public Builder copyTo(String field) {
-            return extra("copy_to", field);
+            hasFields(true);
+            return property(singleton(notAnalyzedStringField("raw")));
         }
 
         public Builder extra(String name, Object value) {
-            extraProps.put(name, value);
+            args.put(name, value);
             return this;
         }
 
         public FieldMapping build() {
-            checkNotNull(type, "type cannot be null").decorateField(this);
-            return new FieldMapping(checkNotNull(field, "field cannot be null"), includeInSource, GSON.toJson(this));
+            return new FieldMapping(checkNotNull(field, "field is required"), checkNotNull(type, "type is required"),
+               indexed, analyzer, copyTo, docValues, includeInAll, hasFields, stored, copyOf(args), copyOf(properties));
         }
     }
 }

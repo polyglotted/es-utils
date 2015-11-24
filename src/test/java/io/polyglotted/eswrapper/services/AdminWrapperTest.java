@@ -91,7 +91,7 @@ public class AdminWrapperTest extends AbstractElasticTest {
 
         String expected = SERIALISED_DOCS.get("completeTypeMapping");
         String actual = admin.getMapping(ADMIN_INDICES[0], "testType");
-        assertThat(deserMap(actual), is(deserMap(expected)));
+        assertThat(actual, deserMap(actual), is(deserMap(expected)));
 
         admin.dropIndex(ADMIN_INDICES[0]);
     }

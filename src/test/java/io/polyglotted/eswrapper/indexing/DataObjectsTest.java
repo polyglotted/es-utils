@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import static io.polyglotted.eswrapper.indexing.Alias.aliasBuilder;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
 import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
 import static io.polyglotted.eswrapper.indexing.Script.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
@@ -48,7 +49,7 @@ public class DataObjectsTest {
 
     @Test
     public void indexedValues() {
-        asList(FieldMapping.Indexed.values()).contains(FieldMapping.Indexed.valueOf("NOT_ANALYZED"));
+        asList(Indexed.values()).contains(Indexed.valueOf("NOT_ANALYZED"));
     }
 
     @Test
@@ -122,7 +123,7 @@ public class DataObjectsTest {
     public void fieldMappingEqHash() {
         FieldMapping orig = notAnalyzedStringField("a").build();
         FieldMapping copy = notAnalyzedStringField("a").build();
-        FieldMapping other = new FieldMapping("b", false, (String) null);
+        FieldMapping other = simpleField("b", FieldType.DOUBLE).build();
         verifyEqualsHashCode(orig, copy, other);
         verifyComparable(orig, other);
     }

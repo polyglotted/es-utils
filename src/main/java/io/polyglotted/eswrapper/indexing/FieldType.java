@@ -1,6 +1,6 @@
 package io.polyglotted.eswrapper.indexing;
 
-import static io.polyglotted.eswrapper.indexing.FieldMapping.Indexed.NOT_ANALYZED;
+import com.google.gson.JsonObject;
 
 public enum FieldType {
     BOOLEAN,
@@ -13,21 +13,21 @@ public enum FieldType {
     LONG,
     DATE {
         @Override
-        void decorateField(FieldMapping.Builder field) {
-            super.decorateField(field);
-            field.extra("format", "dateOptionalTime");
+        void extra(JsonObject object) {
+            object.addProperty("format", "dateOptionalTime");
         }
     },
     BINARY,
     NESTED,
     IP,
     GEO_POINT,
-    GEO_SHAPE,
+    GEO_SHAPE {
+        @Override
+        void extra(JsonObject object) {
+            object.addProperty("tree", "quadtree");
+        }
+    },
     OBJECT;
 
-    void decorateField(FieldMapping.Builder field) {
-        if (field.type() != STRING && field.indexed() == NOT_ANALYZED) {
-            field.indexed(null);
-        }
-    }
+    void extra(JsonObject object) {}
 }

@@ -1,7 +1,6 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -20,11 +19,11 @@ import static io.polyglotted.eswrapper.indexing.FieldType.*;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.with;
 import static io.polyglotted.eswrapper.indexing.Script.scriptBuilder;
+import static io.polyglotted.eswrapper.indexing.TypeMapping.forcedMappingJson;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -51,32 +50,15 @@ public class IndexSerializerTest extends IndexSerializer {
     }
 
     @Test
-    public void fieldMapping() {
-        ImmutableMap<String, Object> mapping = notAnalyzedStringField("field1").build().mapping;
-        assertThat(mapping.get("type"), is(equalTo("string")));
-        assertThat(mapping.get("index"), is(equalTo("not_analyzed")));
-        assertThat(mapping.get("doc_values"), is(equalTo(true)));
-    }
-
-    @Test
-    public void fieldMappingCustom() {
-        ImmutableMap<String, Object> mapping = new FieldMapping("location", false,
-           "{\"type\": \"geo_shape\",\"tree\": \"quadtree\",\"precision\": \"1m\"}").mapping;
-        assertThat(mapping.get("type"), is(equalTo("geo_shape")));
-        assertThat(mapping.get("tree"), is(equalTo("quadtree")));
-        assertThat(mapping.get("precision"), is(equalTo("1m")));
-    }
-
-    @Test
     public void sequenceMapping() {
-        String actual = TypeMapping.forcedMappingJson("Sequence");
+        String actual = forcedMappingJson("Sequence");
         assertThat("sequenceMapping=" + actual, actual, is(SERIALISED_DOCS.get("sequenceMapping")));
     }
 
     @DataProvider
     public static Object[][] typeMappingInputs() {
         return new Object[][]{
-           {typeBuilder().index("testIndex").type("testType").allEnabled(null), "emptyTypeMapping"},
+           {typeBuilder().index("testIndex").type("testType").allAnalyzer(null), "emptyTypeMapping"},
 
            {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedStringField("field1").stored(true)), "simpleTypeMapping"},
 
@@ -87,7 +69,7 @@ public class IndexSerializerTest extends IndexSerializer {
            {typeBuilder().index("testIndex").type("testType").strict(true).storeSource(false).fieldMapping(notAnalyzedStringField("field1"))
               .fieldMapping(notAnalyzedStringField("field2")), "strictNoSourceTypeMapping"},
 
-           {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedField("field1", STRING).includeInSource(true)), "sourceIncludesTypeMapping"},
+           {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedField("field1", STRING)).include("field1"), "sourceIncludesTypeMapping"},
 
            {typeBuilder().index("testIndex").type("testType")
               .fieldMapping(notAnalyzedStringField("field1")).fieldMapping(notAnalyzedStringField("field2")).transform(scriptBuilder()
@@ -98,28 +80,28 @@ public class IndexSerializerTest extends IndexSerializer {
               .transform(scriptBuilder().script("ctx._source['field3'] = ctx._source['field1']")), "multiTransformTypeMapping"},
 
            {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedStringField("name"))
-              .fieldMapping(notAnalyzedStringField("path").isAPath(true)), "setAsPathTypeMapping"},
+              .fieldMapping(notAnalyzedStringField("path").isAPath()), "setAsPathTypeMapping"},
 
            {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedStringField("name"))
               .fieldMapping(simpleField("rawable", STRING).addRawFields()), "addRawFieldsTypeMapping"},
 
            {typeBuilder().index("testIndex").type("testType").fieldMapping(notAnalyzedStringField("field1")).metaData("myName", "myVal"), "metaTypeMapping"},
 
-           {typeBuilder().index("testIndex").type("NestedObj").fieldMapping(notAnalyzedStringField("target").isAPath(true)).fieldMapping(nestedField("axiom")
+           {typeBuilder().index("testIndex").type("NestedObj").fieldMapping(notAnalyzedStringField("target").isAPath()).fieldMapping(nestedField("axiom")
               .property(asList(notAnalyzedField("effect", STRING), nestedField("constraint").property(asList(notAnalyzedField("attr", STRING),
                  notAnalyzedField("func", STRING), notAnalyzedField("val", STRING), notAnalyzedField("neg", BOOLEAN)))))), "nestedMapping"},
 
-           {typeBuilder().index("testIndex").type("NestedObj").fieldMapping(notAnalyzedStringField("target").isAPath(true)).fieldMapping(
+           {typeBuilder().index("testIndex").type("NestedObj").fieldMapping(notAnalyzedStringField("target").isAPath()).fieldMapping(
               nestedField("axiom").property(asList(notAnalyzedField("effect", STRING), nestedField("emptyField")))), "emptyNestedMapping"},
 
            {typeBuilder().index("testIndex").type("TestObj").fieldMapping(notAnalyzedStringField("name")).fieldMapping(
               simpleField("value", STRING).analyzer("whitespace")), "withAnalyzerMapping"},
 
-           {typeBuilder().index("testIndex").type("testType").allEnabled(false).allAnalyzer(null), "disabledAllMapping"},
+           {typeBuilder().index("testIndex").type("testType").allAnalyzer(null), "disabledAllMapping"},
 
            {typeBuilder().index("testIndex").type("testType").allAnalyzer("my_analyzer"), "customAllMapping"},
 
-           {typeBuilder().index("testIndex").type("Parent").allEnabled(false).allAnalyzer(null).fieldMapping(notAnalyzedStringField("target")
+           {typeBuilder().index("testIndex").type("Parent").allAnalyzer(null).fieldMapping(notAnalyzedStringField("target")
               .copyTo("freetext")).fieldMapping(simpleField("freetext", STRING).analyzer("all_analyzer"))
               .fieldMapping(nestedField("child").property(singletonList(notAnalyzedField("effect", STRING).copyTo("freetext")))), "copyToMapping"},
         };
