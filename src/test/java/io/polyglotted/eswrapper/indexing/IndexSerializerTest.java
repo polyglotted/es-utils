@@ -17,6 +17,8 @@ import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringFi
 import static io.polyglotted.eswrapper.indexing.FieldMapping.objectField;
 import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
 import static io.polyglotted.eswrapper.indexing.FieldType.*;
+import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
+import static io.polyglotted.eswrapper.indexing.IndexSetting.with;
 import static io.polyglotted.eswrapper.indexing.Script.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
@@ -63,6 +65,12 @@ public class IndexSerializerTest extends IndexSerializer {
         assertThat(mapping.get("type"), is(equalTo("geo_shape")));
         assertThat(mapping.get("tree"), is(equalTo("quadtree")));
         assertThat(mapping.get("precision"), is(equalTo("1m")));
+    }
+
+    @Test
+    public void sequenceMapping() {
+        String actual = TypeMapping.forcedMappingJson("Sequence");
+        assertThat("sequenceMapping=" + actual, actual, is(SERIALISED_DOCS.get("sequenceMapping")));
     }
 
     @DataProvider
@@ -126,7 +134,7 @@ public class IndexSerializerTest extends IndexSerializer {
     @Test(enabled = false)
     public void printAll() {
         Object[][] inputs = typeMappingInputs();
-        for(Object[] items : inputs) {
+        for (Object[] items : inputs) {
             TypeMapping.Builder type = (TypeMapping.Builder) items[0];
             String expectedKey = (String) items[1];
             String actual = GSON.toJson(type.build());
@@ -134,36 +142,25 @@ public class IndexSerializerTest extends IndexSerializer {
         }
     }
 
-    @Test
-    public void sequenceMapping() {
-        String actual = TypeMapping.forcedMappingJson("Sequence");
-        assertThat("sequenceMapping=" + actual, actual, is(SERIALISED_DOCS.get("sequenceMapping")));
+    @DataProvider
+    public static Object[][] indexSettingInputs() {
+        return new Object[][]{
+           {with(5, 1), "defaultIndexSetting"},
+           {settingBuilder().numberOfShards(3).numberOfReplicas(2).refreshInterval(-1L).ignoreMalformed()
+              .any("translog.disable_flush", true).disableDynamicMapping().build(), "forcedIndexSetting"},
+           {settingBuilder().numberOfShards(1).autoExpandReplicas().build(), "autoExpandSetting"},
+        };
     }
 
-    @Test
-    public void defaultIndexSetting() {
-        String actual = IndexSetting.with(5, 1).createJson();
-        assertThat("defaultIndexSetting=" + actual, actual, is(SERIALISED_DOCS.get("defaultIndexSetting")));
-    }
-
-    @Test
-    public void forcedIndexSetting() {
-        String actual = IndexSetting.settingBuilder().numberOfShards(3).numberOfReplicas(2).refreshInterval(-1L)
-           .any("translog.disable_flush", true).disableDynamicMapping().ignoreMalformed().build().createJson();
-        //System.out.println("forcedIndexSetting=" + actual);
-        assertThat(actual, is(SERIALISED_DOCS.get("forcedIndexSetting")));
-    }
-
-    @Test
-    public void autoExpandSetting() {
-        String actual = IndexSetting.settingBuilder().numberOfShards(1).autoExpandReplicas().build().createJson();
-        //System.out.println("autoExpandSetting=" + actual);
-        assertThat(actual, is(SERIALISED_DOCS.get("autoExpandSetting")));
+    @Test(dataProvider = "indexSettingInputs")
+    public void validIndexSetting(IndexSetting setting, String expectedKey) {
+        String actual = setting.createJson();
+        assertThat(expectedKey + "=" + actual, actual, is(SERIALISED_DOCS.get(expectedKey)));
     }
 
     @Test
     public void settingForUpdate() {
-        String actual = IndexSetting.with(5, 1).updateJson();
+        String actual = with(5, 1).updateJson();
         assertThat(actual, is(SERIALISED_DOCS.get("settingForUpdate")));
     }
 
