@@ -49,6 +49,7 @@ public class ExtnGenerator {
     private static final int TplMapRef = -16;
     private static final int VarArrayRef = -17;
     private static final int VarRef = -19;
+    private static final int SEARCH_START = -38;
 
     private static final ImmutableMap<Class<?>, String> SearchClasses = ImmutableMap.<Class<?>, String>builder()
        .put(Expression.class, "search expression")
@@ -70,6 +71,9 @@ public class ExtnGenerator {
        .put(StandardQuery.class, "standard search query")
        .put(StandardScroll.class, "standard scroll query")
        .put(QueryResponse.class, "search query response")
+       .put(Indexed.class, "field mapping indexed")
+       .put(FieldType.class, "field mapping type")
+       .put(FieldMapping.class, "field mapping")
        .build();
 
     private static final ImmutableMap<Class<?>, List<String>> Requireds = ImmutableMap.<Class<?>, List<String>>builder()
@@ -87,6 +91,7 @@ public class ExtnGenerator {
        .put(StandardQuery.class, asList("queryHints", "offset", "size"))
        .put(StandardScroll.class, asList("scrollId", "scrollTimeInMillis"))
        .put(QueryResponse.class, singletonList("header"))
+       .put(FieldMapping.class, asList("field", "type"))
        .build();
 
     private static final ImmutableMap<Class<?>, Map<String, String>> Defaulteds = ImmutableMap.<Class<?>, Map<String, String>>builder()
@@ -99,13 +104,19 @@ public class ExtnGenerator {
        .put(Bucket.class, of("count", "-1", "errors", "0"))
        .put(StandardQuery.class, of("offset", "0", "size", "10"))
        .put(StandardScroll.class, of("scrollTimeInMillis", "5000"))
+       .put(FieldMapping.class, of("type", "STRING"))
+       .build();
+
+    private static final ImmutableMap<Class<?>, List<String>> StoreTransients = ImmutableMap.<Class<?>, List<String>>builder()
+       .put(FieldMapping.class, asList("indexed", "analyzer", "copyTo", "docValues", "includeInAll", "hasFields",
+          "stored", "argsMap", "properties"))
        .build();
 
     private static Gson GSON = new GsonBuilder().create();
 
     public static void main(String ar[]) {
 
-        int traitRefStart = -38;
+        int traitRefStart = SEARCH_START;
         Map<Class<?>, Integer> localTraits = new LinkedHashMap<>();
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map.Entry<Class<?>, String> entry : SearchClasses.entrySet()) {
@@ -143,6 +154,10 @@ public class ExtnGenerator {
 
             List<String> requireds = Requireds.get(clazz);
             if (requireds != null && requireds.contains(field.getName())) fieldMap.put("required", true);
+
+            List<String> transients = StoreTransients.get(clazz);
+            if (transients != null && transients.contains(field.getName()))
+                fieldMap.put("tags", ImmutableMap.of("objectstore.transient", true));
 
             Class<?> fieldClass = Primitives.wrap(field.getType());
             int traitRef;

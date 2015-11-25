@@ -14,6 +14,7 @@ import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
 import static io.polyglotted.eswrapper.ElasticConstants.SOURCE_META;
 import static io.polyglotted.eswrapper.ElasticConstants.TYPE_META;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
+import static java.util.Collections.singleton;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(includeFieldNames = false, doNotUseGetters = true)
@@ -73,11 +74,11 @@ public final class TypeMapping {
         }
 
         public Builder fieldMapping(FieldMapping mapping) {
-            fieldMappings.add(mapping);
-            return this;
+            return fieldMapping(singleton(mapping));
         }
 
         public Builder fieldMapping(Collection<FieldMapping> mappings) {
+            fieldMappings.removeAll(mappings);
             fieldMappings.addAll(mappings);
             return this;
         }
