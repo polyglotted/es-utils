@@ -8,7 +8,7 @@
     </parent>
 
     <artifactId>es-wrapper</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elastic Search Wrapper</name>
     <description>Standard set of utilities for elastic search abstraction</description>
@@ -17,7 +17,7 @@
         <url>https://github.com/polyglotted/es-wrapper</url>
         <connection>scm:git:ssh://github.com/polyglotted/es-wrapper.git</connection>
         <developerConnection>scm:git:git+ssh://git@github.com/polyglotted/es-wrapper.git</developerConnection>
-        <tag>es-wrapper-1.1.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <repositories>
