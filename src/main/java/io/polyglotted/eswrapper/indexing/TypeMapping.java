@@ -88,7 +88,11 @@ public final class TypeMapping {
         }
 
         public Builder transform(Script script) {
-            scripts.add(script);
+            return transform(singleton(script));
+        }
+
+        public Builder transform(Collection<Script> scripts) {
+            this.scripts.addAll(scripts);
             return this;
         }
 
