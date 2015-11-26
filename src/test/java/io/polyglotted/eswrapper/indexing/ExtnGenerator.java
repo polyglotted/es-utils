@@ -112,7 +112,7 @@ public class ExtnGenerator {
           "stored", "argsMap", "properties"))
        .build();
 
-    private static Gson GSON = new GsonBuilder().create();
+    private static Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
     public static void main(String ar[]) {
 

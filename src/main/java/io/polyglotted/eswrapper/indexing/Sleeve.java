@@ -73,6 +73,11 @@ public final class Sleeve<T> {
            : (isDelete() ? deleteRecord(key) : updateRecord(key).source(function.apply(source)).build());
     }
 
+    public IndexRecord toSleeveRecord(Function<Sleeve<T>, String> function) {
+        return isNew() ? createRecord(key.type, key.id).source(function.apply(this)).build()
+           : (isDelete() ? deleteRecord(key) : updateRecord(key).source(function.apply(this)).build());
+    }
+
     public Sleeve<T> delete() {
         return new Sleeve<>(key.delete(), null, key.uniqueId(), stored);
     }

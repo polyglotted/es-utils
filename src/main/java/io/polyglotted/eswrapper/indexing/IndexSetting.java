@@ -90,7 +90,7 @@ public final class IndexSetting {
         }
 
         public Builder any(String name, Object value) {
-            map.put(name, value);
+            if (value != null) map.put(name, value);
             return this;
         }
 

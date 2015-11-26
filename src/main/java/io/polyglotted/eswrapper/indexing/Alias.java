@@ -40,6 +40,10 @@ public final class Alias {
         return indices;
     }
 
+    public boolean containsIndex(String index) {
+        return indices.contains(index);
+    }
+
     @Override
     public boolean equals(Object o) {
         return this == o || !(o == null || getClass() != o.getClass()) && GSON.toJson(this).equals(GSON.toJson(o));

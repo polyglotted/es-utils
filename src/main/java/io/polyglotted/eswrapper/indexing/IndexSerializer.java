@@ -17,7 +17,7 @@ import static io.polyglotted.eswrapper.indexing.Indexed.NOT_ANALYZED;
 
 public abstract class IndexSerializer {
 
-    public static final Gson GSON = new GsonBuilder()
+    public static final Gson GSON = new GsonBuilder().disableHtmlEscaping()
        .registerTypeAdapter(TypeMapping.class, new TypeMappingSerializer())
        .registerTypeAdapter(FieldMapping.class, new FieldMappingSerializer())
        .registerTypeAdapter(Script.class, new ScriptMappingSerializer())
