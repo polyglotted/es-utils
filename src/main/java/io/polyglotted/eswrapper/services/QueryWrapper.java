@@ -2,7 +2,6 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.esmodel.api.Expression;
 import io.polyglotted.esmodel.api.IndexKey;
 import io.polyglotted.esmodel.api.SimpleDoc;
 import io.polyglotted.esmodel.api.query.*;

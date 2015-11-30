@@ -13,14 +13,14 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
-import static io.polyglotted.esmodel.api.Expressions.equalsTo;
-import static io.polyglotted.esmodel.api.Expressions.textAnywhere;
 import static io.polyglotted.esmodel.api.IndexKey.keyWith;
 import static io.polyglotted.esmodel.api.index.FieldMapping.nestedField;
 import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedField;
 import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.esmodel.api.index.FieldMapping.simpleField;
 import static io.polyglotted.esmodel.api.index.FieldType.STRING;
+import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.query.Expressions.textAnywhere;
 import static io.polyglotted.esmodel.api.query.Sort.sortAsc;
 import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;

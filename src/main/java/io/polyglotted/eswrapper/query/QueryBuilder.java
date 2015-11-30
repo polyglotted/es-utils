@@ -3,7 +3,7 @@ package io.polyglotted.eswrapper.query;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.query.Expression;
 import io.polyglotted.esmodel.api.query.QueryHints;
 import io.polyglotted.esmodel.api.query.Sort;
 import io.polyglotted.esmodel.api.query.StandardQuery;

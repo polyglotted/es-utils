@@ -1,9 +1,9 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.esmodel.api.Expression;
 import io.polyglotted.esmodel.api.query.Aggregation;
 import io.polyglotted.esmodel.api.query.AggregationType;
 import io.polyglotted.esmodel.api.query.Bucket;
+import io.polyglotted.esmodel.api.query.Expression;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;

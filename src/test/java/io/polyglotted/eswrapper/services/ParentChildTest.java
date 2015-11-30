@@ -9,12 +9,12 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static io.polyglotted.esmodel.api.Expressions.equalsTo;
-import static io.polyglotted.esmodel.api.Expressions.hasChild;
-import static io.polyglotted.esmodel.api.Expressions.hasParent;
-import static io.polyglotted.esmodel.api.Expressions.in;
 import static io.polyglotted.esmodel.api.IndexKey.keyWithParent;
 import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.query.Expressions.hasChild;
+import static io.polyglotted.esmodel.api.query.Expressions.hasParent;
+import static io.polyglotted.esmodel.api.query.Expressions.in;
 import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;

@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.uniqueIndex;
-import static io.polyglotted.esmodel.api.Expressions.in;
 import static io.polyglotted.esmodel.api.IndexKey.keyWith;
 import static io.polyglotted.esmodel.api.index.Alias.aliasBuilder;
 import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.esmodel.api.query.Expressions.in;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.deserList;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.deserMap;
 import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.SERIALISED_DOCS;

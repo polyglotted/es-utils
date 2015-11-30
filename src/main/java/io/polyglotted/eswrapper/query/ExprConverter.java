@@ -1,6 +1,6 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.query.Expression;
 import org.elasticsearch.index.query.FilterBuilder;
 
 import static com.google.common.base.Strings.isNullOrEmpty;

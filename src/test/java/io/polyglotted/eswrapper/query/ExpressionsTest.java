@@ -1,6 +1,6 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.esmodel.api.Expressions;
+import io.polyglotted.esmodel.api.query.Expressions;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

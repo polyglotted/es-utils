@@ -1,6 +1,6 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.query.Expression;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.testng.annotations.DataProvider;
@@ -9,8 +9,8 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 
 import static com.google.common.collect.ImmutableMap.of;
-import static io.polyglotted.esmodel.api.Expressions.equalsTo;
 import static io.polyglotted.esmodel.api.query.Aggregates.*;
+import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
 import static io.polyglotted.eswrapper.query.AggsConverter.*;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.testng.Assert.assertEquals;

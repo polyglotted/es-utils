@@ -5,7 +5,7 @@ import io.polyglotted.esmodel.api.query.SortOrder;
 import io.polyglotted.esmodel.api.query.StandardQuery;
 import org.testng.annotations.Test;
 
-import static io.polyglotted.esmodel.api.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
 import static io.polyglotted.esmodel.api.query.QueryHints.hintsBuilder;
 import static io.polyglotted.esmodel.api.query.SearchOptions.STRICT_EXPAND_OPEN;
 import static io.polyglotted.esmodel.api.query.SearchType.COUNT;
