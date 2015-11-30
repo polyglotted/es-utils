@@ -3,11 +3,11 @@ package io.polyglotted.eswrapper.services;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.polyglotted.esmodel.api.IndexKey;
+import io.polyglotted.esmodel.api.SimpleDoc;
 import io.polyglotted.eswrapper.indexing.Bundling;
 import io.polyglotted.eswrapper.indexing.IgnoreErrors;
-import io.polyglotted.eswrapper.indexing.IndexKey;
 import io.polyglotted.eswrapper.indexing.Indexable;
-import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import io.polyglotted.eswrapper.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +30,8 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
-import static io.polyglotted.eswrapper.query.request.QueryBuilder.idRequest;
-import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.query.QueryBuilder.idRequest;
+import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
 import static io.polyglotted.eswrapper.validation.ValidException.checkValidity;
 import static io.polyglotted.eswrapper.validation.Validator.EMPTY_VALIDATOR;
 import static org.elasticsearch.client.Requests.refreshRequest;
@@ -43,7 +43,7 @@ public final class IndexerWrapper {
 
     public IndexKey index(IndexRequest indexRequest) {
         IndexResponse indexResponse = client.index(indexRequest).actionGet();
-        return IndexKey.from(indexResponse);
+        return ModelUtil.keyFrom(indexResponse);
     }
 
     public BulkResponse index(BulkRequest bulkRequest) {
@@ -53,7 +53,7 @@ public final class IndexerWrapper {
     public List<IndexKey> bulkIndex(Bundling bundling, IgnoreErrors ignoreErrors) {
         try {
             BulkResponse bulkResponse = index(bundling.writeRequest(), ignoreErrors);
-            return ImmutableList.copyOf(transform(checkNotNull(bulkResponse), IndexKey::from));
+            return ImmutableList.copyOf(transform(checkNotNull(bulkResponse), ModelUtil::keyFrom));
 
         } finally {
             forceRefresh(bundling.indices());
@@ -70,7 +70,7 @@ public final class IndexerWrapper {
         try {
             index(indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key)));
             BulkResponse bulkResponse = index(indexable.writeRequest());
-            return ImmutableList.copyOf(transform(bulkResponse, IndexKey::from));
+            return ImmutableList.copyOf(transform(bulkResponse, ModelUtil::keyFrom));
 
         } catch (RuntimeException ex) {
             log.error("failed two phase commit", ex);
@@ -102,7 +102,7 @@ public final class IndexerWrapper {
 
     @VisibleForTesting
     void forceReindex(List<SimpleDoc> currentDocs) {
-        index(new BulkRequest().refresh(false).add(transform(currentDocs, SimpleDoc::forcedRequest)), lenient());
+        index(new BulkRequest().refresh(false).add(transform(currentDocs, ModelUtil::forcedRequest)), lenient());
     }
 
     @VisibleForTesting
@@ -141,7 +141,7 @@ public final class IndexerWrapper {
         for (BulkItemResponse response : responses) {
             String failureMessage = response.getFailureMessage();
             if (!ignore.ignoreFailure(failureMessage)) {
-                errorBuilder.put(IndexKey.from(response), failureMessage);
+                errorBuilder.put(ModelUtil.keyFrom(response), failureMessage);
             }
         }
         ImmutableMap<IndexKey, String> errors = errorBuilder.build();

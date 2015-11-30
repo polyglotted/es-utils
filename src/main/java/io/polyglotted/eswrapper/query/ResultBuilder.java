@@ -1,9 +1,10 @@
-package io.polyglotted.eswrapper.query.response;
+package io.polyglotted.eswrapper.query;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import io.polyglotted.eswrapper.indexing.IndexKey;
+import io.polyglotted.esmodel.api.IndexKey;
+import io.polyglotted.esmodel.api.SimpleDoc;
 import org.elasticsearch.action.search.SearchResponse;
 
 import java.util.List;
@@ -17,12 +18,12 @@ public interface ResultBuilder<T> {
 
     ResultBuilder<?> NullBuilder = response -> ImmutableList.of();
 
-    ResultBuilder<IndexKey> IndexKeyBuilder = response -> ImmutableList.copyOf(transform(response.getHits(),
-       hit -> IndexKey.from(hit)));
+    ResultBuilder<IndexKey> IndexKeyBuilder = response -> ImmutableList.copyOf(transform(
+       response.getHits(), ModelQueryUtil::keyFrom));
 
     ResultBuilder<SimpleDoc> SimpleDocBuilder = response -> ImmutableList.copyOf(transform(response.getHits(), hit -> {
         ImmutableMap<String, Object> source = (hit.getSource() == null) ? ImmutableMap.of() : copyOf(hit.getSource());
-        return new SimpleDoc(IndexKey.from(hit), source);
+        return new SimpleDoc(ModelQueryUtil.keyFrom(hit), source);
     }));
 
     static <T> ResultBuilder<T> SimpleObjectBuilder(final Gson gson, Class<T> clazz) {

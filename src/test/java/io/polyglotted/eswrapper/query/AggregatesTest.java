@@ -1,7 +1,6 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.eswrapper.query.request.Aggregates;
-import io.polyglotted.eswrapper.query.request.Expression;
+import io.polyglotted.esmodel.api.Expression;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.testng.annotations.DataProvider;
@@ -10,12 +9,13 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 
 import static com.google.common.collect.ImmutableMap.of;
-import static io.polyglotted.eswrapper.query.AggregationType.*;
-import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.query.Aggregates.*;
+import static io.polyglotted.eswrapper.query.AggsConverter.*;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.testng.Assert.assertEquals;
 
-public class AggregatesTest extends Aggregates {
+public class AggregatesTest {
 
     @DataProvider
     public static Object[][] aggregationInputs() {
@@ -35,7 +35,7 @@ public class AggregatesTest extends Aggregates {
            {Term.buildFrom(term("hello", "world", 5, "TERM", false)), "{\"aggregations\":{\"hello\":" +
               "{\"terms\":{\"field\":\"world\",\"size\":5,\"show_term_doc_count_error\":true,\"order\":" +
               "{\"_term\":\"desc\"}}}}}"},
-           {Term.buildFrom(Expression.withMap(AggregationType.Term.name(), "hello",
+           {Term.buildFrom(Expression.withMap(AggsConverter.Term.name(), "hello",
               of("field", "world", "size", 5, "order", "count"))), "{\"aggregations\":{\"hello\":{\"terms\":{\"field" +
               "\":\"world\",\"size\":5,\"show_term_doc_count_error\":true,\"order\":{\"_count\":\"desc\"}}}}}"},
            {Term.buildFrom(term("hello", "world", 5, "foo.bar", true)), "{\"aggregations\":{\"hello\":{\"terms\":" +

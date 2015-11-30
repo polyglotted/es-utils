@@ -1,4 +1,4 @@
-package io.polyglotted.eswrapper.query.response;
+package io.polyglotted.eswrapper.query;
 
 import java.util.Map;
 

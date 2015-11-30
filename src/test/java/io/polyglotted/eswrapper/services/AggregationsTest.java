@@ -1,32 +1,27 @@
 package io.polyglotted.eswrapper.services;
 
+import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.index.FieldType;
+import io.polyglotted.esmodel.api.query.*;
 import io.polyglotted.eswrapper.AbstractElasticTest;
-import io.polyglotted.eswrapper.indexing.FieldType;
-import io.polyglotted.eswrapper.query.QueryResponse;
-import io.polyglotted.eswrapper.query.StandardQuery;
-import io.polyglotted.eswrapper.query.request.Aggregates;
-import io.polyglotted.eswrapper.query.request.Expression;
-import io.polyglotted.eswrapper.query.response.Aggregation;
-import io.polyglotted.eswrapper.query.response.Bucket;
-import io.polyglotted.eswrapper.query.response.Flattened;
-import io.polyglotted.eswrapper.query.response.ResultBuilder;
+import io.polyglotted.eswrapper.query.ResultBuilder;
 import org.testng.annotations.Test;
 
 import java.util.Iterator;
 
-import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.esmodel.api.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedField;
+import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.esmodel.api.query.Aggregates.*;
+import static io.polyglotted.esmodel.api.query.Flattened.flattened;
+import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
-import static io.polyglotted.eswrapper.query.AggregationType.Avg;
-import static io.polyglotted.eswrapper.query.AggregationType.Count;
-import static io.polyglotted.eswrapper.query.AggregationType.Max;
-import static io.polyglotted.eswrapper.query.AggregationType.Min;
-import static io.polyglotted.eswrapper.query.AggregationType.Sum;
-import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
-import static io.polyglotted.eswrapper.query.request.Aggregates.*;
-import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
-import static io.polyglotted.eswrapper.query.response.Flattened.flattened;
+import static io.polyglotted.eswrapper.query.AggsConverter.Avg;
+import static io.polyglotted.eswrapper.query.AggsConverter.Count;
+import static io.polyglotted.eswrapper.query.AggsConverter.Max;
+import static io.polyglotted.eswrapper.query.AggsConverter.Min;
+import static io.polyglotted.eswrapper.query.AggsConverter.Sum;
 import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.FieldRegion;
 import static io.polyglotted.eswrapper.services.Trade.FieldValue;

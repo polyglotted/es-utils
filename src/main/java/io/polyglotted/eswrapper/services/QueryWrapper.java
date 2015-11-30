@@ -2,13 +2,13 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.eswrapper.indexing.IndexKey;
-import io.polyglotted.eswrapper.query.AggregationType;
-import io.polyglotted.eswrapper.query.QueryResponse;
-import io.polyglotted.eswrapper.query.StandardQuery;
-import io.polyglotted.eswrapper.query.StandardScroll;
-import io.polyglotted.eswrapper.query.request.Expression;
-import io.polyglotted.eswrapper.query.response.*;
+import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.IndexKey;
+import io.polyglotted.esmodel.api.SimpleDoc;
+import io.polyglotted.esmodel.api.query.*;
+import io.polyglotted.eswrapper.query.AggsConverter;
+import io.polyglotted.eswrapper.query.ResultBuilder;
+import io.polyglotted.eswrapper.query.SourceBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequestBuilder;
@@ -30,12 +30,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static io.polyglotted.eswrapper.query.request.QueryBuilder.aggregationToRequest;
-import static io.polyglotted.eswrapper.query.request.QueryBuilder.queryToRequest;
-import static io.polyglotted.eswrapper.query.request.QueryBuilder.scrollRequest;
-import static io.polyglotted.eswrapper.query.response.ResponseHeader.getReturnedHits;
-import static io.polyglotted.eswrapper.query.response.ResponseHeader.getTotalHits;
-import static io.polyglotted.eswrapper.query.response.ResponseHeader.headerFrom;
+import static io.polyglotted.eswrapper.query.QueryBuilder.aggregationToRequest;
+import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
+import static io.polyglotted.eswrapper.query.QueryBuilder.scrollRequest;
+import static io.polyglotted.eswrapper.services.ModelUtil.getReturnedHits;
+import static io.polyglotted.eswrapper.services.ModelUtil.getTotalHits;
+import static io.polyglotted.eswrapper.services.ModelUtil.headerFrom;
 import static java.util.Collections.singletonList;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMinutes;
@@ -73,7 +73,7 @@ public final class QueryWrapper {
     }
 
     public Aggregation aggregate(Expression aggs, String... indices) {
-        SearchResponse response = client.search(aggregationToRequest(AggregationType.build(aggs), indices)).actionGet();
+        SearchResponse response = client.search(aggregationToRequest(AggsConverter.build(aggs), indices)).actionGet();
         return buildAggregations(singletonList(aggs), response).get(0);
     }
 
@@ -127,7 +127,7 @@ public final class QueryWrapper {
         Aggregations aggregations = response.getAggregations();
         ImmutableList.Builder<Aggregation> result = ImmutableList.builder();
         for (Expression expr : aggregates) {
-            result.add(AggregationType.get(expr, aggregations));
+            result.add(AggsConverter.get(expr, aggregations));
         }
         return result.build();
     }

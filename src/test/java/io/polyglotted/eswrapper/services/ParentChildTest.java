@@ -1,27 +1,27 @@
 package io.polyglotted.eswrapper.services;
 
+import io.polyglotted.esmodel.api.SimpleDoc;
+import io.polyglotted.esmodel.api.query.QueryResponse;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
-import io.polyglotted.eswrapper.query.QueryResponse;
-import io.polyglotted.eswrapper.query.response.SimpleDoc;
 import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
-import static io.polyglotted.eswrapper.indexing.IndexKey.keyWithParent;
+import static io.polyglotted.esmodel.api.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.Expressions.hasChild;
+import static io.polyglotted.esmodel.api.Expressions.hasParent;
+import static io.polyglotted.esmodel.api.Expressions.in;
+import static io.polyglotted.esmodel.api.IndexKey.keyWithParent;
+import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
-import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
-import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
-import static io.polyglotted.eswrapper.query.request.Expressions.hasChild;
-import static io.polyglotted.eswrapper.query.request.Expressions.hasParent;
-import static io.polyglotted.eswrapper.query.request.Expressions.in;
-import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleDocBuilder;
-import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleObjectBuilder;
+import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleObjectBuilder;
 import static io.polyglotted.eswrapper.services.Portfolio.FieldAddress;
 import static io.polyglotted.eswrapper.services.Portfolio.PORTFOLIO_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;

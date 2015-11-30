@@ -22,12 +22,9 @@ public final class IgnoreErrors {
     }
 
     public boolean ignoreFailure(String message) {
-        if (message == null) return true;
-        if ((id & IGNORE_DOC_ALREADY_EXISTS) != 0 && message.startsWith("DocumentAlreadyExistsException"))
-            return true;
-        if ((id & IGNORE_VERSION_CONFLICT) != 0 && message.startsWith("VersionConflictEngineException"))
-            return true;
-        return false;
+        return message == null
+           || ((id & IGNORE_DOC_ALREADY_EXISTS) != 0 && message.startsWith("DocumentAlreadyExistsException"))
+           || ((id & IGNORE_VERSION_CONFLICT) != 0 && message.startsWith("VersionConflictEngineException"));
     }
 
     public static IgnoreErrors strict() {

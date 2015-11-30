@@ -1,6 +1,7 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.polyglotted.esmodel.api.IndexKey;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -16,9 +17,9 @@ import org.elasticsearch.index.VersionType;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.ANCESTOR_FIELD;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.TIMESTAMP_FIELD;
-import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
+import static io.polyglotted.esmodel.api.IndexKey.keyWith;
+import static io.polyglotted.esmodel.api.index.FieldMapping.ANCESTOR_FIELD;
+import static io.polyglotted.esmodel.api.index.FieldMapping.TIMESTAMP_FIELD;
 
 @RequiredArgsConstructor
 @ToString(includeFieldNames = false, doNotUseGetters = true)

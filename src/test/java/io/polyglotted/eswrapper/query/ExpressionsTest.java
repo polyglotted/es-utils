@@ -1,11 +1,11 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.eswrapper.query.request.Expressions;
+import io.polyglotted.esmodel.api.Expressions;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static io.polyglotted.eswrapper.query.ExpressionType.*;
+import static io.polyglotted.eswrapper.query.ExprConverter.*;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.testng.Assert.assertEquals;
 

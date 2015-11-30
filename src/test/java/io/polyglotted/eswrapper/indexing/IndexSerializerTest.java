@@ -9,16 +9,17 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
-import static io.polyglotted.eswrapper.indexing.FieldMapping.fieldBuilder;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.nestedField;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedStringField;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.objectField;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.simpleField;
-import static io.polyglotted.eswrapper.indexing.FieldType.*;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.esmodel.api.index.FieldMapping.fieldBuilder;
+import static io.polyglotted.esmodel.api.index.FieldMapping.nestedField;
+import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedField;
+import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.esmodel.api.index.FieldMapping.objectField;
+import static io.polyglotted.esmodel.api.index.FieldMapping.simpleField;
+import static io.polyglotted.esmodel.api.index.FieldType.*;
+import static io.polyglotted.esmodel.api.index.Script.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.with;
-import static io.polyglotted.eswrapper.indexing.Script.scriptBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.forcedMappingJson;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static java.util.Arrays.asList;
@@ -150,7 +151,7 @@ public class IndexSerializerTest extends IndexSerializer {
         java.util.Map<String, String> result = new HashMap<>();
         try {
             URL resource = IndexSerializerTest.class.getClassLoader().getResource(file);
-            List<String> lines = Resources.readLines(resource, Charsets.UTF_8);
+            List<String> lines = Resources.readLines(checkNotNull(resource), Charsets.UTF_8);
             for (String line : lines) {
                 int eqIndex = line.indexOf("=");
                 result.put(line.substring(0, eqIndex), line.substring(eqIndex + 1));

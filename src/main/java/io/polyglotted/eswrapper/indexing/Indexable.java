@@ -2,7 +2,8 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.eswrapper.query.response.SimpleDoc;
+import io.polyglotted.esmodel.api.IndexKey;
+import io.polyglotted.esmodel.api.SimpleDoc;
 import io.polyglotted.eswrapper.services.IndexerException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
+import static io.polyglotted.esmodel.api.index.FieldMapping.EXPIRY_FIELD;
+import static io.polyglotted.esmodel.api.index.FieldMapping.STATUS_FIELD;
 import static io.polyglotted.eswrapper.indexing.ReflUtil.fieldValue;
 
 @Slf4j

@@ -4,10 +4,15 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.IndexKey;
+import io.polyglotted.esmodel.api.SimpleDoc;
+import io.polyglotted.esmodel.api.Sleeve;
+import io.polyglotted.esmodel.api.index.FieldType;
 import io.polyglotted.eswrapper.AbstractElasticTest;
-import io.polyglotted.eswrapper.indexing.*;
-import io.polyglotted.eswrapper.query.request.Expression;
-import io.polyglotted.eswrapper.query.response.SimpleDoc;
+import io.polyglotted.eswrapper.indexing.IndexRecord;
+import io.polyglotted.eswrapper.indexing.IndexSetting;
+import io.polyglotted.eswrapper.indexing.Indexable;
 import io.polyglotted.eswrapper.validation.ValidException;
 import org.testng.annotations.Test;
 
@@ -17,22 +22,25 @@ import java.util.Map;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
-import static io.polyglotted.eswrapper.indexing.Alias.aliasBuilder;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.EXPIRY_FIELD;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.STATUS_FIELD;
-import static io.polyglotted.eswrapper.indexing.FieldMapping.notAnalyzedField;
-import static io.polyglotted.eswrapper.indexing.IndexKey.keyWith;
+import static io.polyglotted.esmodel.api.Expressions.archiveIndex;
+import static io.polyglotted.esmodel.api.Expressions.ids;
+import static io.polyglotted.esmodel.api.Expressions.liveIndex;
+import static io.polyglotted.esmodel.api.IndexKey.keyWith;
+import static io.polyglotted.esmodel.api.Sleeve.createSleeves;
+import static io.polyglotted.esmodel.api.Sleeve.deleteSleeves;
+import static io.polyglotted.esmodel.api.Sleeve.newSleeve;
+import static io.polyglotted.esmodel.api.index.Alias.aliasBuilder;
+import static io.polyglotted.esmodel.api.index.FieldMapping.EXPIRY_FIELD;
+import static io.polyglotted.esmodel.api.index.FieldMapping.STATUS_FIELD;
+import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedField;
+import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.deleteRecord;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
-import static io.polyglotted.eswrapper.indexing.Sleeve.createSleeves;
-import static io.polyglotted.eswrapper.indexing.Sleeve.deleteSleeves;
-import static io.polyglotted.eswrapper.indexing.Sleeve.newSleeve;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
-import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
-import static io.polyglotted.eswrapper.query.request.Expressions.archiveIndex;
-import static io.polyglotted.eswrapper.query.request.Expressions.ids;
-import static io.polyglotted.eswrapper.query.request.Expressions.liveIndex;
-import static io.polyglotted.eswrapper.query.response.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
 import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
@@ -186,10 +194,15 @@ public class IndexableTest extends AbstractElasticTest {
     }
 
     private static Iterable<IndexRecord> sleeveToRecords(Iterable<Sleeve<Trade>> sleeveDocs) {
-        return transform(sleeveDocs, doc -> doc.toRecord(GSON::toJson));
+        return transform(sleeveDocs, doc -> toRecord(doc, GSON::toJson));
     }
 
     private static Function<Trade, Sleeve<Trade>> newSleeveFunction() {
         return input -> newSleeve(input, (i) -> keyWith(TRADE_TYPE, i.address));
+    }
+
+    public static <T> IndexRecord toRecord(Sleeve<T> doc, Function<T, String> function) {
+        return doc.isNew() ? createRecord(doc.key.type, doc.key.id).source(function.apply(doc.source)).build()
+           : (doc.isDelete() ? deleteRecord(doc.key) : updateRecord(doc.key).source(function.apply(doc.source)).build());
     }
 }

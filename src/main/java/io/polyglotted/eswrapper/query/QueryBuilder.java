@@ -1,12 +1,13 @@
-package io.polyglotted.eswrapper.query.request;
+package io.polyglotted.eswrapper.query;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import io.polyglotted.eswrapper.query.AggregationType;
-import io.polyglotted.eswrapper.query.ExpressionType;
-import io.polyglotted.eswrapper.query.StandardQuery;
-import io.polyglotted.eswrapper.query.StandardScroll;
+import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.query.QueryHints;
+import io.polyglotted.esmodel.api.query.Sort;
+import io.polyglotted.esmodel.api.query.StandardQuery;
+import io.polyglotted.esmodel.api.query.StandardScroll;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -16,6 +17,8 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import static com.google.common.collect.Iterables.toArray;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
+import static io.polyglotted.eswrapper.query.ModelQueryUtil.orderOf;
+import static io.polyglotted.eswrapper.query.ModelQueryUtil.toOptions;
 import static java.util.Collections.singleton;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
@@ -66,7 +69,7 @@ public abstract class QueryBuilder {
 
     @VisibleForTesting
     static void setHints(SearchRequest request, SearchSourceBuilder builder, QueryHints hints) {
-        request.indicesOptions(hints.searchOptions.toOptions());
+        request.indicesOptions(toOptions(hints.searchOptions));
         request.searchType(hints.searchType.toType());
         request.preference(hints.preference);
         String[] routings = toStrArray(hints.routing);
@@ -77,7 +80,7 @@ public abstract class QueryBuilder {
 
     @VisibleForTesting
     static void setFilters(SearchSourceBuilder builder, StandardQuery query) {
-        FilterBuilder[] filters = ExpressionType.aggregateFilters(query.expressions);
+        FilterBuilder[] filters = ExprConverter.aggregateFilters(query.expressions);
         if (filters.length == 0)
             builder.query(matchAllQuery());
         else if (filters.length == 1)
@@ -89,13 +92,13 @@ public abstract class QueryBuilder {
     @VisibleForTesting
     static void setAggregations(SearchSourceBuilder builder, StandardQuery query) {
         for (Expression aggr : query.aggregates)
-            builder.aggregation(AggregationType.build(aggr));
+            builder.aggregation(AggsConverter.build(aggr));
     }
 
     @VisibleForTesting
     static void setOrder(SearchSourceBuilder builder, StandardQuery query) {
         for (Sort sort : query.sorts)
-            builder.sort(fieldSort(sort.field).order(sort.order).sortMode(sort.mode.toMode())
+            builder.sort(fieldSort(sort.field).order(orderOf(sort.order)).sortMode(sort.mode.toMode())
                .unmappedType(sort.unmapped).missing(sort.missing));
     }
 

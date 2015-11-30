@@ -1,6 +1,6 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.eswrapper.query.request.Expression;
+import io.polyglotted.esmodel.api.Expression;
 import org.elasticsearch.index.query.FilterBuilder;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -11,7 +11,7 @@ import static org.elasticsearch.index.query.FilterBuilders.*;
 import static org.elasticsearch.index.query.MatchQueryBuilder.Type.PHRASE_PREFIX;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 
-public enum ExpressionType {
+public enum ExprConverter {
     All {
         @Override
         FilterBuilder buildFrom(Expression expr) {
@@ -160,6 +160,6 @@ public enum ExpressionType {
     }
 
     public static FilterBuilder[] aggregateFilters(Iterable<Expression> expressions) {
-        return toArray(transform(expressions, ExpressionType::buildFilter), FilterBuilder.class);
+        return toArray(transform(expressions, ExprConverter::buildFilter), FilterBuilder.class);
     }
 }

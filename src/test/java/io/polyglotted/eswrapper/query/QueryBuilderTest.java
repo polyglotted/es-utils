@@ -1,36 +1,20 @@
-package io.polyglotted.eswrapper.query.request;
+package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.eswrapper.query.StandardQuery;
-import io.polyglotted.eswrapper.query.request.QueryHints.SearchOptions;
-import io.polyglotted.eswrapper.query.request.Sort.SortMode;
-import org.elasticsearch.search.sort.SortOrder;
+import io.polyglotted.esmodel.api.query.SortMode;
+import io.polyglotted.esmodel.api.query.SortOrder;
+import io.polyglotted.esmodel.api.query.StandardQuery;
 import org.testng.annotations.Test;
 
-import static io.polyglotted.eswrapper.query.StandardQuery.queryBuilder;
-import static io.polyglotted.eswrapper.query.request.Expressions.equalsTo;
-import static io.polyglotted.eswrapper.query.request.QueryHints.SearchOptions.STRICT_EXPAND_OPEN;
-import static io.polyglotted.eswrapper.query.request.QueryHints.SearchType.COUNT;
-import static io.polyglotted.eswrapper.query.request.QueryHints.hintsBuilder;
-import static io.polyglotted.eswrapper.query.request.Sort.sortBuilder;
-import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
+import static io.polyglotted.esmodel.api.Expressions.equalsTo;
+import static io.polyglotted.esmodel.api.query.QueryHints.hintsBuilder;
+import static io.polyglotted.esmodel.api.query.SearchOptions.STRICT_EXPAND_OPEN;
+import static io.polyglotted.esmodel.api.query.SearchType.COUNT;
+import static io.polyglotted.esmodel.api.query.Sort.sortBuilder;
+import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 
 public class QueryBuilderTest extends QueryBuilder {
-
-    @Test(expectedExceptions = RuntimeException.class)
-    public void testOptionsFail() throws Exception {
-        SearchOptions.toOptions(null);
-    }
-
-    @Test
-    public void testOptionsFrom() throws Exception {
-        for (SearchOptions options : SearchOptions.values()) {
-            assertNotNull(options.toOptions());
-        }
-        assertEquals(SearchOptions.valueOf("LENIENT_EXPAND_OPEN").toOptions(), lenientExpandOpen());
-    }
 
     @Test
     public void testHintsAndFrom() throws Exception {

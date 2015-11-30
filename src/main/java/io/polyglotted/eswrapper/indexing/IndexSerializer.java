@@ -2,18 +2,21 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import io.polyglotted.esmodel.api.index.FieldMapping;
+import io.polyglotted.esmodel.api.index.Indexed;
+import io.polyglotted.esmodel.api.index.Script;
 
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
+import static io.polyglotted.esmodel.api.index.FieldType.OBJECT;
+import static io.polyglotted.esmodel.api.index.FieldType.STRING;
+import static io.polyglotted.esmodel.api.index.Indexed.NOT_ANALYZED;
 import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
 import static io.polyglotted.eswrapper.ElasticConstants.META_META;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.ElasticConstants.SOURCE_META;
-import static io.polyglotted.eswrapper.indexing.FieldType.OBJECT;
-import static io.polyglotted.eswrapper.indexing.FieldType.STRING;
-import static io.polyglotted.eswrapper.indexing.Indexed.NOT_ANALYZED;
 
 public abstract class IndexSerializer {
 

@@ -8,7 +8,7 @@
     </parent>
 
     <artifactId>es-wrapper</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elastic Search Wrapper</name>
     <description>Standard set of utilities for elastic search abstraction</description>
@@ -39,7 +39,8 @@
         <guava.version>18.0</guava.version>
         <gson.version>2.3.1</gson.version>
         <spring.version>4.2.0.RELEASE</spring.version>
-        <applauncher.version>2.0.1</applauncher.version>
+        <applauncher.version>2.0.2</applauncher.version>
+        <esmodel.version>1.0.0-SNAPSHOT</esmodel.version>
         <jna.version>4.1.0</jna.version>
         <jts.version>1.13</jts.version>
         <elasticsearch.version>1.7.1</elasticsearch.version>
@@ -96,6 +97,12 @@
             <groupId>io.polyglotted</groupId>
             <artifactId>app-launcher</artifactId>
             <version>${applauncher.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.polyglotted</groupId>
+            <artifactId>es-model</artifactId>
+            <version>${esmodel.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

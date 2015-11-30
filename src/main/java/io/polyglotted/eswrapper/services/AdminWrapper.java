@@ -1,6 +1,6 @@
 package io.polyglotted.eswrapper.services;
 
-import io.polyglotted.eswrapper.indexing.Alias;
+import io.polyglotted.esmodel.api.index.Alias;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.TypeMapping;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +41,7 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.forcedMappingJson;
+import static io.polyglotted.eswrapper.services.ModelUtil.aliasActions;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.client.Requests.indexAliasesRequest;
@@ -128,7 +129,7 @@ public final class AdminWrapper {
     public void updateAliases(Alias... aliases) {
         IndicesAliasesRequest aliasesRequest = indexAliasesRequest();
         for (Alias alias : aliases) {
-            aliasesRequest.addAliasAction(alias.action());
+            aliasesRequest.addAliasAction(aliasActions(alias));
         }
         AcknowledgedResponse response = client.admin().indices().aliases(aliasesRequest).actionGet();
         checkState(response.isAcknowledged(), "unable to update aliases");

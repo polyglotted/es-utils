@@ -1,10 +1,9 @@
 package io.polyglotted.eswrapper.query;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import io.polyglotted.eswrapper.query.request.Expression;
-import io.polyglotted.eswrapper.query.response.Aggregation;
-import io.polyglotted.eswrapper.query.response.Bucket;
+import io.polyglotted.esmodel.api.Expression;
+import io.polyglotted.esmodel.api.query.Aggregation;
+import io.polyglotted.esmodel.api.query.AggregationType;
+import io.polyglotted.esmodel.api.query.Bucket;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
@@ -18,21 +17,19 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.aggregations.metrics.stats.Stats;
 
-import java.util.Map;
-
-import static io.polyglotted.eswrapper.query.ExpressionType.buildFilter;
-import static io.polyglotted.eswrapper.query.request.Aggregates.AscKey;
-import static io.polyglotted.eswrapper.query.request.Aggregates.FieldKey;
-import static io.polyglotted.eswrapper.query.request.Aggregates.FormatKey;
-import static io.polyglotted.eswrapper.query.request.Aggregates.IntervalKey;
-import static io.polyglotted.eswrapper.query.request.Aggregates.OrderKey;
-import static io.polyglotted.eswrapper.query.request.Aggregates.SizeKey;
-import static io.polyglotted.eswrapper.query.response.Aggregation.aggregationBuilder;
+import static io.polyglotted.eswrapper.query.ExprConverter.buildFilter;
+import static io.polyglotted.esmodel.api.query.Aggregates.AscKey;
+import static io.polyglotted.esmodel.api.query.Aggregates.FieldKey;
+import static io.polyglotted.esmodel.api.query.Aggregates.FormatKey;
+import static io.polyglotted.esmodel.api.query.Aggregates.IntervalKey;
+import static io.polyglotted.esmodel.api.query.Aggregates.OrderKey;
+import static io.polyglotted.esmodel.api.query.Aggregates.SizeKey;
+import static io.polyglotted.esmodel.api.query.Aggregation.aggregationBuilder;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum AggregationType {
-    Max(false, false) {
+public enum AggsConverter {
+    Max {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             return max(expr.label).field(expr.stringArg(FieldKey));
@@ -45,7 +42,7 @@ public enum AggregationType {
                .type(AggregationType.Max).value(name(), max.getValue());
         }
     }, 
-    Min(false, false) {
+    Min {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             return min(expr.label).field(expr.stringArg(FieldKey));
@@ -58,7 +55,7 @@ public enum AggregationType {
                .type(AggregationType.Min).value(name(), min.getValue());
         }
     }, 
-    Sum(false, false) {
+    Sum {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             return sum(expr.label).field(expr.stringArg(FieldKey));
@@ -71,7 +68,7 @@ public enum AggregationType {
                .type(AggregationType.Sum).value(name(), sum.getValue());
         }
     }, 
-    Avg(false, false) {
+    Avg {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             return avg(expr.label).field(expr.stringArg(FieldKey));
@@ -84,7 +81,7 @@ public enum AggregationType {
                .type(AggregationType.Avg).value(name(), avg.getValue());
         }
     }, 
-    Count(false, false) {
+    Count {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             return count(expr.label).field(expr.stringArg(FieldKey));
@@ -97,13 +94,7 @@ public enum AggregationType {
                .type(AggregationType.Count).value(name(), count.getValue());
         }
     },
-    Term(true, true) {
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
-            return (T) ImmutableList.copyOf(buckets);
-        }
-
+    Term {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             TermsBuilder termsBuilder = terms(expr.label)
@@ -136,13 +127,7 @@ public enum AggregationType {
             return builder;
         }
     },
-    Statistics(false, true) {
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
-            return (T) ImmutableMap.copyOf(valueMap);
-        }
-
+    Statistics {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             return stats(expr.label).field(expr.stringArg(FieldKey));
@@ -158,13 +143,7 @@ public enum AggregationType {
                .value(Sum.name(), stats.getSum());
         }
     },
-    DateHistogram(true, true) {
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
-            return (T) ImmutableList.copyOf(buckets);
-        }
-
+    DateHistogram {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             DateHistogramBuilder builder = dateHistogram(expr.label).field(expr.stringArg(FieldKey))
@@ -193,13 +172,7 @@ public enum AggregationType {
             return builder;
         }
     },
-    Filter(true, true) {
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
-            return (T) ImmutableList.copyOf(buckets);
-        }
-
+    Filter {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             FilterAggregationBuilder builder = filter(expr.label).filter(buildFilter(expr.valueArg()));
@@ -222,13 +195,7 @@ public enum AggregationType {
             return builder;
         }
     },
-    Children(true, true) {
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
-            return (T) ImmutableList.copyOf(buckets);
-        }
-
+    Children {
         @Override
         AbstractAggregationBuilder buildFrom(Expression expr) {
             ChildrenBuilder builder = children(expr.label).childType(expr.stringArg());
@@ -242,7 +209,7 @@ public enum AggregationType {
         Aggregation.Builder getFrom(Expression expr, Aggregations aggregations) {
             Children children = aggregations.get(expr.label);
             Aggregation.Builder builder = aggregationBuilder().label(expr.label)
-               .type(AggregationType.Filter);
+               .type(AggregationType.Children);
 
             Bucket.Builder bucketBuilder = builder.bucketBuilder().key(expr.label).docCount(children.getDocCount());
             for (Expression child : expr.children) {
@@ -251,14 +218,6 @@ public enum AggregationType {
             return builder;
         }
     };
-
-    public final boolean hasBuckets;
-    public final boolean isMultiValue;
-
-    @SuppressWarnings("unchecked")
-    public <T> T valueFrom(Map<String, Object> valueMap, Iterable<Bucket> buckets) {
-        return (T) valueMap.get(name());
-    }
 
     public static AbstractAggregationBuilder build(Expression expr) {
         return valueOf(expr.operation).buildFrom(expr);
