@@ -11,7 +11,7 @@ abstract class ReflUtil {
             field.set(object, value);
             return object;
         } catch (Exception e) {
-            throw new IllegalStateException("unable to set field value for " + field.getName(), e);
+            throw new IllegalStateException("unable to set field value for " + field, e);
         }
     }
 

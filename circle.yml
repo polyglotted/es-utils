@@ -2,6 +2,12 @@ machine:
   java:
     version:
       oraclejdk8
+dependencies:
+  override:
+    - mvn --settings .ci-settings.xml -U -DskipTests -Dassembly.skipAssembly=true install
+test:
+  override:
+    - mvn --settings .ci-settings.xml -Dassembly.skipAssembly=true verify
 deployment:
   snapshot:
     branch: master

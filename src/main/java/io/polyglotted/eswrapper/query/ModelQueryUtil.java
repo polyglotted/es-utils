@@ -14,7 +14,6 @@ import java.util.Map;
 
 import static io.polyglotted.esmodel.api.index.FieldMapping.STATUS_FIELD;
 import static io.polyglotted.esmodel.api.query.SortOrder.ASC;
-import static io.polyglotted.esmodel.api.query.SortOrder.DESC;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.Action.DELETE;
 import static org.elasticsearch.action.support.IndicesOptions.readIndicesOptions;
@@ -23,7 +22,7 @@ abstract class ModelQueryUtil {
     private static final Map<SearchOptions, IndicesOptions> INDICES_OPTIONS_MAP = buildOptionsMap();
 
     public static SortOrder orderOf(io.polyglotted.esmodel.api.query.SortOrder order) {
-        return (order == ASC) ? SortOrder.ASC : (order == DESC ? SortOrder.DESC : null);
+        return (order == ASC) ? SortOrder.ASC : SortOrder.DESC;
     }
 
     public static IndicesOptions toOptions(SearchOptions options) {

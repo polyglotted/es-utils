@@ -130,7 +130,7 @@ public class IndexSerializerTest extends IndexSerializer {
         return new Object[][]{
            {with(5, 1), "defaultIndexSetting"},
            {settingBuilder().numberOfShards(3).numberOfReplicas(2).refreshInterval(-1L).ignoreMalformed()
-              .any("translog.disable_flush", true).disableDynamicMapping().build(), "forcedIndexSetting"},
+              .any("translog.disable_flush", true).disableDynamicMapping().any("foo", null).build(), "forcedIndexSetting"},
            {settingBuilder().numberOfShards(1).autoExpandReplicas().build(), "autoExpandSetting"},
         };
     }
