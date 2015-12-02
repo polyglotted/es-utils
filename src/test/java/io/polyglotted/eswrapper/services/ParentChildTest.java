@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.services;
 import io.polyglotted.esmodel.api.SimpleDoc;
 import io.polyglotted.esmodel.api.query.QueryResponse;
 import io.polyglotted.eswrapper.AbstractElasticTest;
+import io.polyglotted.eswrapper.indexing.Bundling;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
 import org.testng.annotations.Test;
@@ -16,6 +17,8 @@ import static io.polyglotted.esmodel.api.query.Expressions.hasChild;
 import static io.polyglotted.esmodel.api.query.Expressions.hasParent;
 import static io.polyglotted.esmodel.api.query.Expressions.in;
 import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
+import static io.polyglotted.eswrapper.indexing.Bundling.bundlingBuilder;
+import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
@@ -27,6 +30,7 @@ import static io.polyglotted.eswrapper.services.Portfolio.PORTFOLIO_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.trade;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -56,7 +60,19 @@ public class ParentChildTest extends AbstractElasticTest {
 
         ensureHasParent(portfolio, trade);
         ensureHasChild(portfolio, trade);
-        ensureBothDocs(portfolio, trade);
+        ensureBothDocs(2, portfolio.address, trade.address);
+    }
+
+    @Test
+    public void childWithoutParentTest() {
+        long timestamp = 1425495500000L;
+        Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
+        Bundling bundling = bundlingBuilder().timestamp(timestamp).records(singleton(
+           createRecord(keyWithParent(PC_INDEX, TRADE_TYPE, "portfolios/2"))
+              .source(GSON.toJson(trade)).build())).build();
+        indexer.bulkIndex(bundling, strict());
+
+        ensureBothDocs(1, trade.address);
     }
 
     private void ensureHasParent(Portfolio portfolio, Trade trade) {
@@ -77,11 +93,11 @@ public class ParentChildTest extends AbstractElasticTest {
         assertThat(simpleDocs.get(0), is(portfolio));
     }
 
-    private void ensureBothDocs(Portfolio portfolio, Trade trade) {
+    private void ensureBothDocs(int expected, String... addresses) {
         QueryResponse response = query.search(queryBuilder().index(PC_INDEX)
-              .expression(in(FieldAddress, portfolio.address, trade.address)).build(),
+              .expression(in(FieldAddress, addresses)).build(),
            null, SimpleDocBuilder);
         List<SimpleDoc> simpleDocs = response.resultsAs(SimpleDoc.class);
-        assertThat(simpleDocs.size(), is(2));
+        assertThat(simpleDocs.size(), is(expected));
     }
 }
