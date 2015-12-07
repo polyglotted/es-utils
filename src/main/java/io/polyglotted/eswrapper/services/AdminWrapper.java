@@ -41,7 +41,7 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.forcedMappingJson;
-import static io.polyglotted.eswrapper.services.ModelUtil.aliasActions;
+import static io.polyglotted.eswrapper.services.ModelIndexUtil.aliasActions;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.client.Requests.indexAliasesRequest;

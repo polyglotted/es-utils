@@ -43,7 +43,7 @@ public final class IndexerWrapper {
 
     public IndexKey index(IndexRequest indexRequest) {
         IndexResponse indexResponse = client.index(indexRequest).actionGet();
-        return ModelUtil.keyFrom(indexResponse);
+        return ModelIndexUtil.keyFrom(indexResponse);
     }
 
     public BulkResponse index(BulkRequest bulkRequest) {
@@ -53,7 +53,7 @@ public final class IndexerWrapper {
     public List<IndexKey> bulkIndex(Bundling bundling, IgnoreErrors ignoreErrors) {
         try {
             BulkResponse bulkResponse = index(bundling.writeRequest(), ignoreErrors);
-            return ImmutableList.copyOf(transform(checkNotNull(bulkResponse), ModelUtil::keyFrom));
+            return ImmutableList.copyOf(transform(checkNotNull(bulkResponse), ModelIndexUtil::keyFrom));
 
         } finally {
             forceRefresh(bundling.indices());
@@ -70,7 +70,7 @@ public final class IndexerWrapper {
         try {
             index(indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key)));
             BulkResponse bulkResponse = index(indexable.writeRequest());
-            return ImmutableList.copyOf(transform(bulkResponse, ModelUtil::keyFrom));
+            return ImmutableList.copyOf(transform(bulkResponse, ModelIndexUtil::keyFrom));
 
         } catch (RuntimeException ex) {
             log.error("failed two phase commit", ex);
@@ -102,7 +102,7 @@ public final class IndexerWrapper {
 
     @VisibleForTesting
     void forceReindex(List<SimpleDoc> currentDocs) {
-        index(new BulkRequest().refresh(false).add(transform(currentDocs, ModelUtil::forcedRequest)), lenient());
+        index(new BulkRequest().refresh(false).add(transform(currentDocs, ModelIndexUtil::forcedRequest)), lenient());
     }
 
     @VisibleForTesting
@@ -141,7 +141,7 @@ public final class IndexerWrapper {
         for (BulkItemResponse response : responses) {
             String failureMessage = response.getFailureMessage();
             if (!ignore.ignoreFailure(failureMessage)) {
-                errorBuilder.put(ModelUtil.keyFrom(response), failureMessage);
+                errorBuilder.put(ModelIndexUtil.keyFrom(response), failureMessage);
             }
         }
         ImmutableMap<IndexKey, String> errors = errorBuilder.build();

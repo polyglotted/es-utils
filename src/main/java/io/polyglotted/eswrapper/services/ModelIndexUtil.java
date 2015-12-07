@@ -16,7 +16,7 @@ import org.elasticsearch.index.VersionType;
 import static com.google.common.collect.Iterables.toArray;
 import static io.polyglotted.eswrapper.query.ExprConverter.buildFilter;
 
-abstract class ModelUtil {
+abstract class ModelIndexUtil {
 
     public static IndicesAliasesRequest.AliasActions aliasActions(Alias alias) {
         return new IndicesAliasesRequest.AliasActions(alias.remove ? AliasAction.Type.REMOVE : AliasAction.Type.ADD,

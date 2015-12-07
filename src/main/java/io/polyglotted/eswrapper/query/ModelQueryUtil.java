@@ -18,7 +18,7 @@ import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.Action.DELETE;
 import static org.elasticsearch.action.support.IndicesOptions.readIndicesOptions;
 
-abstract class ModelQueryUtil {
+public abstract class ModelQueryUtil {
     private static final Map<SearchOptions, IndicesOptions> INDICES_OPTIONS_MAP = buildOptionsMap();
 
     public static SortOrder orderOf(io.polyglotted.esmodel.api.query.SortOrder order) {
