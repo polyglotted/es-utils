@@ -16,6 +16,7 @@ import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,6 +44,10 @@ public final class Bundling {
         private long timestamp = System.currentTimeMillis();
         private String user = "System";
         private final List<IndexRecord> records = new ArrayList<>();
+
+        public Builder records(IndexRecord... records) {
+            return records(asList(records));
+        }
 
         public Builder records(Iterable<IndexRecord> records) {
             Iterables.addAll(this.records, records);

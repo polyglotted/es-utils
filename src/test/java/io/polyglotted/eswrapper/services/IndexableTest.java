@@ -23,6 +23,7 @@ import java.util.Map;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.fromSleeve;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
@@ -47,6 +48,7 @@ import static io.polyglotted.pgmodel.search.query.Expressions.ids;
 import static io.polyglotted.pgmodel.search.query.Expressions.liveIndex;
 import static io.polyglotted.pgmodel.search.query.StandardQuery.queryBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.testng.FileAssert.fail;
@@ -133,7 +135,7 @@ public class IndexableTest extends AbstractElasticTest {
         } catch (IndexerException ie) {
             ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
             assertThat(errorsMap.get(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/020", -1L)),
-               startsWith("DocumentAlreadyExistsException"));
+               equalTo("record already exists"));
         }
         assertThat(fetchRecords(HISTORY_INDEX).size(), is(0));
     }
@@ -156,10 +158,44 @@ public class IndexableTest extends AbstractElasticTest {
 
         } catch (IndexerException ie) {
             ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
-            assertThat(errorsMap.get(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1)),
-               startsWith("record not found"));
+            assertThat(errorsMap.get(keyWith(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005")),
+               equalTo("version conflict for update"));
         }
         assertThat(fetchRecords(HISTORY_INDEX).size(), is(1));
+    }
+
+    @Test
+    public void updateWithoutCreateShouldFail() {
+        List<Sleeve<Trade>> update1 = ImmutableList.of(Sleeve.create(
+           keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
+        try {
+            indexer.twoPhaseCommit(indexable(update1, T2));
+            fail();
+
+        } catch (IndexerException ie) {
+            ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
+            assertThat(errorsMap.get(keyWith(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005")),
+               equalTo("record not found for update"));
+        }
+    }
+
+    @Test
+    public void inducedFailureTest() {
+        try {
+            admin.createType(typeBuilder().index(INDEXABLE_INDEX).strict(true).type("MyTrade")
+               .fieldMapping(notAnalyzedField(FieldDate, FieldType.DATE)).build());
+            Indexable indexable = indexableBuilder().timestamp(T1).user("unit-tester").records(createRecord(
+               keyWith(INDEXABLE_INDEX, "MyTrade", "/trades/005"), "{\"address\": \"/trades/005\"," +
+                  "\"tradeDate\": \"fail dude\",\"value\": 30}")).build();
+            indexer.twoPhaseCommit(indexable);
+            fail();
+
+        } catch (IndexerException ie) {
+            ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
+            assertThat(errorsMap.get(keyWith(INDEXABLE_INDEX, "MyTrade", "/trades/005")),
+               startsWith("StrictDynamicMappingException"));
+        }
     }
 
     @Test(expectedExceptions = ValidException.class)

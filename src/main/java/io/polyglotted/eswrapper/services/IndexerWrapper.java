@@ -67,8 +67,9 @@ public final class IndexerWrapper {
     public List<IndexKey> twoPhaseCommit(Indexable indexable, Validator validator) {
         lockTheIndexOrFail(indexable.unaryIndex);
         List<SimpleDoc> currentDocs = validateAndGet(indexable, validator);
+        BulkRequest updateRequest = indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key));
         try {
-            index(indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key)));
+            index(updateRequest);
             BulkResponse bulkResponse = index(indexable.writeRequest());
             return ImmutableList.copyOf(transform(bulkResponse, ModelIndexUtil::keyFrom));
 

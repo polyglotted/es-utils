@@ -21,10 +21,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.getFirst;
+import static io.polyglotted.pgmodel.search.KeyUtil.longToCompare;
+import static java.util.Arrays.asList;
 
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -35,11 +36,11 @@ public final class Indexable {
     public final String user;
 
     public Collection<String> updateIds() {
-        return transform(filter(records, IndexRecord::isUpdate), IndexRecord::id);
+        return transform(records, IndexRecord::id);
     }
 
     public Collection<IndexKey> updateKeys() {
-        return transform(filter(records, IndexRecord::isUpdate), IndexRecord::key);
+        return transform(records, IndexRecord::key);
     }
 
     public BulkRequest updateRequest(Map<IndexKey, SimpleDoc> currentDocs) {
@@ -65,10 +66,21 @@ public final class Indexable {
     private void validateCurrentDocs(Map<IndexKey, SimpleDoc> currentDocs) {
         ImmutableMap.Builder<IndexKey, String> builder = ImmutableMap.builder();
         int count = 0;
-        for (IndexKey indexKey : updateKeys()) {
-            if (!currentDocs.containsKey(indexKey)) {
+        for (IndexRecord record : records) {
+            IndexKey indexKey = record.indexKey;
+
+            if (record.isUpdate()) {
+                SimpleDoc simpleDoc = currentDocs.get(indexKey);
+                if (simpleDoc == null) {
+                    count++;
+                    builder.put(indexKey, "record not found for update");
+                } else if (longToCompare(simpleDoc.version()) != longToCompare(indexKey.version())) {
+                    count++;
+                    builder.put(indexKey, "version conflict for update");
+                }
+            } else if (currentDocs.containsKey(indexKey)) {
                 count++;
-                builder.put(indexKey, "record not found for update");
+                builder.put(indexKey, "record already exists");
             }
         }
         if (count > 0) throw new IndexerException(builder.build());
@@ -85,6 +97,10 @@ public final class Indexable {
         private final Set<IndexRecord> records = new LinkedHashSet<>();
         private long timestamp = System.currentTimeMillis();
         private String user = "unknown";
+
+        public Builder records(IndexRecord... records) {
+            return records(asList(records));
+        }
 
         public Builder records(Iterable<IndexRecord> records) {
             for (IndexRecord record : records)

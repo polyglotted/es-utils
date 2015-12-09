@@ -43,6 +43,10 @@ public final class IndexRecord {
         return indexKey;
     }
 
+    public boolean isNew() {
+        return action == RecordAction.CREATE;
+    }
+
     public boolean isUpdate() {
         return action != RecordAction.CREATE;
     }
