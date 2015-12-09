@@ -1,8 +1,8 @@
 package io.polyglotted.eswrapper.services;
 
-import io.polyglotted.esmodel.api.index.Alias;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.TypeMapping;
+import io.polyglotted.pgmodel.search.index.Alias;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequestBuilder;

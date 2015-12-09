@@ -2,9 +2,10 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.SimpleDoc;
+import com.google.common.collect.ImmutableSet;
 import io.polyglotted.eswrapper.services.IndexerException;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -20,20 +21,18 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
-import static io.polyglotted.esmodel.api.index.FieldMapping.EXPIRY_FIELD;
-import static io.polyglotted.esmodel.api.index.FieldMapping.STATUS_FIELD;
-import static io.polyglotted.eswrapper.indexing.ReflUtil.fieldValue;
+import static com.google.common.collect.Iterables.getFirst;
 
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Indexable {
-    public final String index;
-    public final long timestamp;
+    public final String unaryIndex;
     public final ImmutableList<IndexRecord> records;
+    public final long timestamp;
+    public final String user;
 
     public Collection<String> updateIds() {
         return transform(filter(records, IndexRecord::isUpdate), IndexRecord::id);
@@ -49,24 +48,18 @@ public final class Indexable {
         for (IndexRecord record : records) {
             if (!record.isUpdate()) continue;
 
-            String uniqueId = record.uniqueId();
-            log.debug("creating archive record " + uniqueId + " for " + record.id() + " at " + index);
-            fieldValue(record, "ancestor", uniqueId);
+            log.debug("creating archive record " + record.uniqueId() + " for " + record.id()
+               + " for type " + record.type() + " at " + record.index());
 
-            request.add(new IndexRequest(index, record.type(), uniqueId).create(true)
-               .versionType(VersionType.EXTERNAL).version(record.version())
-               .source(mapFrom(currentDocs.get(record.indexKey), record.action, timestamp)));
+            request.add(new IndexRequest(record.index(), record.type(), record.uniqueId()).create(true)
+               .parent(record.parent()).versionType(VersionType.EXTERNAL).version(record.version())
+               .source(record.action.sourceFrom(currentDocs.get(record.indexKey), timestamp, user)));
         }
         return request;
     }
 
     public BulkRequest writeRequest() {
-        return new BulkRequest().refresh(false).add(transform(records, record -> record.request(index, timestamp)));
-    }
-
-    private static Map<String, Object> mapFrom(SimpleDoc simpleDoc, IndexRecord.Action action, long timestamp) {
-        return ImmutableMap.<String, Object>builder().putAll(simpleDoc.source)
-           .put(STATUS_FIELD, action.status).put(EXPIRY_FIELD, timestamp).build();
+        return new BulkRequest().refresh(false).add(transform(records, record -> record.request(timestamp, user)));
     }
 
     private void validateCurrentDocs(Map<IndexKey, SimpleDoc> currentDocs) {
@@ -89,9 +82,9 @@ public final class Indexable {
     @Accessors(fluent = true, chain = true)
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
-        private String index;
-        private long timestamp = System.currentTimeMillis();
         private final Set<IndexRecord> records = new LinkedHashSet<>();
+        private long timestamp = System.currentTimeMillis();
+        private String user = "unknown";
 
         public Builder records(Iterable<IndexRecord> records) {
             for (IndexRecord record : records)
@@ -100,7 +93,9 @@ public final class Indexable {
         }
 
         public Indexable build() {
-            return new Indexable(checkNotNull(index, "index cannot be null"), timestamp, copyOf(records));
+            ImmutableSet<String> indices = ImmutableSet.copyOf(transform(records, IndexRecord::index));
+            checkArgument(indices.size() == 1, "cannot create indexable on multiple indices");
+            return new Indexable(getFirst(indices, "none"), copyOf(records), timestamp, user);
         }
     }
 }

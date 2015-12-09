@@ -2,12 +2,12 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import io.polyglotted.esmodel.api.SimpleDoc;
-import io.polyglotted.esmodel.api.query.*;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexRecord;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
+import io.polyglotted.pgmodel.search.SimpleDoc;
+import io.polyglotted.pgmodel.search.query.*;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -20,22 +20,6 @@ import java.time.ZonedDateTime;
 import java.util.Iterator;
 import java.util.List;
 
-import static io.polyglotted.esmodel.api.IndexKey.keyWithParent;
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedField;
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
-import static io.polyglotted.esmodel.api.index.FieldType.DATE;
-import static io.polyglotted.esmodel.api.query.Aggregates.avgBuilder;
-import static io.polyglotted.esmodel.api.query.Aggregates.childrenAggBuilder;
-import static io.polyglotted.esmodel.api.query.Aggregates.countBuilder;
-import static io.polyglotted.esmodel.api.query.Aggregates.dateHistogramBuilder;
-import static io.polyglotted.esmodel.api.query.Aggregates.filterAggBuilder;
-import static io.polyglotted.esmodel.api.query.Aggregates.termBuilder;
-import static io.polyglotted.esmodel.api.query.Expressions.between;
-import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
-import static io.polyglotted.esmodel.api.query.Expressions.hasParent;
-import static io.polyglotted.esmodel.api.query.Expressions.or;
-import static io.polyglotted.esmodel.api.query.Flattened.flattened;
-import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.indexing.Bundling.bundlingBuilder;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
@@ -43,6 +27,22 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.pgmodel.search.IndexKey.keyWithParent;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedField;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.pgmodel.search.index.FieldType.DATE;
+import static io.polyglotted.pgmodel.search.query.Aggregates.avgBuilder;
+import static io.polyglotted.pgmodel.search.query.Aggregates.childrenAggBuilder;
+import static io.polyglotted.pgmodel.search.query.Aggregates.countBuilder;
+import static io.polyglotted.pgmodel.search.query.Aggregates.dateHistogramBuilder;
+import static io.polyglotted.pgmodel.search.query.Aggregates.filterAggBuilder;
+import static io.polyglotted.pgmodel.search.query.Aggregates.termBuilder;
+import static io.polyglotted.pgmodel.search.query.Expressions.between;
+import static io.polyglotted.pgmodel.search.query.Expressions.equalsTo;
+import static io.polyglotted.pgmodel.search.query.Expressions.hasParent;
+import static io.polyglotted.pgmodel.search.query.Expressions.or;
+import static io.polyglotted.pgmodel.search.query.Flattened.flattened;
+import static io.polyglotted.pgmodel.search.query.StandardQuery.queryBuilder;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -123,10 +123,10 @@ public class TimeSeriesTest extends AbstractElasticTest {
         SeriesA a = new SeriesA("a/a1", "series");
         SeriesB b1 = new SeriesB("b/b1", "series", true);
         SeriesB b2 = new SeriesB("b/b2", "series2", false);
-        Indexable indexable = indexableBuilder().timestamp(ts1).index(TS_INDEX).records(asList(
-           createRecord(SRA_TYPE, a.id).source(GSON.toJson(a)).build(),
-           createRecord(SRB_TYPE, b1.id).source(GSON.toJson(b1)).build(),
-           createRecord(SRB_TYPE, b2.id).source(GSON.toJson(b2)).build()
+        Indexable indexable = indexableBuilder().timestamp(ts1).user("unit-tester").records(asList(
+           createRecord(TS_INDEX, SRA_TYPE, a.id).source(GSON.toJson(a)).build(),
+           createRecord(TS_INDEX, SRB_TYPE, b1.id).source(GSON.toJson(b1)).build(),
+           createRecord(TS_INDEX, SRB_TYPE, b2.id).source(GSON.toJson(b2)).build()
         )).build();
         indexer.twoPhaseCommit(indexable);
 

@@ -9,8 +9,9 @@ import org.testng.annotations.Test;
 import java.util.Map;
 
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.sourceOf;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
+import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -19,15 +20,17 @@ public class IndexRecordTest {
     @DataProvider
     public static Object[][] recordInputs() {
         return new Object[][]{
-           {new Portfolio("/p/1", "first portfolio"), createRecord("a", "aa"), Portfolio.class,
-              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&timestamp\":1425494500000}", null},
-           {new Portfolio("/p/1", "first portfolio"), createRecord("a", "aa").ancestor("b"), Portfolio.class,
-              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&timestamp\":1425494500000,\"&ancestor\":\"b\"}", null},
-           {ImmutableMap.of(), createRecord("a", "aa"), Map.class,
-              "{\"&timestamp\":1425494500000}", ImmutableMap.of("&timestamp", (double) 1425494500000L)},
-           {ImmutableMap.of(), createRecord("a", "aa").ancestor("b"), Map.class,
-              "{\"&timestamp\":1425494500000,\"&ancestor\":\"b\"}",
-              ImmutableMap.of("&timestamp", (double) 1425494500000L, "&ancestor", "b")},
+           {new Portfolio("/p/1", "first portfolio"), createRecord("a", "aa", "c"), Portfolio.class,
+              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}", null},
+           {new Portfolio("/p/1", "first portfolio"), updateRecord(keyWith("a", "aa", "c")), Portfolio.class,
+              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&ancestor\":\"1239fff0-ff8e-5244-b1b9-133119b1b4d1\"," +
+                 "\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}", null},
+           {ImmutableMap.of(), createRecord("a", "aa", "c"), Map.class,
+              "{\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}", ImmutableMap.of("&timestamp",
+              "1425494500000", "&user", "tester")},
+           {ImmutableMap.of(), updateRecord(keyWith("a", "aa", "c")), Map.class,
+              "{\"&ancestor\":\"1239fff0-ff8e-5244-b1b9-133119b1b4d1\",\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}",
+              ImmutableMap.of("&ancestor", "1239fff0-ff8e-5244-b1b9-133119b1b4d1", "&timestamp", "1425494500000", "&user", "tester")},
         };
     }
 
@@ -35,7 +38,8 @@ public class IndexRecordTest {
     public void testSourceOf(Object original, Builder builder, Class<?>
        clazz, String message, Object expected) throws Exception {
         IndexRecord record = builder.source(GSON.toJson(original)).build();
-        String source = sourceOf(record, 1425494500000L);
+
+        String source = RecordAction.sourceOf(record, 1425494500000L, "tester");
         assertThat(source, source, is(message));
 
         Object actual = GSON.fromJson(source, clazz);

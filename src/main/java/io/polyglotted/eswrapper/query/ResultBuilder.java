@@ -3,8 +3,8 @@ package io.polyglotted.eswrapper.query;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.SimpleDoc;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
 import org.elasticsearch.action.search.SearchResponse;
 
 import java.util.List;

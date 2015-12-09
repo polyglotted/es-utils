@@ -1,9 +1,9 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.esmodel.api.query.Aggregation;
-import io.polyglotted.esmodel.api.query.AggregationType;
-import io.polyglotted.esmodel.api.query.Bucket;
-import io.polyglotted.esmodel.api.query.Expression;
+import io.polyglotted.pgmodel.search.query.Aggregation;
+import io.polyglotted.pgmodel.search.query.AggregationType;
+import io.polyglotted.pgmodel.search.query.Bucket;
+import io.polyglotted.pgmodel.search.query.Expression;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
@@ -18,13 +18,13 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.aggregations.metrics.stats.Stats;
 
 import static io.polyglotted.eswrapper.query.ExprConverter.buildFilter;
-import static io.polyglotted.esmodel.api.query.Aggregates.AscKey;
-import static io.polyglotted.esmodel.api.query.Aggregates.FieldKey;
-import static io.polyglotted.esmodel.api.query.Aggregates.FormatKey;
-import static io.polyglotted.esmodel.api.query.Aggregates.IntervalKey;
-import static io.polyglotted.esmodel.api.query.Aggregates.OrderKey;
-import static io.polyglotted.esmodel.api.query.Aggregates.SizeKey;
-import static io.polyglotted.esmodel.api.query.Aggregation.aggregationBuilder;
+import static io.polyglotted.pgmodel.search.query.Aggregates.AscKey;
+import static io.polyglotted.pgmodel.search.query.Aggregates.FieldKey;
+import static io.polyglotted.pgmodel.search.query.Aggregates.FormatKey;
+import static io.polyglotted.pgmodel.search.query.Aggregates.IntervalKey;
+import static io.polyglotted.pgmodel.search.query.Aggregates.OrderKey;
+import static io.polyglotted.pgmodel.search.query.Aggregates.SizeKey;
+import static io.polyglotted.pgmodel.search.query.Aggregation.aggregationBuilder;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)

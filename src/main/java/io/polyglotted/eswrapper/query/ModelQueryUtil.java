@@ -1,8 +1,8 @@
 package io.polyglotted.eswrapper.query;
 
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.query.SearchOptions;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.query.SearchOptions;
 import lombok.SneakyThrows;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.common.io.stream.BytesStreamInput;
@@ -12,16 +12,14 @@ import org.elasticsearch.search.sort.SortOrder;
 
 import java.util.Map;
 
-import static io.polyglotted.esmodel.api.index.FieldMapping.STATUS_FIELD;
-import static io.polyglotted.esmodel.api.query.SortOrder.ASC;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.Action.DELETE;
+import static io.polyglotted.pgmodel.search.query.SortOrder.ASC;
 import static org.elasticsearch.action.support.IndicesOptions.readIndicesOptions;
 
 public abstract class ModelQueryUtil {
     private static final Map<SearchOptions, IndicesOptions> INDICES_OPTIONS_MAP = buildOptionsMap();
 
-    public static SortOrder orderOf(io.polyglotted.esmodel.api.query.SortOrder order) {
+    public static SortOrder orderOf(io.polyglotted.pgmodel.search.query.SortOrder order) {
         return (order == ASC) ? SortOrder.ASC : SortOrder.DESC;
     }
 
@@ -30,13 +28,8 @@ public abstract class ModelQueryUtil {
     }
 
     public static IndexKey keyFrom(SearchHit searchHit) {
-        return new IndexKey(searchHit.getIndex(), searchHit.getType(), searchHit.getId(),
-           searchHit.getVersion(), isDeleted(searchHit), getParent(searchHit));
-    }
-
-    private static boolean isDeleted(SearchHit searchHit) {
-        Map<String, Object> source = searchHit.isSourceEmpty() ? ImmutableMap.of() : searchHit.sourceAsMap();
-        return DELETE.status.equals(source.get(STATUS_FIELD));
+        return IndexKey.keyFrom(searchHit.getIndex(), searchHit.getType(), searchHit.getId(),
+           getParent(searchHit), searchHit.getVersion());
     }
 
     private static String getParent(SearchHit searchHit) {

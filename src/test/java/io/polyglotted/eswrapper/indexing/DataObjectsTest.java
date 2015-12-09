@@ -3,10 +3,10 @@ package io.polyglotted.eswrapper.indexing;
 import io.polyglotted.eswrapper.validation.Validity;
 import org.testng.annotations.Test;
 
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.validation.Validity.valid;
 import static io.polyglotted.eswrapper.validation.Validity.validityBuilder;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -17,7 +17,7 @@ public class DataObjectsTest {
 
     @Test
     public void indexActionValues() {
-        asList(IndexRecord.Action.values()).contains(IndexRecord.Action.valueOf("CREATE"));
+        asList(RecordAction.values()).contains(RecordAction.valueOf("CREATE"));
     }
 
     @Test
@@ -38,9 +38,9 @@ public class DataObjectsTest {
 
     @Test
     public void indexRecordEqHash() {
-        IndexRecord orig = IndexRecord.createRecord("abc", "def").source("").build();
-        IndexRecord copy = IndexRecord.createRecord("abc", "def").source("").build();
-        IndexRecord other1 = IndexRecord.createRecord("abc", "ghi").source("").build();
+        IndexRecord orig = IndexRecord.createRecord("a", "b", "c").source("").build();
+        IndexRecord copy = IndexRecord.createRecord("a", "b", "c").source("").build();
+        IndexRecord other1 = IndexRecord.createRecord("a", "b", "d").source("").build();
         verifyEqualsHashCode(orig, copy, other1);
     }
 
@@ -70,8 +70,8 @@ public class DataObjectsTest {
         assertEquals(obj.hashCode(), copy.hashCode());
         assertFalse(obj.equals(null));
         assertFalse(obj.equals(""));
-        for (int i = 0; i < others.length; ++i) {
-            assertNotEquals(obj, others[i]);
+        for (T other : others) {
+            assertNotEquals(obj, other);
         }
     }
 }

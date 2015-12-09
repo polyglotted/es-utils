@@ -20,11 +20,12 @@ import static com.google.common.collect.Sets.newHashSet;
 @Slf4j
 @RequiredArgsConstructor
 public final class Bundling {
-    public final long timestamp;
     public final ImmutableList<IndexRecord> records;
+    public final long timestamp;
+    public final String user;
 
     public BulkRequest writeRequest() {
-        return new BulkRequest().refresh(false).add(transform(records, record -> record.request(null, timestamp)));
+        return new BulkRequest().refresh(false).add(transform(records, record -> record.request(timestamp, user)));
     }
 
     public String[] indices() {
@@ -40,6 +41,7 @@ public final class Bundling {
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Builder {
         private long timestamp = System.currentTimeMillis();
+        private String user = "System";
         private final List<IndexRecord> records = new ArrayList<>();
 
         public Builder records(Iterable<IndexRecord> records) {
@@ -48,7 +50,7 @@ public final class Bundling {
         }
 
         public Bundling build() {
-            return new Bundling(timestamp, copyOf(records));
+            return new Bundling(copyOf(records), timestamp, user);
         }
     }
 }

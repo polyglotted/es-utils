@@ -1,19 +1,13 @@
 package io.polyglotted.eswrapper.services;
 
-import io.polyglotted.esmodel.api.index.FieldType;
-import io.polyglotted.esmodel.api.query.*;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.query.ResultBuilder;
+import io.polyglotted.pgmodel.search.index.FieldType;
+import io.polyglotted.pgmodel.search.query.*;
 import org.testng.annotations.Test;
 
 import java.util.Iterator;
 
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedField;
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
-import static io.polyglotted.esmodel.api.query.Aggregates.*;
-import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
-import static io.polyglotted.esmodel.api.query.Flattened.flattened;
-import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.AggsConverter.Avg;
@@ -26,6 +20,12 @@ import static io.polyglotted.eswrapper.services.Trade.FieldRegion;
 import static io.polyglotted.eswrapper.services.Trade.FieldValue;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedField;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.pgmodel.search.query.Aggregates.*;
+import static io.polyglotted.pgmodel.search.query.Expressions.equalsTo;
+import static io.polyglotted.pgmodel.search.query.Flattened.flattened;
+import static io.polyglotted.pgmodel.search.query.StandardQuery.queryBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;

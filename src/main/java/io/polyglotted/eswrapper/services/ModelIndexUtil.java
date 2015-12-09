@@ -1,9 +1,9 @@
 package io.polyglotted.eswrapper.services;
 
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.SimpleDoc;
-import io.polyglotted.esmodel.api.index.Alias;
-import io.polyglotted.esmodel.api.query.ResponseHeader;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
+import io.polyglotted.pgmodel.search.index.Alias;
+import io.polyglotted.pgmodel.search.query.ResponseHeader;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -29,11 +29,11 @@ abstract class ModelIndexUtil {
     }
 
     public static IndexKey keyFrom(IndexResponse response) {
-        return new IndexKey(response.getIndex(), response.getType(), response.getId(), response.getVersion());
+        return IndexKey.keyFrom(response.getIndex(), response.getType(), response.getId(), response.getVersion());
     }
 
     public static IndexKey keyFrom(BulkItemResponse response) {
-        return new IndexKey(response.getIndex(), response.getType(), response.getId(), response.getVersion());
+        return IndexKey.keyFrom(response.getIndex(), response.getType(), response.getId(), response.getVersion());
     }
 
     public static ResponseHeader headerFrom(SearchResponse response) {

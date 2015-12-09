@@ -1,22 +1,15 @@
 package io.polyglotted.eswrapper.services;
 
-import io.polyglotted.esmodel.api.SimpleDoc;
-import io.polyglotted.esmodel.api.query.QueryResponse;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.Bundling;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
+import io.polyglotted.pgmodel.search.SimpleDoc;
+import io.polyglotted.pgmodel.search.query.QueryResponse;
 import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static io.polyglotted.esmodel.api.IndexKey.keyWithParent;
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
-import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
-import static io.polyglotted.esmodel.api.query.Expressions.hasChild;
-import static io.polyglotted.esmodel.api.query.Expressions.hasParent;
-import static io.polyglotted.esmodel.api.query.Expressions.in;
-import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
 import static io.polyglotted.eswrapper.indexing.Bundling.bundlingBuilder;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
@@ -29,6 +22,13 @@ import static io.polyglotted.eswrapper.services.Portfolio.FieldAddress;
 import static io.polyglotted.eswrapper.services.Portfolio.PORTFOLIO_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.trade;
+import static io.polyglotted.pgmodel.search.IndexKey.keyWithParent;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.pgmodel.search.query.Expressions.equalsTo;
+import static io.polyglotted.pgmodel.search.query.Expressions.hasChild;
+import static io.polyglotted.pgmodel.search.query.Expressions.hasParent;
+import static io.polyglotted.pgmodel.search.query.Expressions.in;
+import static io.polyglotted.pgmodel.search.query.StandardQuery.queryBuilder;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -52,9 +52,9 @@ public class ParentChildTest extends AbstractElasticTest {
         long timestamp = 1425494500000L;
         Portfolio portfolio = new Portfolio("/portfolios/1st", "first portfolio");
         Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
-        Indexable indexable = indexableBuilder().timestamp(timestamp).index(PC_INDEX).records(asList(
-           createRecord(PORTFOLIO_TYPE, portfolio.address).source(GSON.toJson(portfolio)).build(),
-           createRecord(keyWithParent("", TRADE_TYPE, trade.address, portfolio.address)).source(GSON.toJson(trade)).build()
+        Indexable indexable = indexableBuilder().timestamp(timestamp).user("unit-tester").records(asList(
+           createRecord(PC_INDEX, PORTFOLIO_TYPE, portfolio.address).source(GSON.toJson(portfolio)).build(),
+           createRecord(keyWithParent(PC_INDEX, TRADE_TYPE, trade.address, portfolio.address)).source(GSON.toJson(trade)).build()
         )).build();
         indexer.twoPhaseCommit(indexable);
 

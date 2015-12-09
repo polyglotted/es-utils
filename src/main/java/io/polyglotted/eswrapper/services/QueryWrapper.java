@@ -2,9 +2,9 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.SimpleDoc;
-import io.polyglotted.esmodel.api.query.*;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
+import io.polyglotted.pgmodel.search.query.*;
 import io.polyglotted.eswrapper.query.AggsConverter;
 import io.polyglotted.eswrapper.query.ResultBuilder;
 import io.polyglotted.eswrapper.query.SourceBuilder;
@@ -61,7 +61,7 @@ public final class QueryWrapper {
         GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
         checkArgument(response.isExists(), "unable to find document with id " + indexKey.id);
 
-        return new SimpleDoc(indexKey.version(response.getVersion()), ImmutableMap.copyOf(response.getSourceAsMap()));
+        return new SimpleDoc(indexKey.newVersion(response.getVersion()), ImmutableMap.copyOf(response.getSourceAsMap()));
     }
 
     public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) {

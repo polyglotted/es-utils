@@ -1,6 +1,6 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.esmodel.api.query.SearchOptions;
+import io.polyglotted.pgmodel.search.query.SearchOptions;
 import org.testng.annotations.Test;
 
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;

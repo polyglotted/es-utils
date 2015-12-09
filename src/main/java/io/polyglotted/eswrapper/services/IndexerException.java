@@ -1,7 +1,7 @@
 package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.esmodel.api.IndexKey;
+import io.polyglotted.pgmodel.search.IndexKey;
 
 import java.util.Map;
 

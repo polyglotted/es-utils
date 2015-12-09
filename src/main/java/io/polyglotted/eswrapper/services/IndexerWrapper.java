@@ -3,12 +3,12 @@ package io.polyglotted.eswrapper.services;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.SimpleDoc;
 import io.polyglotted.eswrapper.indexing.Bundling;
 import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.eswrapper.indexing.Indexable;
 import io.polyglotted.eswrapper.validation.Validator;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -65,7 +65,7 @@ public final class IndexerWrapper {
     }
 
     public List<IndexKey> twoPhaseCommit(Indexable indexable, Validator validator) {
-        lockTheIndexOrFail(indexable.index);
+        lockTheIndexOrFail(indexable.unaryIndex);
         List<SimpleDoc> currentDocs = validateAndGet(indexable, validator);
         try {
             index(indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key)));
@@ -74,19 +74,19 @@ public final class IndexerWrapper {
 
         } catch (RuntimeException ex) {
             log.error("failed two phase commit", ex);
-            deleteUpdatesInHistory(indexable.index, indexable.updateKeys());
+            deleteUpdatesInHistory(indexable.unaryIndex, indexable.updateKeys());
             forceReindex(currentDocs);
             throw ex;
 
         } finally {
-            unlockIndex(indexable.index);
-            forceRefresh(indexable.index);
+            unlockIndex(indexable.unaryIndex);
+            forceRefresh(indexable.unaryIndex);
         }
     }
 
     private List<SimpleDoc> validateAndGet(Indexable indexable, Validator validator) {
         Collection<String> updateIds = indexable.updateIds();
-        List<SimpleDoc> currentDocs = getCurrent(indexable.index, toArray(updateIds, String.class));
+        List<SimpleDoc> currentDocs = getCurrent(indexable.unaryIndex, toArray(updateIds, String.class));
         checkValidity(validator.validate(updateIds));
         return currentDocs;
     }

@@ -2,21 +2,24 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import io.polyglotted.esmodel.api.index.FieldMapping;
-import io.polyglotted.esmodel.api.index.Indexed;
-import io.polyglotted.esmodel.api.index.Script;
+import io.polyglotted.pgmodel.search.index.FieldMapping;
+import io.polyglotted.pgmodel.search.index.Indexed;
+import io.polyglotted.pgmodel.search.index.Script;
 
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
-import static io.polyglotted.esmodel.api.index.FieldType.OBJECT;
-import static io.polyglotted.esmodel.api.index.FieldType.STRING;
-import static io.polyglotted.esmodel.api.index.Indexed.NOT_ANALYZED;
+import static com.google.common.collect.ImmutableSortedSet.copyOf;
+import static com.google.common.collect.Iterables.concat;
 import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
 import static io.polyglotted.eswrapper.ElasticConstants.META_META;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.ElasticConstants.SOURCE_META;
+import static io.polyglotted.pgmodel.search.index.FieldType.OBJECT;
+import static io.polyglotted.pgmodel.search.index.FieldType.STRING;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.hiddenFields;
+import static io.polyglotted.pgmodel.search.index.Indexed.NOT_ANALYZED;
 
 public abstract class IndexSerializer {
 
@@ -77,9 +80,7 @@ public abstract class IndexSerializer {
             if (!mapping.fieldMappings.isEmpty()) {
                 JsonObject properties = new JsonObject();
                 mainType.add("properties", properties);
-                for (FieldMapping field : FieldMapping.PRIVATE_FIELDS)
-                    properties.add(field.field, context.serialize(field));
-                for (FieldMapping field : mapping.fieldMappings)
+                for (FieldMapping field : copyOf(concat(hiddenFields(), mapping.fieldMappings)))
                     properties.add(field.field, context.serialize(field));
             }
 
@@ -113,7 +114,7 @@ public abstract class IndexSerializer {
         public JsonElement serialize(Script script, Type type, JsonSerializationContext context) {
             JsonObject object = new JsonObject();
             object.addProperty("script", script.script);
-            if (!script.params.isEmpty()) object.add("params", context.serialize(script.params));
+            if (!script.parameters.isEmpty()) object.add("params", context.serialize(script.parameters));
             if (script.lang != null) object.addProperty("lang", script.lang);
             return object;
         }

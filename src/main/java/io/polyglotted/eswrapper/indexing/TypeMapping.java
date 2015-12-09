@@ -3,8 +3,8 @@ package io.polyglotted.eswrapper.indexing;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import io.polyglotted.esmodel.api.index.FieldMapping;
-import io.polyglotted.esmodel.api.index.Script;
+import io.polyglotted.pgmodel.search.index.FieldMapping;
+import io.polyglotted.pgmodel.search.index.Script;
 import lombok.*;
 import lombok.experimental.Accessors;
 

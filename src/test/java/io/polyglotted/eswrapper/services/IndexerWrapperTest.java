@@ -2,9 +2,9 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.SimpleDoc;
-import io.polyglotted.esmodel.api.query.QueryResponse;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
+import io.polyglotted.pgmodel.search.query.QueryResponse;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
@@ -18,8 +18,9 @@ import org.testng.annotations.Test;
 import java.util.List;
 
 import static com.google.common.collect.Iterables.transform;
-import static io.polyglotted.esmodel.api.IndexKey.keyWith;
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
+import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.query.ResultBuilder.IndexKeyBuilder;
@@ -53,10 +54,10 @@ public class IndexerWrapperTest extends AbstractElasticTest {
 
         IndexKey key = indexer.index(new IndexRequest(TRADES_INDEX, TRADE_TYPE, trade.address).opType(OpType.CREATE)
            .version(timestamp).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));
-        assertEquals(key, new IndexKey(TRADES_INDEX, TRADE_TYPE, trade.address, timestamp));
+        assertEquals(key, keyFrom(TRADES_INDEX, TRADE_TYPE, trade.address, timestamp));
 
         SimpleDoc simpleDoc = query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address));
-        assertEquals(simpleDoc.version(), timestamp);
+        assertEquals((long) simpleDoc.version(), timestamp);
         assertEquals(tradeFromMap(simpleDoc.source), trade);
     }
 
@@ -106,8 +107,8 @@ public class IndexerWrapperTest extends AbstractElasticTest {
 
     @Test
     public void deleteUpdatesNoop() {
-        indexer.deleteUpdatesInHistory(TRADES_INDEX, ImmutableList.of(keyWith(TRADE_TYPE, "/trades/100"),
-           keyWith(TRADE_TYPE, "/trades/101")));
+        indexer.deleteUpdatesInHistory(TRADES_INDEX, ImmutableList.of(keyWith(TRADES_INDEX, TRADE_TYPE, "/trades/100"),
+           keyWith(TRADES_INDEX, TRADE_TYPE, "/trades/101")));
         admin.forceRefresh(TRADES_INDEX);
     }
 

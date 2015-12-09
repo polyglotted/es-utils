@@ -1,16 +1,16 @@
 package io.polyglotted.eswrapper.query;
 
-import io.polyglotted.esmodel.api.query.SortMode;
-import io.polyglotted.esmodel.api.query.SortOrder;
-import io.polyglotted.esmodel.api.query.StandardQuery;
+import io.polyglotted.pgmodel.search.query.SortMode;
+import io.polyglotted.pgmodel.search.query.SortOrder;
+import io.polyglotted.pgmodel.search.query.StandardQuery;
 import org.testng.annotations.Test;
 
-import static io.polyglotted.esmodel.api.query.Expressions.equalsTo;
-import static io.polyglotted.esmodel.api.query.QueryHints.hintsBuilder;
-import static io.polyglotted.esmodel.api.query.SearchOptions.STRICT_EXPAND_OPEN;
-import static io.polyglotted.esmodel.api.query.SearchType.COUNT;
-import static io.polyglotted.esmodel.api.query.Sort.sortBuilder;
-import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
+import static io.polyglotted.pgmodel.search.query.Expressions.equalsTo;
+import static io.polyglotted.pgmodel.search.query.QueryHints.hintsBuilder;
+import static io.polyglotted.pgmodel.search.query.SearchOptions.STRICT_EXPAND_OPEN;
+import static io.polyglotted.pgmodel.search.query.SearchType.COUNT;
+import static io.polyglotted.pgmodel.search.query.Sort.sortBuilder;
+import static io.polyglotted.pgmodel.search.query.StandardQuery.queryBuilder;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.testng.Assert.assertEquals;
 

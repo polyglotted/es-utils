@@ -3,17 +3,18 @@ package io.polyglotted.eswrapper.services;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import io.polyglotted.esmodel.api.IndexKey;
-import io.polyglotted.esmodel.api.SimpleDoc;
-import io.polyglotted.esmodel.api.Sleeve;
-import io.polyglotted.esmodel.api.index.FieldType;
-import io.polyglotted.esmodel.api.query.Expression;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexRecord;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
 import io.polyglotted.eswrapper.validation.ValidException;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
+import io.polyglotted.pgmodel.search.Sleeve;
+import io.polyglotted.pgmodel.search.index.FieldType;
+import io.polyglotted.pgmodel.search.query.Expression;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -22,21 +23,7 @@ import java.util.Map;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
-import static io.polyglotted.esmodel.api.IndexKey.keyWith;
-import static io.polyglotted.esmodel.api.Sleeve.createSleeves;
-import static io.polyglotted.esmodel.api.Sleeve.deleteSleeves;
-import static io.polyglotted.esmodel.api.Sleeve.newSleeve;
-import static io.polyglotted.esmodel.api.index.Alias.aliasBuilder;
-import static io.polyglotted.esmodel.api.index.FieldMapping.EXPIRY_FIELD;
-import static io.polyglotted.esmodel.api.index.FieldMapping.STATUS_FIELD;
-import static io.polyglotted.esmodel.api.index.FieldMapping.notAnalyzedField;
-import static io.polyglotted.esmodel.api.query.Expressions.archiveIndex;
-import static io.polyglotted.esmodel.api.query.Expressions.ids;
-import static io.polyglotted.esmodel.api.query.Expressions.liveIndex;
-import static io.polyglotted.esmodel.api.query.StandardQuery.queryBuilder;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.deleteRecord;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.fromSleeve;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
@@ -46,6 +33,19 @@ import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
 import static io.polyglotted.eswrapper.validation.Validity.validity;
+import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
+import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
+import static io.polyglotted.pgmodel.search.Sleeve.createSleeves;
+import static io.polyglotted.pgmodel.search.Sleeve.newSleeve;
+import static io.polyglotted.pgmodel.search.index.Alias.aliasBuilder;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedField;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.EXPIRY_FIELD;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.STATUS_FIELD;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.UPDATER_FIELD;
+import static io.polyglotted.pgmodel.search.query.Expressions.archiveIndex;
+import static io.polyglotted.pgmodel.search.query.Expressions.ids;
+import static io.polyglotted.pgmodel.search.query.Expressions.liveIndex;
+import static io.polyglotted.pgmodel.search.query.StandardQuery.queryBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
@@ -86,16 +86,16 @@ public class IndexableTest extends AbstractElasticTest {
            trade("/trades/021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0),
            trade("/trades/022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0)), newSleeveFunction()));
 
-        List<IndexKey> updates = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/010", T1));
-        mutations.add(new Sleeve<>(updates.get(0),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), null, true));
-        mutations.add(new Sleeve<>(updates.get(1),
-           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0), null, true));
+        List<IndexKey> updates = ImmutableList.of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
+           keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/010", T1));
+        mutations.add(Sleeve.create(updates.get(0),
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
+        mutations.add(Sleeve.create(updates.get(1),
+           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0)));
 
         //deletes
-        List<IndexKey> deletes = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
-        mutations.addAll(deleteSleeves(deletes));
+        List<IndexKey> deletes = ImmutableList.of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
+        Iterables.addAll(mutations, transform(deletes, Sleeve::delete));
 
         indexer.twoPhaseCommit(indexable(mutations, T2));
 
@@ -109,8 +109,8 @@ public class IndexableTest extends AbstractElasticTest {
     public void deleteAndCreateAsNew() {
         indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
 
-        List<IndexKey> deletes = ImmutableList.of(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
-        indexer.twoPhaseCommit(indexable(deleteSleeves(deletes), T2));
+        List<IndexKey> deletes = ImmutableList.of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
+        indexer.twoPhaseCommit(indexable(transform(deletes, Sleeve::delete), T2));
         assertHistory(deletes, T1, "deleted", T2);
 
         List<Trade> newTrades = ImmutableList.of(
@@ -132,7 +132,7 @@ public class IndexableTest extends AbstractElasticTest {
 
         } catch (IndexerException ie) {
             ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
-            assertThat(errorsMap.get(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/020", -1)),
+            assertThat(errorsMap.get(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/020", -1L)),
                startsWith("DocumentAlreadyExistsException"));
         }
         assertThat(fetchRecords(HISTORY_INDEX).size(), is(0));
@@ -142,21 +142,21 @@ public class IndexableTest extends AbstractElasticTest {
     public void secondUpdateShouldFail() {
         indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
 
-        List<Sleeve<Trade>> update1 = ImmutableList.of(new Sleeve<>(
-           new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0), null, true));
+        List<Sleeve<Trade>> update1 = ImmutableList.of(Sleeve.create(
+           keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
         indexer.twoPhaseCommit(indexable(update1, T2));
 
-        List<Sleeve<Trade>> update2 = ImmutableList.of(new Sleeve<>(
-           new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 18.0), null, true));
+        List<Sleeve<Trade>> update2 = ImmutableList.of(Sleeve.create(
+           keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
+           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 18.0)));
         try {
             indexer.twoPhaseCommit(indexable(update2, T2));
             fail();
 
         } catch (IndexerException ie) {
             ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
-            assertThat(errorsMap.get(new IndexKey(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1)),
+            assertThat(errorsMap.get(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1)),
                startsWith("record not found"));
         }
         assertThat(fetchRecords(HISTORY_INDEX).size(), is(1));
@@ -176,9 +176,9 @@ public class IndexableTest extends AbstractElasticTest {
             SimpleDoc doc = updatedItems.get(id);
             assertThat(doc.key().id, is(id));
             assertThat(doc.key().version, is(version));
-            assertThat(doc.key.delete, is("deleted".equals(status)));
             assertThat(doc.strVal(STATUS_FIELD), is(status));
             assertThat(doc.longVal(EXPIRY_FIELD), is(expiry));
+            assertThat(doc.strVal(UPDATER_FIELD), is("unit-tester"));
         }
     }
 
@@ -188,21 +188,14 @@ public class IndexableTest extends AbstractElasticTest {
     }
 
     private static Indexable indexable(Iterable<Sleeve<Trade>> sleeveDocs, long t1) {
-        return indexableBuilder().index(INDEXABLE_INDEX).timestamp(t1)
-           .records(sleeveToRecords(sleeveDocs))
-           .build();
+        return indexableBuilder().user("unit-tester").timestamp(t1).records(sleeveToRecords(sleeveDocs)).build();
     }
 
     private static Iterable<IndexRecord> sleeveToRecords(Iterable<Sleeve<Trade>> sleeveDocs) {
-        return transform(sleeveDocs, doc -> toRecord(doc, GSON::toJson));
+        return transform(sleeveDocs, doc -> fromSleeve(doc, sl -> GSON.toJson(sl.source)));
     }
 
     private static Function<Trade, Sleeve<Trade>> newSleeveFunction() {
-        return input -> newSleeve(input, (i) -> keyWith(TRADE_TYPE, i.address));
-    }
-
-    public static <T> IndexRecord toRecord(Sleeve<T> doc, Function<T, String> function) {
-        return doc.isNew() ? createRecord(doc.key.type, doc.key.id).source(function.apply(doc.source)).build()
-           : (doc.isDelete() ? deleteRecord(doc.key) : updateRecord(doc.key).source(function.apply(doc.source)).build());
+        return input -> newSleeve(input, (i) -> keyWith(INDEXABLE_INDEX, TRADE_TYPE, i.address));
     }
 }

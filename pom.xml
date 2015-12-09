@@ -40,7 +40,7 @@
         <gson.version>2.3.1</gson.version>
         <spring.version>4.2.0.RELEASE</spring.version>
         <applauncher.version>2.0.2</applauncher.version>
-        <esmodel.version>1.0.0</esmodel.version>
+        <pgmodel.version>1.1.2-SNAPSHOT</pgmodel.version>
         <jna.version>4.1.0</jna.version>
         <jts.version>1.13</jts.version>
         <elasticsearch.version>1.7.1</elasticsearch.version>
@@ -101,8 +101,8 @@
         </dependency>
         <dependency>
             <groupId>io.polyglotted</groupId>
-            <artifactId>es-model</artifactId>
-            <version>${esmodel.version}</version>
+            <artifactId>pg-model</artifactId>
+            <version>${pgmodel.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
