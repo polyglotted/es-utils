@@ -198,10 +198,17 @@ public class IndexableTest extends AbstractElasticTest {
         }
     }
 
-    @Test(expectedExceptions = ValidException.class)
+    @Test
     public void failedValidation() {
-        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1),
-           currentDocs -> validity("a", "induced fail"));
+        try {
+            indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1),
+               currentDocs -> validity("a", "induced fail"));
+            fail("cannot pass valid");
+        } catch(ValidException validEx) {
+            //success
+        }
+        //should be able to commit after a failure
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T2));
     }
 
     private void assertHistory(Iterable<IndexKey> indexKeys, long version, String status, long expiry) {

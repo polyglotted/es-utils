@@ -1,6 +1,5 @@
 package applauncher.spring;
 
-import applauncher.support.NodeIdentifier;
 import fr.pilato.spring.elasticsearch.ElasticsearchClientFactoryBean;
 import fr.pilato.spring.elasticsearch.ElasticsearchNodeFactoryBean;
 import io.polyglotted.applauncher.settings.SettingsHolder;
@@ -23,9 +22,6 @@ public class ElasticConfiguration {
 
     @Autowired @Qualifier("settingsHolder")
     private final SettingsHolder settingsHolder = null;
-
-    @Autowired @SuppressWarnings("unused") @Qualifier("nodeIdentifier")
-    private final NodeIdentifier identifier = null;
 
     @Bean(name = "es-admin")
     public AdminWrapper elasticSearchAdmin() throws Exception {

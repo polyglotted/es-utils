@@ -66,19 +66,20 @@ public final class IndexerWrapper {
 
     public List<IndexKey> twoPhaseCommit(Indexable indexable, Validator validator) {
         lockTheIndexOrFail(indexable.unaryIndex);
-        List<SimpleDoc> currentDocs = validateAndGet(indexable, validator);
-        BulkRequest updateRequest = indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key));
         try {
-            index(updateRequest);
-            BulkResponse bulkResponse = index(indexable.writeRequest());
-            return ImmutableList.copyOf(transform(bulkResponse, ModelIndexUtil::keyFrom));
+            List<SimpleDoc> currentDocs = validateAndGet(indexable, validator);
+            BulkRequest updateRequest = indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key));
+            try {
+                index(updateRequest);
+                BulkResponse bulkResponse = index(indexable.writeRequest());
+                return ImmutableList.copyOf(transform(bulkResponse, ModelIndexUtil::keyFrom));
 
-        } catch (RuntimeException ex) {
-            log.error("failed two phase commit", ex);
-            deleteUpdatesInHistory(indexable.unaryIndex, indexable.updateKeys());
-            forceReindex(currentDocs);
-            throw ex;
-
+            } catch (RuntimeException ex) {
+                log.error("failed two phase commit", ex);
+                deleteUpdatesInHistory(indexable.unaryIndex, indexable.updateKeys());
+                forceReindex(currentDocs);
+                throw ex;
+            }
         } finally {
             unlockIndex(indexable.unaryIndex);
             forceRefresh(indexable.unaryIndex);
