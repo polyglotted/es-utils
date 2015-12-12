@@ -11,10 +11,7 @@ import lombok.experimental.Accessors;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableMap.of;
-import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
-import static io.polyglotted.eswrapper.ElasticConstants.SOURCE_META;
-import static io.polyglotted.eswrapper.ElasticConstants.TYPE_META;
+import static com.google.common.collect.ImmutableSet.copyOf;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static java.util.Collections.singleton;
 
@@ -25,7 +22,11 @@ public final class TypeMapping {
     public final String type;
     public final String parent;
     public final boolean strict;
-    public final boolean storeSource;
+    public final boolean enabled;
+    public final boolean enableSource;
+    public final boolean enableAll;
+    public final boolean enableType;
+    public final boolean enableTtl;
     public final String allAnalyzer;
     public final ImmutableSet<String> sourceIncludes;
     public final ImmutableSet<FieldMapping> fieldMappings;
@@ -47,11 +48,6 @@ public final class TypeMapping {
         return GSON.toJson(this);
     }
 
-    public static String forcedMappingJson(String type) {
-        return GSON.toJson(of(type, of(SOURCE_META, of("enabled", 0), ALL_META, of("enabled", 0),
-           TYPE_META, of("index", "no"), "enabled", 0)));
-    }
-
     public static Builder typeBuilder() {
         return new Builder();
     }
@@ -64,12 +60,18 @@ public final class TypeMapping {
         private String type;
         private String parent;
         private boolean strict = false;
-        private boolean storeSource = true;
+        private boolean enabled = true;
+        private boolean enableSource = true;
+        private boolean enableAll = true;
+        private boolean enableType = true;
+        private boolean enableTtl = false;
         private String allAnalyzer = "all_analyzer";
         private final Set<String> sourceIncludes = new TreeSet<>();
         private final Set<FieldMapping> fieldMappings = new TreeSet<>();
         private final List<Script> scripts = new ArrayList<>();
         private final Map<String, Object> metaData = new LinkedHashMap<>();
+
+        public Builder strict() { return strict(true); }
 
         public Builder fieldMapping(FieldMapping.Builder mapping) {
             return fieldMapping(mapping.build());
@@ -109,9 +111,9 @@ public final class TypeMapping {
         }
 
         public TypeMapping build() {
-            return new TypeMapping(checkNotNull(index, "index cannot be null"), checkNotNull(type, "type cannot be null"),
-               parent, strict, storeSource, allAnalyzer, ImmutableSet.copyOf(sourceIncludes),
-               ImmutableSet.copyOf(fieldMappings), ImmutableList.copyOf(scripts), ImmutableMap.copyOf(metaData));
+            return new TypeMapping(checkNotNull(index, "index required"), checkNotNull(type, "type required"), parent,
+               strict, enabled, enableSource, enableAll, enableType, enableTtl, allAnalyzer, copyOf(sourceIncludes),
+               copyOf(fieldMappings), ImmutableList.copyOf(scripts), ImmutableMap.copyOf(metaData));
         }
     }
 }

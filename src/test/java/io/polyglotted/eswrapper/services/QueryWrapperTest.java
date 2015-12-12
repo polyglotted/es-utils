@@ -76,7 +76,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
 
     @Test
     public void testGetDocsWithNoSource() {
-        admin.createType(typeBuilder().index(DUMMY_INDICES[0]).type(TRADE_TYPE).storeSource(false)
+        admin.createType(typeBuilder().index(DUMMY_INDICES[0]).type(TRADE_TYPE).enableSource(false)
            .fieldMapping(notAnalyzedField(FieldDate, FieldType.DATE)).build());
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
         QueryResponse response = query.search(queryBuilder().index(DUMMY_INDICES).size(20).build(),

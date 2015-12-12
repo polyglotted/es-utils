@@ -40,7 +40,6 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static io.polyglotted.eswrapper.indexing.TypeMapping.forcedMappingJson;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.aliasActions;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.client.Requests.createIndexRequest;
@@ -151,16 +150,6 @@ public final class AdminWrapper {
             forceRefresh();
         }
         return getMapping(mapping.index, mapping.type);
-    }
-
-    public void createForcedType(String index, String type) {
-        checkState(indexExists(index), "create the index before creating type");
-        if (typeExists(index, type)) return;
-
-        PutMappingResponse response = client.admin().indices().putMapping(
-           new PutMappingRequest(index).type(type).source(forcedMappingJson(type))).actionGet();
-        checkState(response.isAcknowledged(), "could not create type " + type);
-        forceRefresh();
     }
 
     public String getMapping(String index, String type) {

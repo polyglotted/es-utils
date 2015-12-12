@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.services;
 import com.google.common.collect.ImmutableList;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
+import io.polyglotted.eswrapper.indexing.TypeMapping;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -10,9 +11,6 @@ import java.util.Map;
 
 import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.deserList;
-import static io.polyglotted.eswrapper.indexing.IndexSerializer.deserMap;
-import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.SERIALISED_DOCS;
-import static io.polyglotted.eswrapper.indexing.IndexSerializerTest.completeTypeMapping;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
@@ -41,12 +39,13 @@ public class AdminWrapperTest extends AbstractElasticTest {
         admin.waitForYellowStatus();
         admin.createIndex(IndexSetting.with(3, 1), singletonList(ADMIN_ALIAS), ADMIN_INDICES);
 
-        admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
-           .fieldMapping(notAnalyzedStringField("a")).build());
-        String MAPPING = SERIALISED_DOCS.get("adminWrapperMapping");
-        assertThat(admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), is(MAPPING));
-        assertThat(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE), is(MAPPING));
-        assertThat(admin.getMapping(ADMIN_INDICES[1], ADMIN_TYPE), is(MAPPING));
+        TypeMapping mapping = typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
+           .fieldMapping(notAnalyzedStringField("a")).build();
+        admin.createType(mapping);
+        assertThat(admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE), admin.getMapping(ADMIN_ALIAS, ADMIN_TYPE),
+           is(mapping.mappingJson()));
+        assertThat(admin.getMapping(ADMIN_INDICES[0], ADMIN_TYPE), is(mapping.mappingJson()));
+        assertThat(admin.getMapping(ADMIN_INDICES[1], ADMIN_TYPE), is(mapping.mappingJson()));
 
         //test no-op actions
         admin.createIndex(IndexSetting.with(5, 2), ADMIN_INDICES[0]);
@@ -82,18 +81,6 @@ public class AdminWrapperTest extends AbstractElasticTest {
     public void validateEmptyIndices() {
         String data = admin.getIndex("non-existent");
         assertThat(data, is("[]"));
-    }
-
-    @Test
-    public void validateCompleteTypeMapping() {
-        admin.createIndex(IndexSetting.with(3, 0), ADMIN_INDICES[0]);
-        admin.createType(completeTypeMapping(ADMIN_INDICES[0]).build());
-
-        String expected = SERIALISED_DOCS.get("completeTypeMapping");
-        String actual = admin.getMapping(ADMIN_INDICES[0], "testType");
-        assertThat(actual, deserMap(actual), is(deserMap(expected)));
-
-        admin.dropIndex(ADMIN_INDICES[0]);
     }
 
     @Test
@@ -141,21 +128,23 @@ public class AdminWrapperTest extends AbstractElasticTest {
     @Test
     public void generateSequence() {
         admin.createIndex(settingBuilder().numberOfShards(1).autoExpandReplicas().build(), ADMIN_INDICES[0]);
-        admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
+        TypeMapping seqMapping = typeBuilder().index(ADMIN_INDICES[0]).type(ADMIN_TYPE).enabled(false).enableAll(false)
+           .enableSource(false).enableType(false).build();
+        admin.createType(seqMapping);
         for (long counter = 0; counter < 10; counter++) {
             long sequence = indexer.generateSequence(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence"));
             assertEquals(sequence, counter + 1);
         }
-        admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
+        admin.createType(seqMapping);
         assertEquals(indexer.generateSequence(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence")), 11);
     }
 
     @Test
     public void generateBlockSequences() {
         admin.createIndex(settingBuilder().numberOfShards(1).autoExpandReplicas().build(), ADMIN_INDICES[0]);
-        admin.createForcedType(ADMIN_INDICES[0], ADMIN_TYPE);
+        admin.createType(typeBuilder().index(ADMIN_INDICES[0]).type(ADMIN_TYPE).enabled(false).enableAll(false)
+           .enableSource(false).enableType(false).build());
         List<Long> sequences = indexer.generateSequences(keyWith(ADMIN_INDICES[0], ADMIN_TYPE, "Sequence"), 10);
         assertEquals(sequences, ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
-
     }
 }
