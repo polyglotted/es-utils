@@ -2,12 +2,12 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.polyglotted.pgmodel.search.IndexKey;
-import io.polyglotted.pgmodel.search.SimpleDoc;
-import io.polyglotted.pgmodel.search.query.*;
 import io.polyglotted.eswrapper.query.AggsConverter;
 import io.polyglotted.eswrapper.query.ResultBuilder;
 import io.polyglotted.eswrapper.query.SourceBuilder;
+import io.polyglotted.pgmodel.search.IndexKey;
+import io.polyglotted.pgmodel.search.SimpleDoc;
+import io.polyglotted.pgmodel.search.query.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequestBuilder;
@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static io.polyglotted.eswrapper.query.QueryBuilder.aggregationToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.scrollRequest;
@@ -59,16 +58,13 @@ public final class QueryWrapper {
 
     public SimpleDoc get(IndexKey indexKey) {
         GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
-        checkArgument(response.isExists(), "unable to find document with id " + indexKey.id);
-
-        return new SimpleDoc(indexKey.newVersion(response.getVersion()), ImmutableMap.copyOf(response.getSourceAsMap()));
+        return response.isExists() ? new SimpleDoc(indexKey.newVersion(response.getVersion()),
+           ImmutableMap.copyOf(response.getSourceAsMap())) : null;
     }
 
     public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) {
         GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
-        checkArgument(response.isExists(), "unable to find document with id " + indexKey.id);
-
-        return builder.buildFrom(response.getSourceAsMap());
+        return response.isExists() ? builder.buildFrom(response.getSourceAsMap()) : null;
     }
 
     public Aggregation aggregate(Expression aggs, String... indices) {

@@ -11,12 +11,14 @@ import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 
@@ -32,6 +34,7 @@ import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.query.QueryBuilder.idRequest;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.services.ModelIndexUtil.keyFrom;
 import static io.polyglotted.eswrapper.validation.ValidException.checkValidity;
 import static io.polyglotted.eswrapper.validation.Validator.EMPTY_VALIDATOR;
 import static org.elasticsearch.client.Requests.refreshRequest;
@@ -41,9 +44,13 @@ import static org.elasticsearch.client.Requests.refreshRequest;
 public final class IndexerWrapper {
     private final Client client;
 
-    public IndexKey index(IndexRequest indexRequest) {
-        IndexResponse indexResponse = client.index(indexRequest).actionGet();
-        return ModelIndexUtil.keyFrom(indexResponse);
+    public void index(ActionRequest<?> request) {
+        if (request instanceof IndexRequest)
+            client.index((IndexRequest) request).actionGet();
+        else if (request instanceof UpdateRequest)
+            client.update((UpdateRequest) request).actionGet();
+        else if (request instanceof DeleteRequest)
+            client.delete((DeleteRequest) request).actionGet();
     }
 
     public BulkResponse index(BulkRequest bulkRequest) {
@@ -143,7 +150,7 @@ public final class IndexerWrapper {
         for (BulkItemResponse response : responses) {
             String failureMessage = response.getFailureMessage();
             if (!ignore.ignoreFailure(failureMessage)) {
-                errorBuilder.put(ModelIndexUtil.keyFrom(response), failureMessage);
+                errorBuilder.put(keyFrom(response), failureMessage);
             }
         }
         ImmutableMap<IndexKey, String> errors = errorBuilder.build();

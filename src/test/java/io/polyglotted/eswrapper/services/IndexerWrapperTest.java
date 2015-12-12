@@ -2,34 +2,37 @@ package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import io.polyglotted.eswrapper.AbstractElasticTest;
+import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.query.QueryResponse;
-import io.polyglotted.eswrapper.AbstractElasticTest;
-import io.polyglotted.eswrapper.indexing.IgnoreErrors;
-import io.polyglotted.eswrapper.indexing.IndexSetting;
-import io.polyglotted.eswrapper.query.QueryBuilder;
 import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequest.OpType;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.index.VersionType;
 import org.testng.annotations.Test;
 
 import java.util.List;
 
 import static com.google.common.collect.Iterables.transform;
-import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
-import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
-import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
+import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
+import static io.polyglotted.eswrapper.query.QueryBuilder.idRequest;
 import static io.polyglotted.eswrapper.query.ResultBuilder.IndexKeyBuilder;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.trade;
 import static io.polyglotted.eswrapper.services.Trade.tradeFromMap;
 import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
+import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.pgmodel.util.ReflectionUtil.fieldValue;
 import static java.util.Collections.singletonList;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -39,7 +42,7 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     @Override
     protected void performSetup() {
         admin.dropIndex(TRADES_INDEX);
-        admin.createIndex(IndexSetting.with(3, 0), TRADES_INDEX);
+        admin.createIndex(settingBuilder(3, 0).any("index.ttl.interval", "1s").build(), TRADES_INDEX);
     }
 
     @Test
@@ -50,14 +53,24 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     @Test
     public void writeIndexRequest() {
         Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
-        long timestamp = 1425494500000L;
+        long t1 = 1425494500000L;
+        indexer.index(new IndexRequest(TRADES_INDEX, TRADE_TYPE, trade.address).opType(OpType.CREATE)
+           .version(t1).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));
+        checkSimpleTrade(trade, t1);
 
-        IndexKey key = indexer.index(new IndexRequest(TRADES_INDEX, TRADE_TYPE, trade.address).opType(OpType.CREATE)
-           .version(timestamp).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));
-        assertEquals(key, keyFrom(TRADES_INDEX, TRADE_TYPE, trade.address, timestamp));
+        long t2 = 1425494600000L;
+        indexer.index(new UpdateRequest(TRADES_INDEX, TRADE_TYPE, trade.address)
+           .version(t2).versionType(VersionType.FORCE).doc("trader", "Bob"));
+        fieldValue(trade, "trader", "Bob");
+        checkSimpleTrade(trade, t2);
 
+        indexer.index(new DeleteRequest(TRADES_INDEX, TRADE_TYPE, trade.address));
+        assertNull(query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address)));
+    }
+
+    private void checkSimpleTrade(Trade trade, long t1) {
         SimpleDoc simpleDoc = query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address));
-        assertEquals((long) simpleDoc.version(), timestamp);
+        assertEquals((long) simpleDoc.version(), t1);
         assertEquals(tradeFromMap(simpleDoc.source), trade);
     }
 
@@ -93,14 +106,14 @@ public class IndexerWrapperTest extends AbstractElasticTest {
            "/trades/001").version(2101L).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade("/trades/001",
            "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0)))));
 
-        QueryResponse origResponse = query.search(QueryBuilder.idRequest(new String[]{"/trades/001", "/trades/010"},
+        QueryResponse origResponse = query.search(idRequest(new String[]{"/trades/001", "/trades/010"},
            ImmutableList.of(TRADE_TYPE), TRADES_INDEX), IndexKeyBuilder);
         assertEquals(transform(origResponse.resultsAs(IndexKey.class), key -> key.version), ImmutableList.of(2101L, 1101L));
 
         indexer.forceReindex(docs);
         admin.forceRefresh(TRADES_INDEX);
 
-        QueryResponse queryResponse = query.search(QueryBuilder.idRequest(new String[]{"/trades/001", "/trades/010"},
+        QueryResponse queryResponse = query.search(idRequest(new String[]{"/trades/001", "/trades/010"},
            ImmutableList.of(TRADE_TYPE), TRADES_INDEX), IndexKeyBuilder);
         assertTrue(Iterables.all(queryResponse.resultsAs(IndexKey.class), key -> key.version == 1101L));
     }
