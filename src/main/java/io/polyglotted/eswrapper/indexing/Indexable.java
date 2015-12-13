@@ -3,7 +3,6 @@ package io.polyglotted.eswrapper.indexing;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import io.polyglotted.eswrapper.services.IndexerException;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.AccessLevel;
@@ -24,6 +23,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.getFirst;
+import static io.polyglotted.eswrapper.services.ValidityException.checkValidity;
 import static io.polyglotted.pgmodel.search.KeyUtil.longToCompare;
 import static java.util.Arrays.asList;
 
@@ -83,7 +83,7 @@ public final class Indexable {
                 builder.put(indexKey, "record already exists");
             }
         }
-        if (count > 0) throw new IndexerException(builder.build());
+        checkValidity(builder.build());
     }
 
     public static Builder indexableBuilder() {

@@ -9,7 +9,6 @@ import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexRecord;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
-import io.polyglotted.eswrapper.validation.ValidException;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.Sleeve;
@@ -33,7 +32,6 @@ import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
-import static io.polyglotted.eswrapper.validation.Validity.validity;
 import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
 import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
 import static io.polyglotted.pgmodel.search.Sleeve.createSleeves;
@@ -133,7 +131,7 @@ public class IndexableTest extends AbstractElasticTest {
             fail();
 
         } catch (IndexerException ie) {
-            ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
+            Map<IndexKey, String> errorsMap = checkAssertValidity(ie);
             assertThat(errorsMap.get(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/020", -1L)),
                equalTo("record already exists"));
         }
@@ -157,7 +155,7 @@ public class IndexableTest extends AbstractElasticTest {
             fail();
 
         } catch (IndexerException ie) {
-            ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
+            Map<IndexKey, String> errorsMap = checkAssertValidity(ie);
             assertThat(errorsMap.get(keyWith(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005")),
                equalTo("version conflict for update"));
         }
@@ -174,13 +172,14 @@ public class IndexableTest extends AbstractElasticTest {
             fail();
 
         } catch (IndexerException ie) {
-            ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
+            Map<IndexKey, String> errorsMap = checkAssertValidity(ie);
             assertThat(errorsMap.get(keyWith(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005")),
                equalTo("record not found for update"));
         }
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void inducedFailureTest() {
         try {
             admin.createType(typeBuilder().index(INDEXABLE_INDEX).strict(true).type("MyTrade")
@@ -192,7 +191,8 @@ public class IndexableTest extends AbstractElasticTest {
             fail();
 
         } catch (IndexerException ie) {
-            ImmutableMap<IndexKey, String> errorsMap = ie.errorsMap;
+            assertThat(ie.getMessage(), is(ie.errorsMap.get("ERROR_MESSAGE")));
+            Map<IndexKey, String> errorsMap = (Map<IndexKey, String>) ie.errorsMap.get("ERRORS");
             assertThat(errorsMap.get(keyWith(INDEXABLE_INDEX, "MyTrade", "/trades/005")),
                startsWith("StrictDynamicMappingException"));
         }
@@ -200,14 +200,14 @@ public class IndexableTest extends AbstractElasticTest {
 
     @Test
     public void failedValidation() {
+        ImmutableMap<String, String> errors = ImmutableMap.of("a", "induced validation fail");
         try {
             indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1),
-               currentDocs -> validity("a", "induced fail"));
+               currentDocs -> errors);
             fail("cannot pass valid");
-        } catch(ValidException validEx) {
-            //success
+        } catch (IndexerException ie) {
+            assertThat(checkAssertValidity(ie), is(errors));
         }
-        //should be able to commit after a failure
         indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T2));
     }
 
@@ -240,5 +240,11 @@ public class IndexableTest extends AbstractElasticTest {
 
     private static Function<Trade, Sleeve<Trade>> newSleeveFunction() {
         return input -> newSleeve(input, (i) -> keyWith(INDEXABLE_INDEX, TRADE_TYPE, i.address));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <K, V> Map<K, V> checkAssertValidity(IndexerException ie) {
+        assertThat(ie.getMessage(), is(ie.errorsMap.get("ERROR_MESSAGE")));
+        return (Map<K, V>) ie.errorsMap.get("ERRORS");
     }
 }

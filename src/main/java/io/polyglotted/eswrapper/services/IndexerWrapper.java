@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.indexing.Bundling;
 import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.eswrapper.indexing.Indexable;
-import io.polyglotted.eswrapper.validation.Validator;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +33,10 @@ import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.query.QueryBuilder.idRequest;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.services.IndexerException.checkErrors;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.keyFrom;
-import static io.polyglotted.eswrapper.validation.ValidException.checkValidity;
-import static io.polyglotted.eswrapper.validation.Validator.EMPTY_VALIDATOR;
+import static io.polyglotted.eswrapper.services.Validator.EMPTY_VALIDATOR;
+import static io.polyglotted.eswrapper.services.ValidityException.checkValidity;
 import static org.elasticsearch.client.Requests.refreshRequest;
 
 @Slf4j
@@ -153,8 +153,7 @@ public final class IndexerWrapper {
                 errorBuilder.put(keyFrom(response), failureMessage);
             }
         }
-        ImmutableMap<IndexKey, String> errors = errorBuilder.build();
-        if (errors.size() > 0) throw new IndexerException(errors);
+        checkErrors(errorBuilder.build());
     }
 
     public long generateSequence(IndexKey key) {
