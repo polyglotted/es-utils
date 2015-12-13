@@ -58,7 +58,7 @@ public enum RecordAction {
 
     public Map<String, Object> sourceFrom(SimpleDoc simpleDoc, long timestamp, String user) {
         return ImmutableMap.<String, Object>builder().putAll(simpleDoc.source).put(STATUS_FIELD, status)
-           .put(EXPIRY_FIELD, timestamp).put(UPDATER_FIELD, user).build();
+           .put(EXPIRY_FIELD, String.valueOf(timestamp)).put(UPDATER_FIELD, user).build();
     }
 
     @VisibleForTesting

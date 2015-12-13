@@ -220,7 +220,7 @@ public class IndexableTest extends AbstractElasticTest {
             assertThat(doc.key().id, is(id));
             assertThat(doc.key().version, is(version));
             assertThat(doc.strVal(STATUS_FIELD), is(status));
-            assertThat(doc.longVal(EXPIRY_FIELD), is(expiry));
+            assertThat(doc.longStrVal(EXPIRY_FIELD), is(expiry));
             assertThat(doc.strVal(UPDATER_FIELD), is("unit-tester"));
         }
     }

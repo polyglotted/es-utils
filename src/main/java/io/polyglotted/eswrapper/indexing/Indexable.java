@@ -65,21 +65,17 @@ public final class Indexable {
 
     private void validateCurrentDocs(Map<IndexKey, SimpleDoc> currentDocs) {
         ImmutableMap.Builder<IndexKey, String> builder = ImmutableMap.builder();
-        int count = 0;
         for (IndexRecord record : records) {
             IndexKey indexKey = record.indexKey;
 
             if (record.isUpdate()) {
                 SimpleDoc simpleDoc = currentDocs.get(indexKey);
                 if (simpleDoc == null) {
-                    count++;
                     builder.put(indexKey, "record not found for update");
                 } else if (longToCompare(simpleDoc.version()) != longToCompare(indexKey.version())) {
-                    count++;
                     builder.put(indexKey, "version conflict for update");
                 }
             } else if (currentDocs.containsKey(indexKey)) {
-                count++;
                 builder.put(indexKey, "record already exists");
             }
         }
