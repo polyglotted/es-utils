@@ -61,7 +61,7 @@ public abstract class IndexSerializer {
                 mainType.add(META_META, context.serialize(mapping.meta));
 
             JsonObject all = new JsonObject();
-            if (!mapping.enabled) {
+            if (!mapping.enableAll) {
                 mainType.add(ALL_META, all);
                 all.addProperty("enabled", false);
             }

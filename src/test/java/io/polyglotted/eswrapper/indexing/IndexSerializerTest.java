@@ -12,6 +12,8 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.settingBuilder;
 import static io.polyglotted.eswrapper.indexing.IndexSetting.with;
+import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
+import static io.polyglotted.eswrapper.indexing.TypeMappingElasticTest.completeTypeMapping;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -38,6 +40,25 @@ public class IndexSerializerTest extends IndexSerializer {
     public void settingForUpdate() {
         String actual = with(5, 1).updateJson();
         assertThat(actual, is(SERIALISED_DOCS.get("settingForUpdate")));
+    }
+
+    @DataProvider
+    public static Object[][] typeMappingInputs() {
+        return new Object[][]{
+           {typeBuilder().index("test_index").type("$lock").enableAll(false).enableSource(false)},
+
+           {typeBuilder().index("test_index").type("SequenceMapping").enabled(false).enableAll(false)
+              .enableSource(false).enableType(false)},
+
+           {completeTypeMapping("test_index")},
+        };
+    }
+
+    @Test(dataProvider = "typeMappingInputs")
+    public void validTypeMapping(TypeMapping.Builder type) {
+        TypeMapping mapping = type.build();
+        String actual = GSON.toJson(mapping);
+        assertThat(mapping.type + "=" + actual, actual, is(SERIALISED_DOCS.get(mapping.type)));
     }
 
     private static java.util.Map<String, String> readAllDocs(String file) {

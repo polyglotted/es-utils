@@ -46,6 +46,8 @@ public class TypeMappingElasticTest extends AbstractElasticTest {
 
     public static List<TypeMapping.Builder> typeMappingInputs() {
         return ImmutableList.of(
+           typeBuilder().index(TEST_INDEX).type("$lock").enableAll(false).enableSource(false),
+
            typeBuilder().index(TEST_INDEX).type("EmptyTypeMapping").enableAll(false).enableType(false),
 
            typeBuilder().index(TEST_INDEX).type("DynamicDisabledMapping").strict(true).enabled(false).enableType(false),
