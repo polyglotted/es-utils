@@ -54,7 +54,7 @@ public final class Indexable {
 
             request.add(new IndexRequest(record.index(), record.type(), record.uniqueId()).create(true)
                .parent(record.parent()).versionType(VersionType.EXTERNAL).version(record.version())
-               .source(record.action.sourceFrom(currentDocs.get(record.indexKey), timestamp, user)));
+               .source(record.action.sourceFrom(currentDocs.get(record.indexKey), record.updateStatus, timestamp, user)));
         }
         return request;
     }

@@ -2,6 +2,7 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ import static io.polyglotted.pgmodel.search.index.HiddenFields.USER_FIELD;
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum RecordAction {
-    CREATE("new") {
+    CREATE {
         @Override
         public ActionRequest request(IndexRecord record, long timestamp, String user) {
             final String id = emptyToNull(record.id()); //auto-generate if empty
@@ -34,7 +35,7 @@ public enum RecordAction {
                .create(true).parent(record.parent()).versionType(VersionType.EXTERNAL).version(timestamp);
         }
     },
-    UPDATE("expired") {
+    UPDATE {
         @Override
         public ActionRequest request(IndexRecord record, long timestamp, String user) {
             log.debug("updating record " + record.id() + " for " + record.type() + " at " + record.index());
@@ -43,7 +44,7 @@ public enum RecordAction {
                .parent(record.parent()).versionType(VersionType.EXTERNAL_GTE).version(timestamp);
         }
     },
-    DELETE("deleted") {
+    DELETE {
         @Override
         public ActionRequest request(IndexRecord record, long timestamp, String user) {
             log.debug("deleting record " + record.id() + " for " + record.type() + " at " + record.index());
@@ -52,12 +53,10 @@ public enum RecordAction {
         }
     };
 
-    public final String status;
-
     public abstract ActionRequest request(IndexRecord record, long timestamp, String user);
 
-    public Map<String, Object> sourceFrom(SimpleDoc simpleDoc, long timestamp, String user) {
-        return ImmutableMap.<String, Object>builder().putAll(simpleDoc.source).put(STATUS_FIELD, status)
+    public Map<String, Object> sourceFrom(SimpleDoc simpleDoc, DocStatus updateStatus, long timestamp, String user) {
+        return ImmutableMap.<String, Object>builder().putAll(simpleDoc.source).put(STATUS_FIELD, updateStatus.toStatus())
            .put(EXPIRY_FIELD, String.valueOf(timestamp)).put(UPDATER_FIELD, user).build();
     }
 
@@ -69,6 +68,9 @@ public enum RecordAction {
         if (record.source.length() > 2) builder.append(",");
         if (record.isUpdate()) {
             builder.append("\"").append(ANCESTOR_FIELD).append("\":\"").append(record.uniqueId()).append("\",");
+        }
+        if (record.hasStatus()) {
+            builder.append("\"").append(STATUS_FIELD).append("\":\"").append(record.status.toStatus()).append("\",");
         }
         builder.append("\"").append(TIMESTAMP_FIELD).append("\":\"").append(timestamp).append("\"");
         builder.append(",\"").append(USER_FIELD).append("\":\"").append(user).append("\"");

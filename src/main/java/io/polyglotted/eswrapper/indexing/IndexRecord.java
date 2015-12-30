@@ -1,6 +1,7 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.base.Function;
+import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.KeyExclude;
 import io.polyglotted.pgmodel.search.Sleeve;
@@ -24,6 +25,8 @@ public final class IndexRecord {
     @Delegate(excludes = KeyExclude.class)
     public final IndexKey indexKey;
     public final RecordAction action;
+    public final DocStatus status;
+    public final DocStatus updateStatus;
     public final String source;
 
     @Override
@@ -35,25 +38,17 @@ public final class IndexRecord {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(indexKey, action);
-    }
+    public int hashCode() { return Objects.hash(indexKey, action); }
 
-    public IndexKey key() {
-        return indexKey;
-    }
+    public IndexKey key() { return indexKey; }
 
-    public boolean isNew() {
-        return action == RecordAction.CREATE;
-    }
+    public boolean isNew() { return action == RecordAction.CREATE; }
 
-    public boolean isUpdate() {
-        return action != RecordAction.CREATE;
-    }
+    public boolean isUpdate() { return action != RecordAction.CREATE; }
 
-    public ActionRequest request(long timestamp, String user) {
-        return action.request(this, timestamp, user);
-    }
+    public boolean hasStatus() { return status != null; }
+
+    public ActionRequest request(long timestamp, String user) { return action.request(this, timestamp, user); }
 
     public static <T> IndexRecord fromSleeve(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
         return (sleeve.isNew()) ? createRecord(sleeve.key, function.apply(sleeve)) : (sleeve.shouldDelete() ?
@@ -77,11 +72,13 @@ public final class IndexRecord {
     }
 
     public static Builder updateRecord(IndexKey key) {
-        return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.UPDATE);
+        return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.UPDATE)
+           .updateStatus(DocStatus.EXPIRED);
     }
 
     public static IndexRecord deleteRecord(IndexKey key) {
-        return new Builder(checkNotNull(key, "key cannot be null").delete(), RecordAction.DELETE).source("").build();
+        return new Builder(checkNotNull(key, "key cannot be null").delete(), RecordAction.DELETE)
+           .updateStatus(DocStatus.DELETED).source("").build();
     }
 
     @Setter
@@ -90,10 +87,12 @@ public final class IndexRecord {
     public static class Builder {
         public final IndexKey indexKey;
         public final RecordAction action;
+        private DocStatus status;
+        private DocStatus updateStatus;
         private String source;
 
         public IndexRecord build() {
-            return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action,
+            return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action, status, updateStatus,
                checkNotNull(source, "source cannot be null"));
         }
     }
