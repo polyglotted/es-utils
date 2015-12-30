@@ -44,7 +44,8 @@ public class ExpressionsTest extends Expressions {
               "{\"wrapper\":{\"filter\":\"eyJxdWVyeSI6eyJtYXRjaF9waHJhc2UiOnsiX2FsbCI6eyJxdWVyeSI6ImNvbW1vZGl0eSIsInNsb3AiOjIwfX19fQ==\"}}"},
            {And.buildFrom(and(equalsTo("hello", "world"))), "{\"and\":{\"filters\":[{\"term\":{\"hello\":\"world\"}}]}}"},
            {And.buildFrom(liveIndex()), "{\"and\":{\"filters\":[{\"missing\":{\"field\":\"&status\",\"null_value\":true," +
-              "\"existence\":true}},{\"missing\":{\"field\":\"&expiry\",\"null_value\":true,\"existence\":true}}]}}"},
+              "\"existence\":true}},{\"missing\":{\"field\":\"&expiry\",\"null_value\":true,\"existence\":true}}," +
+              "{\"exists\":{\"field\":\"&timestamp\"}}]}}"},
            {And.buildFrom(archiveIndex()), "{\"and\":{\"filters\":[{\"exists\":{\"field\":\"&status\"}}," +
               "{\"exists\":{\"field\":\"&expiry\"}}]}}"},
            {Or.buildFrom(or(equalsTo("hello", "world"))), "{\"or\":{\"filters\":[{\"term\":{\"hello\":\"world\"}}]}}"},
