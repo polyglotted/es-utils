@@ -33,6 +33,7 @@ public final class IndexRecord {
     public final DocStatus updateStatus;
     public final Long baseVersion;
     public final String comment;
+    public final String updateComment;
     public final String source;
 
     @Override
@@ -85,6 +86,10 @@ public final class IndexRecord {
         return updateRecord(key).source(source).build();
     }
 
+    public static IndexRecord updateRecord(IndexKey key, DocStatus status, String comment, String source) {
+        return updateRecord(key).status(status).comment(comment).source(source).build();
+    }
+
     public static Builder updateRecord(IndexKey key) {
         return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.UPDATE).updateStatus(EXPIRED);
     }
@@ -93,9 +98,9 @@ public final class IndexRecord {
         return deleteRecord(key, null, DELETED);
     }
 
-    public static IndexRecord deleteRecord(IndexKey key, String comment, DocStatus updateStatus) {
+    public static IndexRecord deleteRecord(IndexKey key, String updateComment, DocStatus updateStatus) {
         return new Builder(checkNotNull(key, "key cannot be null").delete(), RecordAction.DELETE)
-           .updateStatus(updateStatus).comment(comment).source("").build();
+           .updateStatus(updateStatus).updateComment(updateComment).source("").build();
     }
 
     @Setter
@@ -108,11 +113,12 @@ public final class IndexRecord {
         private DocStatus updateStatus;
         private Long baseVersion;
         private String comment;
+        private String updateComment;
         private String source;
 
         public IndexRecord build() {
             return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action, status, updateStatus,
-               baseVersion, comment, checkNotNull(source, "source cannot be null"));
+               baseVersion, comment, updateComment, checkNotNull(source, "source cannot be null"));
         }
     }
 }

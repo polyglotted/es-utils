@@ -59,7 +59,7 @@ public final class Indexable {
             request.add(new IndexRequest(record.index(), record.type(), record.uniqueId()).create(true)
                .parent(record.parent()).versionType(VersionType.EXTERNAL).version(record.version())
                .source(record.action.sourceFrom(currentDocs.get(record.indexKey),
-                  record.updateStatus, record.comment, timestamp, user)));
+                  record.updateStatus, record.updateComment, timestamp, user)));
         }
         return request;
     }
@@ -107,6 +107,13 @@ public final class Indexable {
                 }
             }
         }
+        return builder.build();
+    }
+
+    public static Indexable rejectionIndexable(Iterable<SimpleDoc> docs, String comment, String user, long timestamp) {
+        Indexable.Builder builder = indexableBuilder().user(user).timestamp(timestamp);
+        for (SimpleDoc doc : docs)
+            builder.record(updateRecord(doc.key, DocStatus.REJECTED, comment, GSON.toJson(doc.filteredCopy())));
         return builder.build();
     }
 

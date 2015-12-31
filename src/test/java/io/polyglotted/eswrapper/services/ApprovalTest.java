@@ -7,7 +7,6 @@ import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexRecord;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
-import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.Sleeve;
@@ -22,6 +21,7 @@ import static io.polyglotted.eswrapper.indexing.IndexRecord.forApproval;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.approvalIndexable;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
+import static io.polyglotted.eswrapper.indexing.Indexable.rejectionIndexable;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.services.IndexableTest.fetchRecords;
 import static io.polyglotted.eswrapper.services.IndexableTest.newSleeveFunction;
@@ -30,6 +30,9 @@ import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
+import static io.polyglotted.pgmodel.search.DocStatus.DELETED;
+import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
+import static io.polyglotted.pgmodel.search.DocStatus.LIVE;
 import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
 import static io.polyglotted.pgmodel.search.Sleeve.createSleeves;
 import static io.polyglotted.pgmodel.search.index.Alias.aliasBuilder;
@@ -43,6 +46,7 @@ import static io.polyglotted.pgmodel.search.index.HiddenFields.COMMENT_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.EXPIRY_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.STATUS_FIELD;
 import static io.polyglotted.pgmodel.search.query.Expressions.and;
+import static io.polyglotted.pgmodel.search.query.Expressions.approvalRejected;
 import static io.polyglotted.pgmodel.search.query.Expressions.archiveIndex;
 import static io.polyglotted.pgmodel.search.query.Expressions.equalsTo;
 import static io.polyglotted.pgmodel.search.query.Expressions.in;
@@ -90,7 +94,7 @@ public class ApprovalTest extends AbstractElasticTest {
 
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(originalKeys), "approved by test", "unit-approver", T2));
         assertLivePending(5, 0);
-        assertHistory(5, T1, T2, DocStatus.LIVE.toStatus(), "approved by test", type(APPROVAL_TYPE));
+        assertHistory(5, T1, T2, LIVE.toStatus(), "approved by test", type(APPROVAL_TYPE));
     }
 
     @Test
@@ -106,11 +110,25 @@ public class ApprovalTest extends AbstractElasticTest {
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(modificationKeys), "approved mod", "unit-approver", T4));
         assertLivePending(11, 0);
 
-        assertHistory(4, T3, T4, DocStatus.LIVE.toStatus(), "approved mod", and(type(APPROVAL_TYPE),
+        assertHistory(4, T3, T4, LIVE.toStatus(), "approved mod", and(type(APPROVAL_TYPE),
            in(BASEKEY_FIELD, "/trades/021", "/trades/022", "/trades/005", "/trades/010"), equalsTo(EXPIRY_FIELD, T4)));
 
-        assertHistory(1, T3, T4, DocStatus.DELETED.toStatus(), "approved mod", and(type(APPROVAL_TYPE),
+        assertHistory(1, T3, T4, DELETED.toStatus(), "approved mod", and(type(APPROVAL_TYPE),
            in(BASEKEY_FIELD, "/trades/004"), equalsTo(EXPIRY_FIELD, T4)));
+    }
+
+    @Test
+    public void rejectOnSave() {
+        List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 3),
+           newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        assertLivePending(0, 3);
+
+        indexer.twoPhaseCommit(rejectionIndexable(query.getAll(originalKeys), "rejected by test", "unit-approver", T2));
+        assertLivePending(0, 0);
+        assertRejected(3, T2, "rejected by test");
+        assertHistory(3, T1, T2, EXPIRED.toStatus(), null, and(type(APPROVAL_TYPE),
+           in(BASEKEY_FIELD, "/trades/001", "/trades/002", "/trades/003")));
     }
 
     private void printAll(Expression... exprs) {
@@ -120,6 +138,15 @@ public class ApprovalTest extends AbstractElasticTest {
     private void assertLivePending(int liveRecords, int pending) {
         assertThat(fetchRecords(query, APPROVAL_LIVE).size(), is(liveRecords));
         assertThat(fetchRecords(query, APPROVAL_INDEX, pendingApproval()).size(), is(pending));
+    }
+
+    private void assertRejected(int size, long version, String comment) {
+        List<SimpleDoc> simpleDocs = fetchRecords(query, APPROVAL_INDEX, approvalRejected());
+        assertThat(simpleDocs.size(), is(size));
+        for (SimpleDoc doc : simpleDocs) {
+            assertThat(doc.version(), is(version));
+            assertThat(doc.strVal(COMMENT_FIELD), is(comment));
+        }
     }
 
     private void assertHistory(int size, long version, long expiry, String status, String comment, Expression... exprs) {

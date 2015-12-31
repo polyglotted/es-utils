@@ -56,7 +56,7 @@ public enum RecordAction {
         ImmutableMap.Builder<String, Object> builder = ImmutableMap.<String, Object>builder()
            .putAll(filterKeys(doc.source, RecordAction::checkField)).put(STATUS_FIELD, status.toStatus())
            .put(EXPIRY_FIELD, String.valueOf(timestamp)).put(UPDATER_FIELD, user);
-        if (comment != null) builder.put(COMMENT_FIELD, comment);
+        if (comment != null && !doc.hasItem(COMMENT_FIELD)) builder.put(COMMENT_FIELD, comment);
         return builder.build();
     }
 
@@ -71,6 +71,9 @@ public enum RecordAction {
         }
         if (record.status != null) {
             builder.append("\"").append(STATUS_FIELD).append("\":\"").append(record.status.toStatus()).append("\",");
+        }
+        if (record.comment != null) {
+            builder.append("\"").append(COMMENT_FIELD).append("\":\"").append(record.comment).append("\",");
         }
         if (record.baseVersion != null) {
             builder.append("\"").append(BASEVERSION_FIELD).append("\":\"").append(record.baseVersion).append("\",");
