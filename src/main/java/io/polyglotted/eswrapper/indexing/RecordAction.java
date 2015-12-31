@@ -15,7 +15,10 @@ import org.elasticsearch.index.VersionType;
 import java.util.Map;
 
 import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.collect.Maps.filterKeys;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.ANCESTOR_FIELD;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.BASEVERSION_FIELD;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.COMMENT_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.EXPIRY_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.STATUS_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.TIMESTAMP_FIELD;
@@ -55,9 +58,12 @@ public enum RecordAction {
 
     public abstract ActionRequest request(IndexRecord record, long timestamp, String user);
 
-    public Map<String, Object> sourceFrom(SimpleDoc simpleDoc, DocStatus updateStatus, long timestamp, String user) {
-        return ImmutableMap.<String, Object>builder().putAll(simpleDoc.source).put(STATUS_FIELD, updateStatus.toStatus())
-           .put(EXPIRY_FIELD, String.valueOf(timestamp)).put(UPDATER_FIELD, user).build();
+    public Map<String, Object> sourceFrom(SimpleDoc doc, DocStatus status, String comment, long timestamp, String user) {
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.<String, Object>builder()
+           .putAll(filterKeys(doc.source, RecordAction::checkField)).put(STATUS_FIELD, status.toStatus())
+           .put(EXPIRY_FIELD, String.valueOf(timestamp)).put(UPDATER_FIELD, user);
+        if (comment != null) builder.put(COMMENT_FIELD, comment);
+        return builder.build();
     }
 
     @VisibleForTesting
@@ -69,8 +75,11 @@ public enum RecordAction {
         if (record.isUpdate()) {
             builder.append("\"").append(ANCESTOR_FIELD).append("\":\"").append(record.uniqueId()).append("\",");
         }
-        if (record.hasStatus()) {
+        if (record.status != null) {
             builder.append("\"").append(STATUS_FIELD).append("\":\"").append(record.status.toStatus()).append("\",");
+        }
+        if (record.baseVersion != null) {
+            builder.append("\"").append(BASEVERSION_FIELD).append("\":\"").append(record.baseVersion).append("\",");
         }
         builder.append("\"").append(TIMESTAMP_FIELD).append("\":\"").append(timestamp).append("\"");
         builder.append(",\"").append(USER_FIELD).append("\":\"").append(user).append("\"");
@@ -78,4 +87,6 @@ public enum RecordAction {
 
         return builder.toString();
     }
+
+    private static boolean checkField(String key) { return !STATUS_FIELD.equals(key); }
 }

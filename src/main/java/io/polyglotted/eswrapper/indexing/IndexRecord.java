@@ -31,6 +31,8 @@ public final class IndexRecord {
     public final RecordAction action;
     public final DocStatus status;
     public final DocStatus updateStatus;
+    public final Long baseVersion;
+    public final String comment;
     public final String source;
 
     @Override
@@ -50,8 +52,6 @@ public final class IndexRecord {
 
     public boolean isUpdate() { return action != RecordAction.CREATE; }
 
-    public boolean hasStatus() { return status != null; }
-
     public ActionRequest request(long timestamp, String user) { return action.request(this, timestamp, user); }
 
     public static <T> IndexRecord fromSleeve(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
@@ -60,9 +60,13 @@ public final class IndexRecord {
     }
 
     public static <T> IndexRecord forApproval(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
-        return (sleeve.isNew()) ? createRecord(sleeve.key).status(PENDING).source(function.apply(sleeve)).build() :
-           (sleeve.shouldDelete() ? createRecord(sleeve.key).status(PENDING_DELETE).source("").build()
-           : updateRecord(sleeve.key).status(PENDING).source(function.apply(sleeve)).build());
+        Builder record = createRecord(sleeve.approvalKey()).baseVersion(sleeve.version());
+        if (sleeve.shouldDelete()) {
+            record.status(PENDING_DELETE).source("");
+        } else {
+            record.status(PENDING).source(function.apply(sleeve));
+        }
+        return record.build();
     }
 
     public static IndexRecord createRecord(IndexKey key, String source) {
@@ -86,8 +90,12 @@ public final class IndexRecord {
     }
 
     public static IndexRecord deleteRecord(IndexKey key) {
+        return deleteRecord(key, null, DELETED);
+    }
+
+    public static IndexRecord deleteRecord(IndexKey key, String comment, DocStatus updateStatus) {
         return new Builder(checkNotNull(key, "key cannot be null").delete(), RecordAction.DELETE)
-           .updateStatus(DELETED).source("").build();
+           .updateStatus(updateStatus).comment(comment).source("").build();
     }
 
     @Setter
@@ -98,11 +106,13 @@ public final class IndexRecord {
         public final RecordAction action;
         private DocStatus status;
         private DocStatus updateStatus;
+        private Long baseVersion;
+        private String comment;
         private String source;
 
         public IndexRecord build() {
             return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action, status, updateStatus,
-               checkNotNull(source, "source cannot be null"));
+               baseVersion, comment, checkNotNull(source, "source cannot be null"));
         }
     }
 }

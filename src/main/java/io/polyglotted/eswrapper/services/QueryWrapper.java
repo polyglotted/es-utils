@@ -12,8 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequestBuilder;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.get.*;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -28,9 +27,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkState;
 import static io.polyglotted.eswrapper.query.QueryBuilder.aggregationToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.scrollRequest;
+import static io.polyglotted.eswrapper.services.ModelIndexUtil.failureMessage;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getReturnedHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getTotalHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.headerFrom;
@@ -60,6 +61,22 @@ public final class QueryWrapper {
         GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
         return response.isExists() ? new SimpleDoc(indexKey.newVersion(response.getVersion()),
            ImmutableMap.copyOf(response.getSourceAsMap())) : null;
+    }
+
+    public List<SimpleDoc> getAll(Iterable<IndexKey> indexKeys) {
+        MultiGetRequest multiGetRequest = new MultiGetRequest();
+        for (IndexKey key : indexKeys) multiGetRequest.add(new MultiGetRequest.Item(key.index, key.type, key.id));
+        MultiGetResponse multiResponse = client.multiGet(multiGetRequest).actionGet();
+
+        ImmutableList.Builder<SimpleDoc> result = ImmutableList.builder();
+        for (MultiGetItemResponse item : multiResponse.getResponses()) {
+            checkState(!item.isFailed(), "error getting item: " + failureMessage(item.getFailure()));
+
+            GetResponse get = item.getResponse();
+            result.add(new SimpleDoc(IndexKey.keyFrom(get.getIndex(), get.getType(), get.getId(), get.getVersion()),
+               ImmutableMap.copyOf(get.getSourceAsMap())));
+        }
+        return result.build();
     }
 
     public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) {

@@ -111,7 +111,7 @@ public abstract class QueryBuilder {
         }
     }
 
-    private static String[] toStrArray(Iterable<String> iterable) {
+    public static String[] toStrArray(Iterable<String> iterable) {
         return toArray(iterable, String.class);
     }
 }

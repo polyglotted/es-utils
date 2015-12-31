@@ -7,6 +7,7 @@ import io.polyglotted.pgmodel.search.query.ResponseHeader;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -47,5 +48,10 @@ abstract class ModelIndexUtil {
 
     public static int getReturnedHits(SearchResponse response) {
         return response.getHits().hits().length;
+    }
+
+    public static String failureMessage(MultiGetResponse.Failure fail) {
+        return fail == null ? "" : fail.getIndex() + "/" + fail.getType()
+           + "/" + fail.getId() + " : " + fail.getMessage();
     }
 }
