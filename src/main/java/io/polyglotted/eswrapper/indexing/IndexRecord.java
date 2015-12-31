@@ -16,6 +16,10 @@ import org.elasticsearch.action.ActionRequest;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.polyglotted.pgmodel.search.DocStatus.DELETED;
+import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
+import static io.polyglotted.pgmodel.search.DocStatus.PENDING;
+import static io.polyglotted.pgmodel.search.DocStatus.PENDING_DELETE;
 import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
 import static io.polyglotted.pgmodel.util.ModelUtil.equalsAll;
 
@@ -55,6 +59,12 @@ public final class IndexRecord {
            deleteRecord(sleeve.key) : updateRecord(sleeve.key, function.apply(sleeve)));
     }
 
+    public static <T> IndexRecord forApproval(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
+        return (sleeve.isNew()) ? createRecord(sleeve.key).status(PENDING).source(function.apply(sleeve)).build() :
+           (sleeve.shouldDelete() ? createRecord(sleeve.key).status(PENDING_DELETE).source("").build()
+           : updateRecord(sleeve.key).status(PENDING).source(function.apply(sleeve)).build());
+    }
+
     public static IndexRecord createRecord(IndexKey key, String source) {
         return createRecord(key).source(source).build();
     }
@@ -72,13 +82,12 @@ public final class IndexRecord {
     }
 
     public static Builder updateRecord(IndexKey key) {
-        return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.UPDATE)
-           .updateStatus(DocStatus.EXPIRED);
+        return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.UPDATE).updateStatus(EXPIRED);
     }
 
     public static IndexRecord deleteRecord(IndexKey key) {
         return new Builder(checkNotNull(key, "key cannot be null").delete(), RecordAction.DELETE)
-           .updateStatus(DocStatus.DELETED).source("").build();
+           .updateStatus(DELETED).source("").build();
     }
 
     @Setter

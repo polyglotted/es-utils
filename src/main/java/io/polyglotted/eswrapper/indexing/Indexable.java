@@ -72,6 +72,7 @@ public final class Indexable {
                 SimpleDoc simpleDoc = currentDocs.get(indexKey);
                 if (simpleDoc == null) {
                     builder.put(indexKey, "record not found for update");
+
                 } else if (longToCompare(simpleDoc.version()) != longToCompare(indexKey.version())) {
                     builder.put(indexKey, "version conflict for update");
                 }

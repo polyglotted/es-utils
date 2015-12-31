@@ -70,21 +70,24 @@ public class IndexableTest extends AbstractElasticTest {
 
     @Test
     public void indexNewRecords() {
-        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
-        assertThat(fetchRecords(LIVE_INDEX).size(), is(20));
-        assertThat(fetchRecords(HISTORY_INDEX).size(), is(0));
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T1));
+        assertThat(fetchRecords(query, LIVE_INDEX).size(), is(20));
+        assertThat(fetchRecords(query, HISTORY_INDEX).size(), is(0));
     }
 
     @Test
     public void updateRecords() {
-        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T1));
 
         List<Sleeve<Trade>> mutations = Lists.newArrayList();
 
         //creates
         mutations.addAll(createSleeves(ImmutableList.of(
            trade("/trades/021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0),
-           trade("/trades/022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0)), newSleeveFunction()));
+           trade("/trades/022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0)),
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)));
 
         List<IndexKey> updates = ImmutableList.of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
            keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/010", T1));
@@ -99,15 +102,16 @@ public class IndexableTest extends AbstractElasticTest {
 
         indexer.twoPhaseCommit(indexable(mutations, T2));
 
-        assertThat(fetchRecords(LIVE_INDEX).size(), is(21));
-        assertThat(fetchRecords(HISTORY_INDEX).size(), is(3));
+        assertThat(fetchRecords(query, LIVE_INDEX).size(), is(21));
+        assertThat(fetchRecords(query, HISTORY_INDEX).size(), is(3));
         assertHistory(updates, T1, "expired", T2);
         assertHistory(deletes, T1, "deleted", T2);
     }
 
     @Test
     public void deleteAndCreateAsNew() {
-        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T1));
 
         List<IndexKey> deletes = ImmutableList.of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
         indexer.twoPhaseCommit(indexable(transform(deletes, Sleeve::delete), T2));
@@ -115,19 +119,22 @@ public class IndexableTest extends AbstractElasticTest {
 
         List<Trade> newTrades = ImmutableList.of(
            trade("/trades/019", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0));
-        indexer.twoPhaseCommit(indexable(createSleeves(newTrades, newSleeveFunction()), T2));
-        assertThat(fetchRecords(LIVE_INDEX).size(), is(20));
-        assertThat(fetchRecords(HISTORY_INDEX).size(), is(1));
+        indexer.twoPhaseCommit(indexable(createSleeves(newTrades,
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T2));
+        assertThat(fetchRecords(query, LIVE_INDEX).size(), is(20));
+        assertThat(fetchRecords(query, HISTORY_INDEX).size(), is(1));
     }
 
     @Test
     public void createExistingRecordsShouldFail() {
-        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T1));
 
         try {
             List<Trade> newTrades = ImmutableList.of(
                trade("/trades/020", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0));
-            indexer.twoPhaseCommit(indexable(createSleeves(newTrades, newSleeveFunction()), T2));
+            indexer.twoPhaseCommit(indexable(createSleeves(newTrades,
+               newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T2));
             fail();
 
         } catch (IndexerException ie) {
@@ -135,12 +142,13 @@ public class IndexableTest extends AbstractElasticTest {
             assertThat(errorsMap.get(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/020", -1L)),
                equalTo("record already exists"));
         }
-        assertThat(fetchRecords(HISTORY_INDEX).size(), is(0));
+        assertThat(fetchRecords(query, HISTORY_INDEX).size(), is(0));
     }
 
     @Test
     public void secondUpdateShouldFail() {
-        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1));
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T1));
 
         List<Sleeve<Trade>> update1 = ImmutableList.of(Sleeve.create(
            keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005", T1),
@@ -159,7 +167,7 @@ public class IndexableTest extends AbstractElasticTest {
             assertThat(errorsMap.get(keyWith(INDEXABLE_INDEX, TRADE_TYPE, "/trades/005")),
                equalTo("version conflict for update"));
         }
-        assertThat(fetchRecords(HISTORY_INDEX).size(), is(1));
+        assertThat(fetchRecords(query, HISTORY_INDEX).size(), is(1));
     }
 
     @Test
@@ -202,18 +210,21 @@ public class IndexableTest extends AbstractElasticTest {
     public void failedValidation() {
         ImmutableMap<String, String> errors = ImmutableMap.of("a", "induced validation fail");
         try {
-            indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T1),
+            indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
+                  newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T1),
                currentDocs -> errors);
             fail("cannot pass valid");
         } catch (IndexerException ie) {
             assertThat(checkAssertValidity(ie), is(errors));
         }
-        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction()), T2));
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
+           newSleeveFunction(INDEXABLE_INDEX, TRADE_TYPE)), T2));
     }
 
     private void assertHistory(Iterable<IndexKey> indexKeys, long version, String status, long expiry) {
         String[] ids = toArray(transform(indexKeys, IndexKey::uniqueId), String.class);
-        Map<String, SimpleDoc> updatedItems = uniqueIndex(fetchRecords(INDEXABLE_INDEX, ids(ids)), doc -> doc.key().id);
+        Map<String, SimpleDoc> updatedItems = uniqueIndex(fetchRecords(
+           query, INDEXABLE_INDEX, ids(ids)), doc -> doc.key().id);
         assertThat(updatedItems.size(), is(ids.length));
         for (String id : ids) {
             SimpleDoc doc = updatedItems.get(id);
@@ -225,11 +236,6 @@ public class IndexableTest extends AbstractElasticTest {
         }
     }
 
-    private List<SimpleDoc> fetchRecords(String index, Expression... expressions) {
-        return query.search(queryBuilder().index(index).size(100).expression(expressions).build(), null,
-           SimpleDocBuilder).resultsAs(SimpleDoc.class);
-    }
-
     private static Indexable indexable(Iterable<Sleeve<Trade>> sleeveDocs, long t1) {
         return indexableBuilder().user("unit-tester").timestamp(t1).records(sleeveToRecords(sleeveDocs)).build();
     }
@@ -238,13 +244,18 @@ public class IndexableTest extends AbstractElasticTest {
         return transform(sleeveDocs, doc -> fromSleeve(doc, sl -> GSON.toJson(sl.source)));
     }
 
-    private static Function<Trade, Sleeve<Trade>> newSleeveFunction() {
-        return input -> newSleeve(input, (i) -> keyWith(INDEXABLE_INDEX, TRADE_TYPE, i.address));
-    }
-
     @SuppressWarnings("unchecked")
     private static <K, V> Map<K, V> checkAssertValidity(IndexerException ie) {
         assertThat(ie.getMessage(), is(ie.errorsMap.get("ERROR_MESSAGE")));
         return (Map<K, V>) ie.errorsMap.get("ERRORS");
+    }
+
+    static List<SimpleDoc> fetchRecords(QueryWrapper query, String index, Expression... expressions) {
+        return query.search(queryBuilder().index(index).size(100).expression(expressions).build(), null,
+           SimpleDocBuilder).resultsAs(SimpleDoc.class);
+    }
+
+    static Function<Trade, Sleeve<Trade>> newSleeveFunction(String index, String type) {
+        return input -> newSleeve(input, (i) -> keyWith(index, type, i.address));
     }
 }
