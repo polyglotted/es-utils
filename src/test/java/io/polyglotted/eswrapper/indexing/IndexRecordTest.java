@@ -20,17 +20,23 @@ public class IndexRecordTest {
     @DataProvider
     public static Object[][] recordInputs() {
         return new Object[][]{
+           {new Portfolio("/p/1", "first portfolio"), createRecord("a", "aa", ""), Portfolio.class,
+              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&baseKey\":\"_auto_\",\"&timestamp\":" +
+                 "\"1425494500000\",\"&user\":\"tester\"}", null},
            {new Portfolio("/p/1", "first portfolio"), createRecord("a", "aa", "c"), Portfolio.class,
-              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}", null},
+              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&baseKey\":\"c\",\"&timestamp\":" +
+                 "\"1425494500000\",\"&user\":\"tester\"}", null},
            {new Portfolio("/p/1", "first portfolio"), updateRecord(keyWith("a", "aa", "c")), Portfolio.class,
-              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&ancestor\":\"1239fff0-ff8e-5244-b1b9-133119b1b4d1\"," +
-                 "\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}", null},
+              "{\"address\":\"/p/1\",\"name\":\"first portfolio\",\"&ancestor\":" +
+                 "\"1239fff0-ff8e-5244-b1b9-133119b1b4d1\",\"&baseKey\":\"c\",\"&timestamp\":\"1425494500000\"," +
+                 "\"&user\":\"tester\"}", null},
            {ImmutableMap.of(), createRecord("a", "aa", "c"), Map.class,
-              "{\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}", ImmutableMap.of("&timestamp",
-              "1425494500000", "&user", "tester")},
+              "{\"&baseKey\":\"c\",\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}",
+              ImmutableMap.of("&baseKey", "c", "&timestamp", "1425494500000", "&user", "tester")},
            {ImmutableMap.of(), updateRecord(keyWith("a", "aa", "c")), Map.class,
-              "{\"&ancestor\":\"1239fff0-ff8e-5244-b1b9-133119b1b4d1\",\"&timestamp\":\"1425494500000\",\"&user\":\"tester\"}",
-              ImmutableMap.of("&ancestor", "1239fff0-ff8e-5244-b1b9-133119b1b4d1", "&timestamp", "1425494500000", "&user", "tester")},
+              "{\"&ancestor\":\"1239fff0-ff8e-5244-b1b9-133119b1b4d1\",\"&baseKey\":\"c\",\"&timestamp\":" +
+                 "\"1425494500000\",\"&user\":\"tester\"}", ImmutableMap.of("&ancestor",
+              "1239fff0-ff8e-5244-b1b9-133119b1b4d1", "&baseKey", "c", "&timestamp", "1425494500000", "&user", "tester")},
         };
     }
 

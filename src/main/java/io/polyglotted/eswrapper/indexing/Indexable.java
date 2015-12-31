@@ -91,15 +91,15 @@ public final class Indexable {
     public static Indexable approvalIndexable(Iterable<SimpleDoc> docs, String comment, String user, long timestamp) {
         Indexable.Builder builder = indexableBuilder().user(user).timestamp(timestamp);
         for (SimpleDoc doc : docs) {
-            builder.record(deleteRecord(doc.key, comment, DocStatus.LIVE));
-
             DocStatus status = DocStatus.fromStatus(doc.strVal(STATUS_FIELD));
-            Long baseVersion = doc.longObjVal(BASEVERSION_FIELD);
+            Long baseVersion = doc.hasItem(BASEVERSION_FIELD) ? doc.longStrVal(BASEVERSION_FIELD) : null;
             IndexKey baseKey = doc.baseKey(baseVersion);
 
             if (status == DocStatus.PENDING_DELETE) {
+                builder.record(deleteRecord(doc.key, comment, DocStatus.DELETED));
                 builder.record(deleteRecord(baseKey));
             } else {
+                builder.record(deleteRecord(doc.key, comment, DocStatus.LIVE));
                 if (baseVersion == null) {
                     builder.record(createRecord(baseKey, GSON.toJson(doc.filteredCopy())));
                 } else {

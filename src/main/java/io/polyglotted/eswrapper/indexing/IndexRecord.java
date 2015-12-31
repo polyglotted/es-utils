@@ -62,7 +62,7 @@ public final class IndexRecord {
     public static <T> IndexRecord forApproval(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
         Builder record = createRecord(sleeve.approvalKey()).baseVersion(sleeve.version());
         if (sleeve.shouldDelete()) {
-            record.status(PENDING_DELETE).source("");
+            record.status(PENDING_DELETE).source("{}");
         } else {
             record.status(PENDING).source(function.apply(sleeve));
         }

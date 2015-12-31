@@ -17,6 +17,7 @@ import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 public class Trade {
     public static final String TRADE_TYPE = "Trade";
 
+    public static final String FieldAddress = "address";
     public static final String FieldRegion = "region";
     public static final String FieldDate = "tradeDate";
     public static final String FieldValue = "value";

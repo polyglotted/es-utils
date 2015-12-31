@@ -27,7 +27,7 @@ public enum ExprConverter {
     Eq {
         @Override
         FilterBuilder buildFrom(Expression expr) {
-            return termFilter(expr.label, expr.valueArg());
+            return termFilter(expr.label, (Object) expr.valueArg());
         }
     },
     Gte {
@@ -63,7 +63,7 @@ public enum ExprConverter {
     Ne {
         @Override
         FilterBuilder buildFrom(Expression expr) {
-            return notFilter(termFilter(expr.label, expr.valueArg()));
+            return notFilter(termFilter(expr.label, (Object) expr.valueArg()));
         }
     },
     In {

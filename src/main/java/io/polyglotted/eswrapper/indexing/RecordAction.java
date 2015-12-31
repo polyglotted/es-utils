@@ -15,15 +15,9 @@ import org.elasticsearch.index.VersionType;
 import java.util.Map;
 
 import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.filterKeys;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.ANCESTOR_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.BASEVERSION_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.COMMENT_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.EXPIRY_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.STATUS_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.TIMESTAMP_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.UPDATER_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.USER_FIELD;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.*;
 
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -81,6 +75,7 @@ public enum RecordAction {
         if (record.baseVersion != null) {
             builder.append("\"").append(BASEVERSION_FIELD).append("\":\"").append(record.baseVersion).append("\",");
         }
+        builder.append("\"").append(BASEKEY_FIELD).append("\":\"").append(nonNull(record.id(), "_auto_")).append("\",");
         builder.append("\"").append(TIMESTAMP_FIELD).append("\":\"").append(timestamp).append("\"");
         builder.append(",\"").append(USER_FIELD).append("\":\"").append(user).append("\"");
         builder.append("}");
@@ -88,5 +83,7 @@ public enum RecordAction {
         return builder.toString();
     }
 
-    private static boolean checkField(String key) { return !STATUS_FIELD.equals(key); }
+    static String nonNull(String nullable, String defVal) { return isNullOrEmpty(nullable) ? defVal : nullable; }
+
+    static boolean checkField(String key) { return !STATUS_FIELD.equals(key); }
 }
