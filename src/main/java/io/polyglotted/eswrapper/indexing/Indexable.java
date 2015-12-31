@@ -117,6 +117,12 @@ public final class Indexable {
         return builder.build();
     }
 
+    public static Indexable discardIndexable(Iterable<SimpleDoc> docs, String user, long timestamp) {
+        Indexable.Builder builder = indexableBuilder().user(user).timestamp(timestamp);
+        for (SimpleDoc doc : docs) builder.record(deleteRecord(doc.key, null, DocStatus.DISCARDED));
+        return builder.build();
+    }
+
     public static Builder indexableBuilder() {
         return new Builder();
     }

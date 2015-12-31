@@ -16,10 +16,12 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
+import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.transform;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.forApproval;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.approvalIndexable;
+import static io.polyglotted.eswrapper.indexing.Indexable.discardIndexable;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
 import static io.polyglotted.eswrapper.indexing.Indexable.rejectionIndexable;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
@@ -31,6 +33,7 @@ import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
 import static io.polyglotted.pgmodel.search.DocStatus.DELETED;
+import static io.polyglotted.pgmodel.search.DocStatus.DISCARDED;
 import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
 import static io.polyglotted.pgmodel.search.DocStatus.LIVE;
 import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
@@ -131,8 +134,28 @@ public class ApprovalTest extends AbstractElasticTest {
            in(BASEKEY_FIELD, "/trades/001", "/trades/002", "/trades/003")));
     }
 
-    private void printAll(Expression... exprs) {
-        fetchRecords(query, APPROVAL_INDEX, exprs).forEach(System.out::println);
+    @Test
+    public void discardRejectedOrPending() {
+        List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 3),
+           newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        List<IndexKey> rejectedKeys = indexer.twoPhaseCommit(rejectionIndexable(query.getAll(originalKeys),
+           "rejected", "unit-approver", T2));
+        assertRejected(3, T2, "rejected");
+
+        List<Sleeve<Trade>> sleeves2 = createSleeves(sampleTrades().subList(3, 5),
+           newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
+        List<IndexKey> pendingKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves2, T1));
+        assertLivePending(0, 2);
+
+        indexer.twoPhaseCommit(discardIndexable(query.getAll(concat(rejectedKeys, pendingKeys)), "unit-tester", T3));
+        assertLivePending(0, 0);
+        assertRejected(0, 0, null);
+        assertThat(fetchAll(type(APPROVAL_TYPE), equalsTo(STATUS_FIELD, DISCARDED.toStatus())).size(), is(5));
+    }
+
+    private List<SimpleDoc> fetchAll(Expression... exprs) {
+        return fetchRecords(query, APPROVAL_INDEX, exprs);
     }
 
     private void assertLivePending(int liveRecords, int pending) {
