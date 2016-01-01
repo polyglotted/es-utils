@@ -1,9 +1,7 @@
 package io.polyglotted.eswrapper.services;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexRecord;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
@@ -19,14 +17,14 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Iterables.transform;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
-import static io.polyglotted.eswrapper.indexing.IndexableFactory.approvalIndexable;
-import static io.polyglotted.eswrapper.indexing.IndexableFactory.discardIndexable;
-import static io.polyglotted.eswrapper.indexing.IndexableFactory.rejectionIndexable;
+import static io.polyglotted.eswrapper.indexing.IndexableHelper.approvalIndexable;
+import static io.polyglotted.eswrapper.indexing.IndexableHelper.discardIndexable;
+import static io.polyglotted.eswrapper.indexing.IndexableHelper.getPendingApprovals;
+import static io.polyglotted.eswrapper.indexing.IndexableHelper.rejectionIndexable;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.services.IndexableTest.fetchRecords;
 import static io.polyglotted.eswrapper.services.IndexableTest.newSleeveFunction;
@@ -99,7 +97,7 @@ public class ApprovalTest extends AbstractElasticTest {
     public void createAndApprove() {
         List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 5),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1));
         assertLivePending(0, 5);
 
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(originalKeys), "approved by test", "unit-approver", T2));
@@ -111,10 +109,10 @@ public class ApprovalTest extends AbstractElasticTest {
     public void modificationAndApprove() {
         List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 10),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1));
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(originalKeys), "approved", "unit-approver", T2));
 
-        List<IndexKey> modificationKeys = indexer.twoPhaseCommit(pendingIndexable(getMutations(), T3));
+        List<IndexKey> modificationKeys = indexer.twoPhaseCommit(pendingIndexable(query, getMutations(), T3));
         assertLivePending(10, 5);
 
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(modificationKeys), "approved mod", "unit-approver", T4));
@@ -131,7 +129,7 @@ public class ApprovalTest extends AbstractElasticTest {
     public void rejectOnSave() {
         List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 3),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1));
         assertLivePending(0, 3);
 
         indexer.twoPhaseCommit(rejectionIndexable(query.getAll(originalKeys), "rejected by test", "unit-approver", T2));
@@ -145,14 +143,14 @@ public class ApprovalTest extends AbstractElasticTest {
     public void discardRejectedOrPending() {
         List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 3),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1));
         List<IndexKey> rejectedKeys = indexer.twoPhaseCommit(rejectionIndexable(query.getAll(originalKeys),
            "rejected", "unit-approver", T2));
         assertRejected(3, T2, "rejected");
 
         List<Sleeve<Trade>> sleeves2 = createSleeves(sampleTrades().subList(3, 5),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> pendingKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves2, T1));
+        List<IndexKey> pendingKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves2, T1));
         assertLivePending(0, 2);
 
         indexer.twoPhaseCommit(discardIndexable(query.getAll(concat(rejectedKeys, pendingKeys)), "unit-tester", T3));
@@ -165,13 +163,13 @@ public class ApprovalTest extends AbstractElasticTest {
     public void editRejectedOrPendingAndApprove() {
         List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 3),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1));
         List<IndexKey> rejectedKeys = indexer.twoPhaseCommit(rejectionIndexable(query.getAll(originalKeys),
            "rejected", "unit-approver", T2));
 
         List<Sleeve<Trade>> sleeves2 = createSleeves(sampleTrades().subList(3, 5),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> pendingKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves2, T1));
+        List<IndexKey> pendingKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves2, T1));
 
         List<IndexKey> editableKeys = ImmutableList.copyOf(concat(rejectedKeys, pendingKeys));
         List<Sleeve<Trade>> updSleeves = Lists.newArrayList();
@@ -186,8 +184,7 @@ public class ApprovalTest extends AbstractElasticTest {
         updSleeves.add(Sleeve.create(editableKeys.get(4),
            trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1422144000000L, 25.0)));
 
-        List<IndexKey> updateKeys = indexer.twoPhaseCommit(editPendingIndexable(updSleeves,
-           query.getAll(transform(updSleeves, Sleeve::key)), T3));
+        List<IndexKey> updateKeys = indexer.twoPhaseCommit(pendingIndexable(query, updSleeves, T3));
         assertLivePending(0, 5);
         assertRejected(0, 0, null);
 
@@ -201,10 +198,10 @@ public class ApprovalTest extends AbstractElasticTest {
     public void editPendingAfterModification() {
         List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 10),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(sleeves, T1));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1));
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(originalKeys), "approved", "unit-approver", T2));
 
-        List<IndexKey> modificationKeys = indexer.twoPhaseCommit(pendingIndexable(getMutations(), T3));
+        List<IndexKey> modificationKeys = indexer.twoPhaseCommit(pendingIndexable(query, getMutations(), T3));
         assertLivePending(10, 5);
 
         List<Sleeve<Trade>> updSleeves = Lists.newArrayList();
@@ -212,9 +209,7 @@ public class ApprovalTest extends AbstractElasticTest {
            trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 20.0)));
         updSleeves.add(Sleeve.create(modificationKeys.get(3),
            trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 22.0)));
-
-        List<IndexKey> updateKeys = indexer.twoPhaseCommit(editPendingIndexable(updSleeves,
-           query.getAll(transform(updSleeves, Sleeve::key)), T4));
+        List<IndexKey> updateKeys = indexer.twoPhaseCommit(pendingIndexable(query, updSleeves, T4));
         assertLivePending(10, 5);
 
         List<IndexKey> newApproveKeys = Lists.newArrayList();
@@ -261,15 +256,24 @@ public class ApprovalTest extends AbstractElasticTest {
         }
     }
 
-    private static Indexable pendingIndexable(Iterable<Sleeve<Trade>> sleeveDocs, long ts) {
-        return indexableBuilder().user("unit-tester").timestamp(ts)
-           .records(transform(sleeveDocs, doc -> forApproval(doc, sl -> GSON.toJson(sl.source)))).build();
-    }
-
-    private static Indexable editPendingIndexable(List<Sleeve<Trade>> sleeves, List<SimpleDoc> docs, long ts) {
-        Map<IndexKey, SimpleDoc> docMap = Maps.uniqueIndex(docs, SimpleDoc::key);
-        return indexableBuilder().user("unit-tester").timestamp(ts)
-           .records(transform(sleeves, doc -> editPending(doc, docMap.get(doc.key), sl -> GSON.toJson(sl.source)))).build();
+    private static Indexable pendingIndexable(QueryWrapper query, List<Sleeve<Trade>> sleeves, long ts) {
+        Map<IndexKey, SimpleDoc> docMap = getPendingApprovals(query, sleeves);
+        Indexable.Builder builder = indexableBuilder().user("unit-tester").timestamp(ts);
+        for (Sleeve<Trade> sleeve : sleeves) {
+            IndexRecord.Builder record;
+            if (docMap.containsKey(sleeve.key)) {
+                record = updateRecord(sleeve.key).baseVersion(docMap.get(sleeve.key).baseVersion());
+            } else {
+                record = createRecord(sleeve.approvalKey()).baseVersion(sleeve.version());
+            }
+            if (sleeve.shouldDelete()) {
+                record.status(PENDING_DELETE).source("{}");
+            } else {
+                record.status(PENDING).source(GSON.toJson(sleeve.source));
+            }
+            builder.record(record.build());
+        }
+        return builder.build();
     }
 
     private static List<Sleeve<Trade>> getMutations() {
@@ -286,22 +290,4 @@ public class ApprovalTest extends AbstractElasticTest {
         return mutations;
     }
 
-    public static <T> IndexRecord forApproval(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
-        return decorateRecord(createRecord(sleeve.approvalKey()).baseVersion(sleeve.version()), sleeve, function);
-    }
-
-    public static <T> IndexRecord editPending(Sleeve<T> sleeve, SimpleDoc doc, Function<Sleeve<T>, String> function) {
-        Long baseVersion = doc.hasItem(BASEVERSION_FIELD) ? doc.longStrVal(BASEVERSION_FIELD) : null;
-        return decorateRecord(updateRecord(sleeve.key).baseVersion(baseVersion), sleeve, function);
-    }
-
-    private static <T> IndexRecord decorateRecord(IndexRecord.Builder record, Sleeve<T>
-       sleeve, Function<Sleeve<T>, String> function) {
-        if (sleeve.shouldDelete()) {
-            record.status(PENDING_DELETE).source("{}");
-        } else {
-            record.status(PENDING).source(function.apply(sleeve));
-        }
-        return record.build();
-    }
 }
