@@ -33,7 +33,7 @@ import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
 public abstract class QueryBuilder {
 
     public static SearchRequest idRequest(String[] ids, Iterable<String> types, String... indices) {
-        SearchSourceBuilder source = new SearchSourceBuilder().size(ids.length)
+        SearchSourceBuilder source = new SearchSourceBuilder().size(ids.length * 10)
            .query(constantScoreQuery(idsFilter(toStrArray(types)).ids(ids))).version(true);
         return new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source);
     }

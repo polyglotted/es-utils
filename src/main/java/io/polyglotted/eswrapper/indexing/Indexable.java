@@ -3,7 +3,6 @@ package io.polyglotted.eswrapper.indexing;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.AccessLevel;
@@ -15,20 +14,17 @@ import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.VersionType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.getFirst;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.deleteRecord;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
-import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.services.ValidityException.checkValidity;
 import static io.polyglotted.pgmodel.search.KeyUtil.longToCompare;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.BASEVERSION_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.STATUS_FIELD;
 import static java.util.Arrays.asList;
 
 @Slf4j
@@ -86,41 +82,6 @@ public final class Indexable {
             }
         }
         checkValidity(builder.build());
-    }
-
-    public static Indexable approvalIndexable(Iterable<SimpleDoc> docs, String comment, String user, long timestamp) {
-        Indexable.Builder builder = indexableBuilder().user(user).timestamp(timestamp);
-        for (SimpleDoc doc : docs) {
-            DocStatus status = DocStatus.fromStatus(doc.strVal(STATUS_FIELD));
-            Long baseVersion = doc.hasItem(BASEVERSION_FIELD) ? doc.longStrVal(BASEVERSION_FIELD) : null;
-            IndexKey baseKey = doc.baseKey(baseVersion);
-
-            if (status == DocStatus.PENDING_DELETE) {
-                builder.record(deleteRecord(doc.key, comment, DocStatus.DELETED));
-                builder.record(deleteRecord(baseKey));
-            } else {
-                builder.record(deleteRecord(doc.key, comment, DocStatus.LIVE));
-                if (baseVersion == null) {
-                    builder.record(createRecord(baseKey, GSON.toJson(doc.filteredCopy())));
-                } else {
-                    builder.record(updateRecord(baseKey, GSON.toJson(doc.filteredCopy())));
-                }
-            }
-        }
-        return builder.build();
-    }
-
-    public static Indexable rejectionIndexable(Iterable<SimpleDoc> docs, String comment, String user, long timestamp) {
-        Indexable.Builder builder = indexableBuilder().user(user).timestamp(timestamp);
-        for (SimpleDoc doc : docs)
-            builder.record(updateRecord(doc.key, DocStatus.REJECTED, comment, GSON.toJson(doc.filteredCopy())));
-        return builder.build();
-    }
-
-    public static Indexable discardIndexable(Iterable<SimpleDoc> docs, String user, long timestamp) {
-        Indexable.Builder builder = indexableBuilder().user(user).timestamp(timestamp);
-        for (SimpleDoc doc : docs) builder.record(deleteRecord(doc.key, null, DocStatus.DISCARDED));
-        return builder.build();
     }
 
     public static Builder indexableBuilder() {

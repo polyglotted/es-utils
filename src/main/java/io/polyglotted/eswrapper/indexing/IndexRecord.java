@@ -1,10 +1,8 @@
 package io.polyglotted.eswrapper.indexing;
 
-import com.google.common.base.Function;
 import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.KeyExclude;
-import io.polyglotted.pgmodel.search.Sleeve;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -18,8 +16,6 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.polyglotted.pgmodel.search.DocStatus.DELETED;
 import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
-import static io.polyglotted.pgmodel.search.DocStatus.PENDING;
-import static io.polyglotted.pgmodel.search.DocStatus.PENDING_DELETE;
 import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
 import static io.polyglotted.pgmodel.util.ModelUtil.equalsAll;
 
@@ -54,21 +50,6 @@ public final class IndexRecord {
     public boolean isUpdate() { return action != RecordAction.CREATE; }
 
     public ActionRequest request(long timestamp, String user) { return action.request(this, timestamp, user); }
-
-    public static <T> IndexRecord fromSleeve(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
-        return (sleeve.isNew()) ? createRecord(sleeve.key, function.apply(sleeve)) : (sleeve.shouldDelete() ?
-           deleteRecord(sleeve.key) : updateRecord(sleeve.key, function.apply(sleeve)));
-    }
-
-    public static <T> IndexRecord forApproval(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
-        Builder record = createRecord(sleeve.approvalKey()).baseVersion(sleeve.version());
-        if (sleeve.shouldDelete()) {
-            record.status(PENDING_DELETE).source("{}");
-        } else {
-            record.status(PENDING).source(function.apply(sleeve));
-        }
-        return record.build();
-    }
 
     public static IndexRecord createRecord(IndexKey key, String source) {
         return createRecord(key).source(source).build();
