@@ -227,6 +227,31 @@ public class ApprovalTest extends AbstractElasticTest {
            T3), in(BASEKEY_FIELD, "/trades/004")));
     }
 
+    @Test
+    public void rejectEditAndApprove() {
+        List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 10),
+           newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1));
+        indexer.twoPhaseCommit(approvalIndexable(query.getAll(originalKeys), "approved", "unit-approver", T2));
+
+        List<IndexKey> modificationKeys = indexer.twoPhaseCommit(pendingIndexable(query, getMutations(), T3));
+        List<IndexKey> rejectKeys = indexer.twoPhaseCommit(rejectionIndexable(query.getAll(modificationKeys),
+           "rejected next", "unit approver", T4));
+        assertLivePending(10, 0);
+        assertRejected(5, T4, "rejected next");
+
+        List<Sleeve<Trade>> updSleeves = Lists.newArrayList();
+        updSleeves.add(Sleeve.create(rejectKeys.get(0),
+           trade("/trades/021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 42.0)));
+        updSleeves.add(Sleeve.create(rejectKeys.get(3),
+           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 22.0)));
+        List<IndexKey> updateKeys = indexer.twoPhaseCommit(pendingIndexable(query, updSleeves, T5));
+        assertLivePending(10, 2);
+
+        indexer.twoPhaseCommit(approvalIndexable(query.getAll(updateKeys), "new approval", "unit-approver", T5));
+        assertLivePending(11, 0);
+    }
+
     private List<SimpleDoc> fetchAll(Expression... exprs) {
         return fetchRecords(query, APPROVAL_INDEX, exprs);
     }

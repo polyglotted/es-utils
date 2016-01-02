@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Maps.filterKeys;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.deleteRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
@@ -21,6 +22,7 @@ import static io.polyglotted.eswrapper.query.QueryBuilder.idRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.toStrArray;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.BASEVERSION_FIELD;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.BYTES_FIELD;
 
 public abstract class IndexableHelper {
 
@@ -47,8 +49,13 @@ public abstract class IndexableHelper {
     public static Indexable rejectionIndexable(Iterable<SimpleDoc> docs, String comment, String user, long timestamp) {
         Indexable.Builder builder = Indexable.indexableBuilder().user(user).timestamp(timestamp);
         for (SimpleDoc doc : docs)
-            builder.record(updateRecord(doc.key, DocStatus.REJECTED, comment, GSON.toJson(doc.filteredCopy())));
+            builder.record(updateRecord(doc.key, DocStatus.REJECTED, comment,
+               GSON.toJson(filterKeys(doc.source, IndexableHelper::baseKeys))));
         return builder.build();
+    }
+
+    private static boolean baseKeys(String key) {
+        return BYTES_FIELD.equals(key) || BASEVERSION_FIELD.equals(key) || !key.startsWith("&");
     }
 
     public static Indexable discardIndexable(Iterable<SimpleDoc> docs, String user, long timestamp) {
