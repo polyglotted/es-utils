@@ -8,6 +8,7 @@ import io.polyglotted.pgmodel.search.query.QueryHints;
 import io.polyglotted.pgmodel.search.query.Sort;
 import io.polyglotted.pgmodel.search.query.StandardQuery;
 import io.polyglotted.pgmodel.search.query.StandardScroll;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -23,6 +24,7 @@ import static java.util.Collections.singleton;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 import static org.elasticsearch.common.unit.TimeValue.timeValueSeconds;
+import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.elasticsearch.index.query.FilterBuilders.andFilter;
 import static org.elasticsearch.index.query.FilterBuilders.idsFilter;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
@@ -35,12 +37,12 @@ public abstract class QueryBuilder {
     public static SearchRequest idRequest(String[] ids, Iterable<String> types, String... indices) {
         SearchSourceBuilder source = new SearchSourceBuilder().size(ids.length * 10)
            .query(constantScoreQuery(idsFilter(toStrArray(types)).ids(ids))).version(true);
-        return new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source);
+        return trace(new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source));
     }
 
     public static SearchRequest aggregationToRequest(AbstractAggregationBuilder aggs, String... indices) {
         SearchSourceBuilder source = new SearchSourceBuilder().size(0).query(matchAllQuery()).aggregation(aggs);
-        return new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source);
+        return trace(new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source));
     }
 
     public static SearchScrollRequest scrollRequest(StandardScroll scroll) {
@@ -58,7 +60,7 @@ public abstract class QueryBuilder {
         setScrollOrLimits(request, builder, query);
         builder.postFilter(postFilter);
         request.source(builder);
-        return request;
+        return trace(request);
     }
 
     @VisibleForTesting
@@ -113,5 +115,11 @@ public abstract class QueryBuilder {
 
     public static String[] toStrArray(Iterable<String> iterable) {
         return toArray(iterable, String.class);
+    }
+
+    @SneakyThrows
+    private static SearchRequest trace(SearchRequest searchRequest) {
+        if (log.isTraceEnabled()) log.trace(convertToJson(searchRequest.source(), false, false));
+        return searchRequest;
     }
 }
