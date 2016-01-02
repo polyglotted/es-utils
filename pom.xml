@@ -8,7 +8,7 @@
     </parent>
 
     <artifactId>es-wrapper</artifactId>
-    <version>2.1.2-SNAPSHOT</version>
+    <version>2.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elastic Search Wrapper</name>
     <description>Standard set of utilities for elastic search abstraction</description>
@@ -41,7 +41,7 @@
         <spring.version>4.2.0.RELEASE</spring.version>
         <applauncher.version>2.0.4</applauncher.version>
 
-        <pgmodel.version>1.1.6-SNAPSHOT</pgmodel.version>
+        <pgmodel.version>1.2.0</pgmodel.version>
         <jna.version>4.1.0</jna.version>
         <jts.version>1.13</jts.version>
         <elasticsearch.version>1.7.1</elasticsearch.version>
