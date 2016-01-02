@@ -1,8 +1,10 @@
 package io.polyglotted.eswrapper.indexing;
 
+import com.google.common.base.Function;
 import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.KeyExclude;
+import io.polyglotted.pgmodel.search.Sleeve;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,6 +33,11 @@ public final class IndexRecord {
     public final String comment;
     public final String updateComment;
     public final String source;
+
+    public static <T> IndexRecord fromSleeve(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
+        return (sleeve.isNew()) ? createRecord(sleeve.key, function.apply(sleeve)) : (sleeve.shouldDelete() ?
+           deleteRecord(sleeve.key) : updateRecord(sleeve.key, function.apply(sleeve)));
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -23,8 +23,7 @@ import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.deleteRecord;
-import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.fromSleeve;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
@@ -258,10 +257,5 @@ public class IndexableTest extends AbstractElasticTest {
 
     static Function<Trade, Sleeve<Trade>> newSleeveFunction(String index, String type) {
         return input -> newSleeve(input, (i) -> keyWith(index, type, i.address));
-    }
-
-    public static <T> IndexRecord fromSleeve(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
-        return (sleeve.isNew()) ? createRecord(sleeve.key, function.apply(sleeve)) : (sleeve.shouldDelete() ?
-           deleteRecord(sleeve.key) : updateRecord(sleeve.key, function.apply(sleeve)));
     }
 }
