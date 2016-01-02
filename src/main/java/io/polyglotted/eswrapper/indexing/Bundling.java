@@ -1,7 +1,6 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -12,6 +11,7 @@ import org.elasticsearch.action.bulk.BulkRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.toArray;
@@ -46,11 +46,16 @@ public final class Bundling {
         private final List<IndexRecord> records = new ArrayList<>();
 
         public Builder records(IndexRecord... records) {
-            return records(asList(records));
+            return records.length == 1 ? record(records[0]) : records(asList(records));
         }
 
         public Builder records(Iterable<IndexRecord> records) {
-            Iterables.addAll(this.records, records);
+            for (IndexRecord record : records) record(record);
+            return this;
+        }
+
+        public Builder record(IndexRecord record) {
+            checkArgument(this.records.add(record), "record already exists {}", record.indexKey);
             return this;
         }
 

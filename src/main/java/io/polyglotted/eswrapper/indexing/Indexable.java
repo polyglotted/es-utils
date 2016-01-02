@@ -97,7 +97,7 @@ public final class Indexable {
         private String user = "unknown";
 
         public Builder records(IndexRecord... records) {
-            return records(asList(records));
+            return records.length == 1 ? record(records[0]) : records(asList(records));
         }
 
         public Builder records(Iterable<IndexRecord> records) {
