@@ -41,7 +41,7 @@
         <spring.version>4.2.0.RELEASE</spring.version>
         <applauncher.version>2.0.4</applauncher.version>
 
-        <pgmodel.version>1.2.2-SNAPSHOT</pgmodel.version>
+        <pgmodel.version>1.2.3-SNAPSHOT</pgmodel.version>
         <jna.version>4.1.0</jna.version>
         <jts.version>1.13</jts.version>
         <elasticsearch.version>1.7.1</elasticsearch.version>

@@ -32,6 +32,8 @@ import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
+import static io.polyglotted.pgmodel.search.DocStatus.DELETED;
+import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
 import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
 import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
 import static io.polyglotted.pgmodel.search.Sleeve.createSleeves;
@@ -104,8 +106,8 @@ public class IndexableTest extends AbstractElasticTest {
 
         assertThat(fetchRecords(query, LIVE_INDEX).size(), is(21));
         assertThat(fetchRecords(query, HISTORY_INDEX).size(), is(3));
-        assertHistory(updates, T1, "expired", T2);
-        assertHistory(deletes, T1, "deleted", T2);
+        assertHistory(updates, T1, EXPIRED.name(), T2);
+        assertHistory(deletes, T1, DELETED.name(), T2);
     }
 
     @Test
@@ -115,7 +117,7 @@ public class IndexableTest extends AbstractElasticTest {
 
         List<IndexKey> deletes = ImmutableList.of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "/trades/019", T1));
         indexer.twoPhaseCommit(indexable(transform(deletes, Sleeve::delete), T2));
-        assertHistory(deletes, T1, "deleted", T2);
+        assertHistory(deletes, T1, DELETED.name(), T2);
 
         List<Trade> newTrades = ImmutableList.of(
            trade("/trades/019", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0));
