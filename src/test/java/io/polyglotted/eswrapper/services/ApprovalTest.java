@@ -1,5 +1,6 @@
 package io.polyglotted.eswrapper.services;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.polyglotted.eswrapper.AbstractElasticTest;
@@ -16,6 +17,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.concat;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
@@ -25,6 +27,7 @@ import static io.polyglotted.eswrapper.indexing.IndexableHelper.approvalIndexabl
 import static io.polyglotted.eswrapper.indexing.IndexableHelper.discardIndexable;
 import static io.polyglotted.eswrapper.indexing.IndexableHelper.getPendingApprovals;
 import static io.polyglotted.eswrapper.indexing.IndexableHelper.rejectionIndexable;
+import static io.polyglotted.eswrapper.indexing.IndexableHelper.validateApprovalRoles;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.eswrapper.services.IndexableTest.fetchRecords;
 import static io.polyglotted.eswrapper.services.IndexableTest.newSleeveFunction;
@@ -39,6 +42,7 @@ import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
 import static io.polyglotted.pgmodel.search.DocStatus.LIVE;
 import static io.polyglotted.pgmodel.search.DocStatus.PENDING;
 import static io.polyglotted.pgmodel.search.DocStatus.PENDING_DELETE;
+import static io.polyglotted.pgmodel.search.IndexKey.approvalType;
 import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
 import static io.polyglotted.pgmodel.search.Sleeve.createSleeves;
 import static io.polyglotted.pgmodel.search.index.Alias.aliasBuilder;
@@ -67,7 +71,7 @@ public class ApprovalTest extends AbstractElasticTest {
     private static final String APPROVAL_INDEX = "approval_index";
     private static final String APPROVAL_LIVE = "approval_index.live";
     private static final String APPROVAL_HISTORY = "approval_index.history";
-    private static final String APPROVAL_TYPE = TRADE_TYPE + "$approval";
+    private static final String APPROVAL_TYPE = approvalType(TRADE_TYPE);
     private static final long T1 = 1442784061000L;
     private static final long T2 = 1442784062000L;
     private static final long T3 = 1442784063000L;
@@ -252,6 +256,22 @@ public class ApprovalTest extends AbstractElasticTest {
         assertLivePending(11, 0);
     }
 
+    @Test
+    public void approvalWithRoleValidation() {
+        List<String> userRoles = ImmutableList.of("Qux", "Baz", "Tux");
+
+        List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 2),
+           newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves,
+           Joiner.on(',').join(ImmutableList.of("Foo", "Bar", "Baz")), T1));
+        assertLivePending(0, 2);
+
+        List<SimpleDoc> all = query.getAll(originalKeys);
+        checkArgument(validateApprovalRoles(all, userRoles), "failed validation");
+        indexer.twoPhaseCommit(approvalIndexable(all, "approved", "unit-approver", T2));
+        assertLivePending(2, 0);
+    }
+
     private List<SimpleDoc> fetchAll(Expression... exprs) {
         return fetchRecords(query, APPROVAL_INDEX, exprs);
     }
@@ -282,6 +302,10 @@ public class ApprovalTest extends AbstractElasticTest {
     }
 
     private static Indexable pendingIndexable(QueryWrapper query, List<Sleeve<Trade>> sleeves, long ts) {
+        return pendingIndexable(query, sleeves, null, ts);
+    }
+
+    private static Indexable pendingIndexable(QueryWrapper query, List<Sleeve<Trade>> sleeves, String roles, long ts) {
         Map<IndexKey, SimpleDoc> docMap = getPendingApprovals(query, sleeves);
         Indexable.Builder builder = indexableBuilder().user("unit-tester").timestamp(ts);
         for (Sleeve<Trade> sleeve : sleeves) {
@@ -296,6 +320,7 @@ public class ApprovalTest extends AbstractElasticTest {
             } else {
                 record.status(PENDING).source(GSON.toJson(sleeve.source));
             }
+            record.approvalRoles(roles);
             builder.record(record.build());
         }
         return builder.build();

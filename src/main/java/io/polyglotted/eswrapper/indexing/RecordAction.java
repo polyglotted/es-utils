@@ -26,7 +26,7 @@ public enum RecordAction {
         @Override
         public ActionRequest request(IndexRecord record, long timestamp, String user) {
             final String id = emptyToNull(record.id()); //auto-generate if empty
-            log.debug("creating new record " + id + " for " + record.type() + " at " + record.index());
+            log.debug("creating new record " + nonNull(id, "_auto_") + " for " + record.type() + " at " + record.index());
 
             return new IndexRequest(record.index(), record.type(), id).source(sourceOf(record, timestamp, user))
                .create(true).parent(record.parent()).versionType(VersionType.EXTERNAL).version(timestamp);
@@ -66,18 +66,17 @@ public enum RecordAction {
         builder.append(record.source.substring(0, record.source.length() - 1));
 
         if (record.source.length() > 2) builder.append(",");
-        if (record.isUpdate()) {
+        if (record.isUpdate())
             builder.append("\"").append(ANCESTOR_FIELD).append("\":\"").append(record.uniqueId()).append("\",");
-        }
-        if (record.status != null) {
+        if (record.status != null)
             builder.append("\"").append(STATUS_FIELD).append("\":\"").append(record.status.toStatus()).append("\",");
-        }
-        if (record.comment != null) {
+        if (record.comment != null)
             builder.append("\"").append(COMMENT_FIELD).append("\":\"").append(record.comment).append("\",");
-        }
-        if (record.baseVersion != null) {
+        if (record.baseVersion != null)
             builder.append("\"").append(BASEVERSION_FIELD).append("\":\"").append(record.baseVersion).append("\",");
-        }
+        if (record.approvalRoles != null)
+            builder.append("\"").append(APPROVAL_ROLES_FIELD).append("\":\"").append(record.approvalRoles).append("\",");
+
         builder.append("\"").append(BASEKEY_FIELD).append("\":\"").append(nonNull(record.id(), "_auto_")).append("\",");
         builder.append("\"").append(TIMESTAMP_FIELD).append("\":\"").append(timestamp).append("\"");
         builder.append(",\"").append(USER_FIELD).append("\":\"").append(user).append("\"");

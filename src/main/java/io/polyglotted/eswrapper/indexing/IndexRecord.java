@@ -33,6 +33,7 @@ public final class IndexRecord {
     public final String comment;
     public final String updateComment;
     public final String source;
+    public final String approvalRoles;
 
     public static <T> IndexRecord fromSleeve(Sleeve<T> sleeve, Function<Sleeve<T>, String> function) {
         return (sleeve.isNew()) ? createRecord(sleeve.key, function.apply(sleeve)) : (sleeve.shouldDelete() ?
@@ -103,10 +104,11 @@ public final class IndexRecord {
         private String comment;
         private String updateComment;
         private String source;
+        private String approvalRoles;
 
         public IndexRecord build() {
             return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action, status, updateStatus,
-               baseVersion, comment, updateComment, checkNotNull(source, "source cannot be null"));
+               baseVersion, comment, updateComment, checkNotNull(source, "source cannot be null"), approvalRoles);
         }
     }
 }
