@@ -1,5 +1,9 @@
 package io.polyglotted.eswrapper.services;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.TypeMapping;
 import io.polyglotted.pgmodel.search.index.Alias;
@@ -40,6 +44,8 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterators.filter;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.aliasActions;
 import static org.elasticsearch.action.support.IndicesOptions.lenientExpandOpen;
 import static org.elasticsearch.client.Requests.createIndexRequest;
@@ -118,6 +124,27 @@ public final class AdminWrapper {
         return builder.bytes().length() > 2 ? convertToJson(builder.bytes(), false) : builder.bytes().toUtf8();
     }
 
+    public Multimap<String, String> getAliasData(String... aliases) {
+        Multimap<String, String> result = HashMultimap.create();
+        MetaData indexMetaDatas = getMeta(aliases);
+
+        ImmutableOpenMap<String, IndexMetaData> getIndices = indexMetaDatas.getIndices();
+        Iterator<String> indexIt = getIndices.keysIt();
+        while (indexIt.hasNext()) {
+            String index = indexIt.next();
+            IndexMetaData metaData = getIndices.get(index);
+
+            ImmutableList.Builder<String> urnsBuilder = ImmutableList.builder();
+            for (String type : copyOf(filter(metaData.mappings().keysIt(), AdminWrapper::typeIsVisible)))
+                urnsBuilder.add(index + ":" + type);
+            ImmutableList<String> types = urnsBuilder.build();
+            for (String alias : copyOf(metaData.aliases().keysIt())) {
+                result.putAll(alias, types);
+            }
+        }
+        return ImmutableMultimap.copyOf(result);
+    }
+
     public void updateSetting(IndexSetting setting, String... indices) {
         checkState(indexExists(indices), "one or more index does not exist " + Arrays.toString(indices));
         UpdateSettingsRequest settingsRequest = updateSettingsRequest(indices).settings(setting.updateJson());
@@ -184,4 +211,6 @@ public final class AdminWrapper {
         List<String> validationFailures = clusterHealth.getAllValidationFailures();
         checkState(validationFailures.isEmpty(), "cluster has validation errors " + validationFailures);
     }
+
+    private static boolean typeIsVisible(String type) { return !type.startsWith("$"); }
 }
