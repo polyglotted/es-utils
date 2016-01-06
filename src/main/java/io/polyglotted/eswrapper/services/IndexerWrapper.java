@@ -53,9 +53,9 @@ public final class IndexerWrapper {
             client.delete((DeleteRequest) request).actionGet();
     }
 
-    public BulkResponse index(BulkRequest bulkRequest) {
-        return index(bulkRequest, strict());
-    }
+    public BulkResponse index(BulkRequest bulkRequest) { return index(bulkRequest, strict()); }
+
+    public List<IndexKey> bulkIndex(Bundling bundling) { return bulkIndex(bundling, strict()); }
 
     public List<IndexKey> bulkIndex(Bundling bundling, IgnoreErrors ignoreErrors) {
         try {
@@ -67,9 +67,7 @@ public final class IndexerWrapper {
         }
     }
 
-    public List<IndexKey> twoPhaseCommit(Indexable indexable) {
-        return twoPhaseCommit(indexable, EMPTY_VALIDATOR);
-    }
+    public List<IndexKey> twoPhaseCommit(Indexable indexable) { return twoPhaseCommit(indexable, EMPTY_VALIDATOR); }
 
     public List<IndexKey> twoPhaseCommit(Indexable indexable, Validator validator) {
         lockTheIndexOrFail(indexable.unaryIndex);

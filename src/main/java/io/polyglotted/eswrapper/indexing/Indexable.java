@@ -100,9 +100,18 @@ public final class Indexable {
             return records.length == 1 ? record(records[0]) : records(asList(records));
         }
 
+        public Builder records(IndexRecord.Builder... builders) {
+            return builders.length == 1 ? record(builders[0].build()) :
+               records(transform(asList(builders), IndexRecord.Builder::build));
+        }
+
         public Builder records(Iterable<IndexRecord> records) {
             for (IndexRecord record : records) record(record);
             return this;
+        }
+
+        public Builder record(IndexRecord.Builder builder) {
+            return record(builder.build());
         }
 
         public Builder record(IndexRecord record) {
