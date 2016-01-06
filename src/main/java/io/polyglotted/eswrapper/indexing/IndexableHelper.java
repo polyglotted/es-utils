@@ -1,8 +1,7 @@
 package io.polyglotted.eswrapper.indexing;
 
-import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import io.polyglotted.eswrapper.services.QueryWrapper;
 import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.IndexKey;
@@ -14,9 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Functions.identity;
 import static com.google.common.collect.Iterables.transform;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.deleteRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.updateRecord;
@@ -28,8 +27,6 @@ import static io.polyglotted.pgmodel.search.index.HiddenFields.APPROVAL_ROLES_FI
 import static io.polyglotted.pgmodel.search.index.HiddenFields.BASEVERSION_FIELD;
 
 public abstract class IndexableHelper {
-    private static Splitter COMMA_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
-
     public static Indexable approvalIndexable(Iterable<SimpleDoc> docs, String comment, String user, long timestamp) {
         Indexable.Builder builder = Indexable.indexableBuilder().user(user).timestamp(timestamp);
         for (SimpleDoc doc : docs) {
@@ -68,17 +65,20 @@ public abstract class IndexableHelper {
         Set<String> types = ImmutableSet.copyOf(transform(sleeves, Sleeve::approvalType));
         QueryResponse queryResponse = query.search(idRequest(toStrArray(transform(sleeves, Sleeve::id)),
            types, toStrArray(indices)), SimpleDocBuilder);
-        return Maps.uniqueIndex(queryResponse.resultsAs(SimpleDoc.class), SimpleDoc::key);
+        return uniqueIndex(queryResponse.resultsAs(SimpleDoc.class), SimpleDoc::key);
     }
 
     public static boolean validateApprovalRoles(List<SimpleDoc> docs, List<String> userRoles) {
+        outer:
         for (SimpleDoc doc : docs) {
-            String typeRoles = doc.strVal(APPROVAL_ROLES_FIELD);
-            if (isNullOrEmpty(typeRoles)) continue;
+            @SuppressWarnings("unchecked")
+            Map<String, String> approvalRoles = doc.hasItem(APPROVAL_ROLES_FIELD) ? uniqueIndex((List<String>)
+               doc.source.get(APPROVAL_ROLES_FIELD), identity()) : ImmutableMap.of();
+            if (approvalRoles.isEmpty()) continue;
 
-            List<String> approvalRoles = newArrayList(COMMA_SPLITTER.split(typeRoles));
-            approvalRoles.retainAll(userRoles);
-            if (approvalRoles.isEmpty()) return false;
+            for (String userRole : userRoles)
+                if (approvalRoles.containsKey(userRole)) continue outer;
+            return false;
         }
         return true;
     }

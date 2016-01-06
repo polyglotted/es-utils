@@ -1,6 +1,5 @@
 package io.polyglotted.eswrapper.services;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.polyglotted.eswrapper.AbstractElasticTest;
@@ -11,6 +10,7 @@ import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.Sleeve;
 import io.polyglotted.pgmodel.search.index.FieldType;
+import io.polyglotted.pgmodel.search.index.HiddenFields;
 import io.polyglotted.pgmodel.search.query.Expression;
 import org.testng.annotations.Test;
 
@@ -48,10 +48,8 @@ import static io.polyglotted.pgmodel.search.Sleeve.createSleeves;
 import static io.polyglotted.pgmodel.search.index.Alias.aliasBuilder;
 import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedField;
 import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
-import static io.polyglotted.pgmodel.search.index.FieldMapping.simpleField;
-import static io.polyglotted.pgmodel.search.index.FieldType.LONG;
+import static io.polyglotted.pgmodel.search.index.HiddenFields.APPROVAL_ROLES_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.BASEKEY_FIELD;
-import static io.polyglotted.pgmodel.search.index.HiddenFields.BASEVERSION_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.COMMENT_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.EXPIRY_FIELD;
 import static io.polyglotted.pgmodel.search.index.HiddenFields.STATUS_FIELD;
@@ -64,6 +62,7 @@ import static io.polyglotted.pgmodel.search.query.Expressions.in;
 import static io.polyglotted.pgmodel.search.query.Expressions.liveIndex;
 import static io.polyglotted.pgmodel.search.query.Expressions.pendingApproval;
 import static io.polyglotted.pgmodel.search.query.Expressions.type;
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -88,8 +87,7 @@ public class ApprovalTest extends AbstractElasticTest {
            .fieldMapping(notAnalyzedField(FieldDate, FieldType.DATE)).build());
 
         admin.createType(typeBuilder().index(APPROVAL_INDEX).type(APPROVAL_TYPE)
-           .fieldMapping(simpleField(BASEVERSION_FIELD, LONG).docValues(null).includeInAll(false).build())
-           .fieldMapping(notAnalyzedStringField(COMMENT_FIELD).docValues(null).includeInAll(false).build())
+           .fieldMapping(HiddenFields.hiddenFieldsForApproval())
            .fieldMapping(notAnalyzedStringField(FieldAddress).build())
            .fieldMapping(notAnalyzedField(FieldDate, FieldType.DATE)).build());
 
@@ -258,16 +256,19 @@ public class ApprovalTest extends AbstractElasticTest {
 
     @Test
     public void approvalWithRoleValidation() {
-        List<String> userRoles = ImmutableList.of("Qux", "Baz", "Tux");
-
         List<Sleeve<Trade>> sleeves = createSleeves(sampleTrades().subList(0, 2),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE));
-        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves,
-           Joiner.on(',').join(ImmutableList.of("Foo", "Bar", "Baz")), T1));
+        List<IndexKey> originalKeys = indexer.twoPhaseCommit(pendingIndexable(query, sleeves, T1, "Foo", "Bar", "Baz"));
         assertLivePending(0, 2);
 
+        String[] successRoles = new String[]{"Qux", "Baz", "Tux"};
+        String[] failedRoles = new String[]{"Qux", "Tux"};
+        assertThat(fetchAll(pendingApproval(), in(APPROVAL_ROLES_FIELD, successRoles)).size(), is(2));
+        assertThat(fetchAll(pendingApproval(), in(APPROVAL_ROLES_FIELD, failedRoles)).size(), is(0));
+
         List<SimpleDoc> all = query.getAll(originalKeys);
-        checkArgument(validateApprovalRoles(all, userRoles), "failed validation");
+        checkArgument(!validateApprovalRoles(all, asList(failedRoles)), "failed validation false");
+        checkArgument(validateApprovalRoles(all, asList(successRoles)), "failed validation");
         indexer.twoPhaseCommit(approvalIndexable(all, "approved", "unit-approver", T2));
         assertLivePending(2, 0);
     }
@@ -301,11 +302,7 @@ public class ApprovalTest extends AbstractElasticTest {
         }
     }
 
-    private static Indexable pendingIndexable(QueryWrapper query, List<Sleeve<Trade>> sleeves, long ts) {
-        return pendingIndexable(query, sleeves, null, ts);
-    }
-
-    private static Indexable pendingIndexable(QueryWrapper query, List<Sleeve<Trade>> sleeves, String roles, long ts) {
+    private static Indexable pendingIndexable(QueryWrapper query, List<Sleeve<Trade>> sleeves, long ts, String... roles) {
         Map<IndexKey, SimpleDoc> docMap = getPendingApprovals(query, sleeves);
         Indexable.Builder builder = indexableBuilder().user("unit-tester").timestamp(ts);
         for (Sleeve<Trade> sleeve : sleeves) {
@@ -321,7 +318,7 @@ public class ApprovalTest extends AbstractElasticTest {
                 record.status(PENDING).source(GSON.toJson(sleeve.source));
             }
             record.approvalRoles(roles);
-            builder.record(record.build());
+            builder.record(record);
         }
         return builder.build();
     }

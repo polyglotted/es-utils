@@ -61,7 +61,7 @@ public enum RecordAction {
     }
 
     @VisibleForTesting
-    static String sourceOf(IndexRecord record, long timestamp, String user) {
+    public static String sourceOf(IndexRecord record, long timestamp, String user) {
         StringBuilder builder = new StringBuilder();
         builder.append(record.source.substring(0, record.source.length() - 1));
 
@@ -74,8 +74,14 @@ public enum RecordAction {
             builder.append("\"").append(COMMENT_FIELD).append("\":\"").append(record.comment).append("\",");
         if (record.baseVersion != null)
             builder.append("\"").append(BASEVERSION_FIELD).append("\":\"").append(record.baseVersion).append("\",");
-        if (record.approvalRoles != null)
-            builder.append("\"").append(APPROVAL_ROLES_FIELD).append("\":\"").append(record.approvalRoles).append("\",");
+        if (!record.approvalRoles.isEmpty()) {
+            builder.append("\"").append(APPROVAL_ROLES_FIELD).append("\":[");
+            for (int i = 0; i < record.approvalRoles.size(); i++) {
+                if (i != 0) builder.append(",");
+                builder.append("\"").append(record.approvalRoles.get(i)).append("\"");
+            }
+            builder.append("],");
+        }
 
         builder.append("\"").append(BASEKEY_FIELD).append("\":\"").append(nonNull(record.id(), "_auto_")).append("\",");
         builder.append("\"").append(TIMESTAMP_FIELD).append("\":\"").append(timestamp).append("\"");

@@ -20,9 +20,9 @@ public class IndexableHelperTest extends IndexableHelper {
            {of(), of(), true},
            {of(), of("A", "B"), true},
            {of(new SimpleDoc(keyWith("a", "b", "c"), ImmutableMap.of())), of("A", "B"), true},
-           {of(new SimpleDoc(keyWith("a", "b", "c"), ImmutableMap.of("&approvalRoles", "A,C"))), of("A", "B"), true},
-           {of(new SimpleDoc(keyWith("a", "b", "c"), ImmutableMap.of("&approvalRoles", "C,B"))), of("A", "B"), true},
-           {of(new SimpleDoc(keyWith("a", "b", "c"), ImmutableMap.of("&approvalRoles", "C,D"))), of("A", "B"), false},
+           {of(new SimpleDoc(keyWith("a", "b", "c"), ImmutableMap.of("&approvalRoles", of("A", "D")))), of("A", "B"), true},
+           {of(new SimpleDoc(keyWith("a", "b", "c"), ImmutableMap.of("&approvalRoles", of("C", "B")))), of("A", "B"), true},
+           {of(new SimpleDoc(keyWith("a", "b", "c"), ImmutableMap.of("&approvalRoles", of("C", "D")))), of("A", "B"), false},
         };
     }
 
