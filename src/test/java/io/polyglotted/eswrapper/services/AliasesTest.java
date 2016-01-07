@@ -33,13 +33,13 @@ public class AliasesTest extends AbstractElasticTest {
 
     @Test
     public void basicStarAliasesTest() {
-        createIndexWithStar(INDEX_1);
+        createIndexWithStar(INDEX_1, true);
         assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, ImmutableList.of(INDEX_2, INDEX_3), INDEX_1);
 
-        createIndexWithStar(INDEX_2);
+        createIndexWithStar(INDEX_2, false);
         assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, ImmutableList.of(INDEX_3), INDEX_1, INDEX_2);
 
-        createIndexWithStar(INDEX_3);
+        createIndexWithStar(INDEX_3, true);
         assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, ImmutableList.of(), INDEX_1, INDEX_2, INDEX_3);
 
         admin.dropIndex(INDEX_2);
@@ -48,24 +48,22 @@ public class AliasesTest extends AbstractElasticTest {
 
     private void assertDefaultType(Multimap<String, String> aliasData, String alias, List<String> nots, String... indices) {
         Collection<String> strings = aliasData.get(alias);
-        for (String index : indices) assertThat(strings.contains(index + ":DefaultType"), is(true));
-        for(String index : nots) assertThat(strings.contains(index + ":DefaultType"), is(false));
+        for (String index : indices) assertThat(strings.contains(index + ":*"), is(true));
+        for (String index : nots) assertThat(strings.contains(index + ":*"), is(false));
     }
 
-    private void createIndexWithStar(String index) {
+    private void createIndexWithStar(String index, boolean addDefType) {
         admin.createIndex(IndexSetting.with(3, 1), index);
-        mappings(index).forEach(admin::createType);
+        mappings(index, addDefType).forEach(admin::createType);
         admin.updateAliases(aliasBuilder().alias(STAR_ALL).index(index).filter(allIndex()).build());
         admin.updateAliases(aliasBuilder().alias(STAR_LIVE).filter(liveIndex()).index(index).build());
     }
 
-    private void dropIndex(String index) {
-        admin.dropIndex(index);
-    }
-
-    private static List<TypeMapping> mappings(String index) {
-        return ImmutableList.of(
-           typeBuilder().index(index).type("$lock").enableAll(false).enableSource(false).build(),
-           typeBuilder().index(index).type("DefaultType").fieldMapping(notAnalyzedStringField("a")).build());
+    private static List<TypeMapping> mappings(String index, boolean addDef) {
+        ImmutableList.Builder<TypeMapping> builder = ImmutableList.builder();
+        builder.add(typeBuilder().index(index).type("$lock").enableAll(false).enableSource(false).build());
+        if (addDef) builder.add(typeBuilder().index(index).type("DefaultType")
+           .fieldMapping(notAnalyzedStringField("a")).build());
+        return builder.build();
     }
 }

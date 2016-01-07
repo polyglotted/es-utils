@@ -139,6 +139,7 @@ public final class AdminWrapper {
                 urnsBuilder.add(index + ":" + type);
             ImmutableList<String> types = urnsBuilder.build();
             for (String alias : copyOf(metaData.aliases().keysIt())) {
+                result.put(alias, index + ":*");
                 result.putAll(alias, types);
             }
         }
