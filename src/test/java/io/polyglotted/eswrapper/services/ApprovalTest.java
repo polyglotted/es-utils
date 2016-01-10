@@ -121,10 +121,10 @@ public class ApprovalTest extends AbstractElasticTest {
         assertLivePending(11, 0);
 
         assertHistory(4, T3, T4, LIVE.name(), "approved mod", and(type(APPROVAL_TYPE),
-           in(BASEKEY_FIELD, "/trades/021", "/trades/022", "/trades/005", "/trades/010"), equalsTo(EXPIRY_FIELD, T4)));
+           in(BASEKEY_FIELD, "trades:021", "trades:022", "trades:005", "trades:010"), equalsTo(EXPIRY_FIELD, T4)));
 
         assertHistory(1, T3, T4, DELETED.name(), "approved mod", and(type(APPROVAL_TYPE),
-           in(BASEKEY_FIELD, "/trades/004"), equalsTo(EXPIRY_FIELD, T4)));
+           in(BASEKEY_FIELD, "trades:004"), equalsTo(EXPIRY_FIELD, T4)));
     }
 
     @Test
@@ -138,7 +138,7 @@ public class ApprovalTest extends AbstractElasticTest {
         assertLivePending(0, 0);
         assertRejected(3, T2, "rejected by test");
         assertHistory(3, T1, T2, EXPIRED.name(), null, and(type(APPROVAL_TYPE),
-           in(BASEKEY_FIELD, "/trades/001", "/trades/002", "/trades/003")));
+           in(BASEKEY_FIELD, "trades:001", "trades:002", "trades:003")));
     }
 
     @Test
@@ -176,15 +176,15 @@ public class ApprovalTest extends AbstractElasticTest {
         List<IndexKey> editableKeys = ImmutableList.copyOf(concat(rejectedKeys, pendingKeys));
         List<Sleeve<Trade>> updSleeves = Lists.newArrayList();
         updSleeves.add(Sleeve.create(editableKeys.get(0),
-           trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 5.0)));
+           trade("trades:001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 5.0)));
         updSleeves.add(Sleeve.create(editableKeys.get(1),
-           trade("/trades/002", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 10.0)));
+           trade("trades:002", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 10.0)));
         updSleeves.add(Sleeve.create(editableKeys.get(2),
-           trade("/trades/003", "EMEA", "UK", "London", "IEU", "Bob", 1425427200000L, 15.0)));
+           trade("trades:003", "EMEA", "UK", "London", "IEU", "Bob", 1425427200000L, 15.0)));
         updSleeves.add(Sleeve.create(editableKeys.get(3),
-           trade("/trades/004", "EMEA", "UK", "London", "NYM", "Charlie", 1423958400000L, 20.0)));
+           trade("trades:004", "EMEA", "UK", "London", "NYM", "Charlie", 1423958400000L, 20.0)));
         updSleeves.add(Sleeve.create(editableKeys.get(4),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1422144000000L, 25.0)));
+           trade("trades:005", "EMEA", "UK", "London", "LME", "Chandler", 1422144000000L, 25.0)));
 
         List<IndexKey> updateKeys = indexer.twoPhaseCommit(pendingIndexable(query, updSleeves, T3));
         assertLivePending(0, 5);
@@ -193,7 +193,7 @@ public class ApprovalTest extends AbstractElasticTest {
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(updateKeys), "approved after upd", "unit-approver", T4));
         assertLivePending(5, 0);
         assertHistory(5, T3, T4, LIVE.name(), "approved after upd", and(type(APPROVAL_TYPE), equalsTo(TIMESTAMP_FIELD,
-           T3), in(BASEKEY_FIELD, "/trades/001", "/trades/002", "/trades/003", "/trades/004", "/trades/005")));
+           T3), in(BASEKEY_FIELD, "trades:001", "trades:002", "trades:003", "trades:004", "trades:005")));
     }
 
     @Test
@@ -208,9 +208,9 @@ public class ApprovalTest extends AbstractElasticTest {
 
         List<Sleeve<Trade>> updSleeves = Lists.newArrayList();
         updSleeves.add(Sleeve.create(modificationKeys.get(2),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 20.0)));
+           trade("trades:005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 20.0)));
         updSleeves.add(Sleeve.create(modificationKeys.get(3),
-           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 22.0)));
+           trade("trades:010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 22.0)));
         List<IndexKey> updateKeys = indexer.twoPhaseCommit(pendingIndexable(query, updSleeves, T4));
         assertLivePending(10, 5);
 
@@ -222,11 +222,11 @@ public class ApprovalTest extends AbstractElasticTest {
         indexer.twoPhaseCommit(approvalIndexable(query.getAll(newApproveKeys), "new approval", "unit-approver", T5));
         assertLivePending(11, 0);
         assertHistory(2, T4, T5, LIVE.name(), "new approval", and(type(APPROVAL_TYPE), equalsTo(TIMESTAMP_FIELD,
-           T4), in(BASEKEY_FIELD, "/trades/005", "/trades/010")));
+           T4), in(BASEKEY_FIELD, "trades:005", "trades:010")));
         assertHistory(2, T3, T5, LIVE.name(), "new approval", and(type(APPROVAL_TYPE), equalsTo(TIMESTAMP_FIELD,
-           T3), in(BASEKEY_FIELD, "/trades/021", "/trades/022")));
+           T3), in(BASEKEY_FIELD, "trades:021", "trades:022")));
         assertHistory(1, T3, T5, DELETED.name(), "new approval", and(type(APPROVAL_TYPE), equalsTo(TIMESTAMP_FIELD,
-           T3), in(BASEKEY_FIELD, "/trades/004")));
+           T3), in(BASEKEY_FIELD, "trades:004")));
     }
 
     @Test
@@ -244,9 +244,9 @@ public class ApprovalTest extends AbstractElasticTest {
 
         List<Sleeve<Trade>> updSleeves = Lists.newArrayList();
         updSleeves.add(Sleeve.create(rejectKeys.get(0),
-           trade("/trades/021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 42.0)));
+           trade("trades:021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 42.0)));
         updSleeves.add(Sleeve.create(rejectKeys.get(3),
-           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 22.0)));
+           trade("trades:010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 22.0)));
         List<IndexKey> updateKeys = indexer.twoPhaseCommit(pendingIndexable(query, updSleeves, T5));
         assertLivePending(10, 2);
 
@@ -326,14 +326,14 @@ public class ApprovalTest extends AbstractElasticTest {
     private static List<Sleeve<Trade>> getMutations() {
         List<Sleeve<Trade>> mutations = Lists.newArrayList();
         mutations.addAll(createSleeves(ImmutableList.of(
-              trade("/trades/021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0),
-              trade("/trades/022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0)),
+              trade("trades:021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0),
+              trade("trades:022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0)),
            newSleeveFunction(APPROVAL_INDEX, TRADE_TYPE)));
-        mutations.add(Sleeve.create(keyFrom(APPROVAL_INDEX, TRADE_TYPE, "/trades/005", T2),
-           trade("/trades/005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
-        mutations.add(Sleeve.create(keyFrom(APPROVAL_INDEX, TRADE_TYPE, "/trades/010", T2),
-           trade("/trades/010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0)));
-        mutations.add(Sleeve.delete(keyFrom(APPROVAL_INDEX, TRADE_TYPE, "/trades/004", T2)));
+        mutations.add(Sleeve.create(keyFrom(APPROVAL_INDEX, TRADE_TYPE, "trades:005", T2),
+           trade("trades:005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
+        mutations.add(Sleeve.create(keyFrom(APPROVAL_INDEX, TRADE_TYPE, "trades:010", T2),
+           trade("trades:010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0)));
+        mutations.add(Sleeve.delete(keyFrom(APPROVAL_INDEX, TRADE_TYPE, "trades:004", T2)));
         return mutations;
     }
 }

@@ -11,7 +11,6 @@ import org.testng.annotations.Test;
 import java.util.List;
 
 import static io.polyglotted.eswrapper.indexing.Bundling.bundlingBuilder;
-import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
@@ -51,7 +50,7 @@ public class ParentChildTest extends AbstractElasticTest {
     public void writeParentChildRequest() {
         long timestamp = 1425494500000L;
         Portfolio portfolio = new Portfolio("/portfolios/1st", "first portfolio");
-        Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
+        Trade trade = trade("trades:001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
         Indexable indexable = indexableBuilder().timestamp(timestamp).user("unit-tester").records(asList(
            createRecord(PC_INDEX, PORTFOLIO_TYPE, portfolio.address).source(GSON.toJson(portfolio)).build(),
            createRecord(keyWithParent(PC_INDEX, TRADE_TYPE, trade.address, portfolio.address)).source(GSON.toJson(trade)).build()
@@ -66,11 +65,11 @@ public class ParentChildTest extends AbstractElasticTest {
     @Test
     public void childWithoutParentTest() {
         long timestamp = 1425495500000L;
-        Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
+        Trade trade = trade("trades:001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
         Bundling bundling = bundlingBuilder().timestamp(timestamp).records(singleton(
            createRecord(keyWithParent(PC_INDEX, TRADE_TYPE, "portfolios/2"))
               .source(GSON.toJson(trade)).build())).build();
-        indexer.bulkIndex(bundling, strict());
+        indexer.bulkIndex(bundling);
 
         ensureBothDocs(1, trade.address);
     }

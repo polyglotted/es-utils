@@ -43,7 +43,7 @@ public final class Indexable {
         return transform(records, IndexRecord::key);
     }
 
-    public BulkRequest updateRequest(Map<IndexKey, SimpleDoc> currentDocs) {
+    public BulkRequest updateRequest(Map<String, SimpleDoc> currentDocs) {
         BulkRequest request = new BulkRequest().refresh(false);
         validateCurrentDocs(currentDocs);
         for (IndexRecord record : records) {
@@ -54,7 +54,7 @@ public final class Indexable {
 
             request.add(new IndexRequest(record.index(), record.type(), record.uniqueId()).create(true)
                .parent(record.parent()).versionType(VersionType.EXTERNAL).version(record.version())
-               .source(record.action.sourceFrom(currentDocs.get(record.indexKey),
+               .source(record.action.sourceFrom(currentDocs.get(record.baseIndexId()),
                   record.updateStatus, record.updateComment, timestamp, user)));
         }
         return request;
@@ -64,24 +64,24 @@ public final class Indexable {
         return new BulkRequest().refresh(false).add(transform(records, record -> record.request(timestamp, user)));
     }
 
-    private void validateCurrentDocs(Map<IndexKey, SimpleDoc> currentDocs) {
-        ImmutableMap.Builder<IndexKey, String> builder = ImmutableMap.builder();
+    private void validateCurrentDocs(Map<String, SimpleDoc> currentDocs) {
+        ImmutableMap.Builder<IndexKey, String> errors = ImmutableMap.builder();
         for (IndexRecord record : records) {
-            IndexKey indexKey = record.indexKey;
+            String baseIndexId = record.baseIndexId();
 
             if (record.isUpdate()) {
-                SimpleDoc simpleDoc = currentDocs.get(indexKey);
+                SimpleDoc simpleDoc = currentDocs.get(baseIndexId);
                 if (simpleDoc == null) {
-                    builder.put(indexKey, "record not found for update");
+                    errors.put(record.indexKey, "record not found for update");
 
-                } else if (longToCompare(simpleDoc.version()) != longToCompare(indexKey.version())) {
-                    builder.put(indexKey, "version conflict for update");
+                } else if (longToCompare(simpleDoc.version()) != longToCompare(record.version())) {
+                    errors.put(record.indexKey, "version conflict for update");
                 }
-            } else if (currentDocs.containsKey(indexKey)) {
-                builder.put(indexKey, "record already exists");
+            } else if (currentDocs.containsKey(baseIndexId)) {
+                errors.put(record.indexKey, "record already exists");
             }
         }
-        checkValidity(builder.build());
+        checkValidity(errors.build());
     }
 
     public static Builder indexableBuilder() {

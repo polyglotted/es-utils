@@ -149,15 +149,16 @@ public class QueryWrapperTest extends AbstractElasticTest {
     @Test
     public void testGetAs() {
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
-        Map<String, ?> stringMap = query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/001"), DEFAULT_BUILDER);
+        Map<String, ?> stringMap = query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001"), DEFAULT_BUILDER);
         assertNotNull(stringMap);
+        assertNull(query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:025"), DEFAULT_BUILDER));
     }
 
     @Test
     public void testFindAll() {
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
-        List<IndexKey> indexKeys = asList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/001"),
-           keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/025"));
+        List<IndexKey> indexKeys = asList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001"),
+           keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:025"));
 
         Map<IndexKey, SimpleDoc> docMap = query.findAll(indexKeys);
         assertNotNull(docMap.get(indexKeys.get(0)));
@@ -166,12 +167,12 @@ public class QueryWrapperTest extends AbstractElasticTest {
 
     @Test(expectedExceptions = IllegalStateException.class, expectedExceptionsMessageRegExp = "get item not exists")
     public void testGetAllFailure() {
-        query.getAll(singletonList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/001")));
+        query.getAll(singletonList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001")));
     }
 
     @Test
     public void testGetAsTrade() {
-        Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
+        Trade trade = trade("trades:001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
         long timestamp = 1425494500000L;
         indexer.index(new IndexRequest(DUMMY_INDICES[0], TRADE_TYPE, trade.address).opType(IndexRequest.OpType.CREATE)
            .version(timestamp).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));

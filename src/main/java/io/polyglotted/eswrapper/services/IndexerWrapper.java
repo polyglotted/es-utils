@@ -73,14 +73,14 @@ public final class IndexerWrapper {
         lockTheIndexOrFail(indexable.unaryIndex);
         try {
             List<SimpleDoc> currentDocs = validateAndGet(indexable, validator);
-            BulkRequest updateRequest = indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::key));
+            BulkRequest updateRequest = indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::baseIndexId));
             try {
                 index(updateRequest);
                 BulkResponse bulkResponse = index(indexable.writeRequest());
                 return ImmutableList.copyOf(transform(bulkResponse, ModelIndexUtil::keyFrom));
 
             } catch (RuntimeException ex) {
-                log.error("failed two phase commit", ex);
+                logError(ex);
                 deleteUpdatesInHistory(indexable.unaryIndex, indexable.updateKeys());
                 forceReindex(currentDocs);
                 throw ex;
@@ -139,6 +139,12 @@ public final class IndexerWrapper {
         BulkResponse responses = client.bulk(bulkRequest).actionGet();
         checkResponse(responses, ignoreErrors);
         return responses;
+    }
+
+    @VisibleForTesting
+    static void logError(RuntimeException ex) {
+        if (ex instanceof IndexerException) log.error(ex.getMessage());
+        else log.error("two phase commit failed: " + ex.getMessage(), ex);
     }
 
     private static void checkResponse(BulkResponse responses, IgnoreErrors ignore) {

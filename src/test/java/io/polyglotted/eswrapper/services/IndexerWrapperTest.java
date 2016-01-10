@@ -7,6 +7,7 @@ import io.polyglotted.eswrapper.indexing.IgnoreErrors;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.query.QueryResponse;
+import org.elasticsearch.action.admin.indices.analyze.AnalyzeRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -52,7 +53,7 @@ public class IndexerWrapperTest extends AbstractElasticTest {
 
     @Test
     public void writeIndexRequest() {
-        Trade trade = trade("/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
+        Trade trade = trade("trades:001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0);
         long t1 = 1425494500000L;
         indexer.index(new IndexRequest(TRADES_INDEX, TRADE_TYPE, trade.address).opType(OpType.CREATE)
            .version(t1).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));
@@ -66,6 +67,8 @@ public class IndexerWrapperTest extends AbstractElasticTest {
 
         indexer.index(new DeleteRequest(TRADES_INDEX, TRADE_TYPE, trade.address));
         assertNull(query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address)));
+
+        indexer.index(new AnalyzeRequest(TRADES_INDEX, "foo analyze"));
     }
 
     private void checkSimpleTrade(Trade trade, long t1) {
@@ -78,14 +81,14 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     public void writeAgainNoFailure() {
         indexer.index(tradesRequest(TRADES_INDEX, System.currentTimeMillis()), IgnoreErrors.strict());
         indexer.index(tradesRequest(TRADES_INDEX, System.currentTimeMillis(), singletonList(trade(
-           "/trades/001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0))), IgnoreErrors.lenient());
+           "trades:001", "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0))), IgnoreErrors.lenient());
     }
 
     @Test
     public void writeOlderVersionNoFailure() {
         indexer.index(tradesRequest(TRADES_INDEX, 1100L));
-        indexer.index(tradesRequest(TRADES_INDEX, 1000L, ImmutableList.of(trade("/trades/001", "EMEA",
-           "UK", "London", "IEU", "Alex", 1425427200000L, 20.0), trade("/trades/021", "APAC",
+        indexer.index(tradesRequest(TRADES_INDEX, 1000L, ImmutableList.of(trade("trades:001", "EMEA",
+           "UK", "London", "IEU", "Alex", 1425427200000L, 20.0), trade("trades:021", "APAC",
            "SG", "Singapore", "IEU", "Alex", 1425427200000L, 27.0))), IgnoreErrors.from(false, true));
     }
 
@@ -93,36 +96,41 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     public void writeFailure() {
         admin.createType(typeBuilder().index(TRADES_INDEX).type(Trade.TRADE_TYPE)
            .fieldMapping(notAnalyzedStringField("hello")).strict(true).build());
-        indexer.index(tradesRequest(TRADES_INDEX, 1000L, singletonList(trade("/trades/001", "EMEA",
+        indexer.index(tradesRequest(TRADES_INDEX, 1000L, singletonList(trade("trades:001", "EMEA",
            "UK", "London", "IEU", "Alex", 1425427200000L, 20.0))), IgnoreErrors.lenient());
     }
 
     @Test
     public void forceReindex() {
         indexer.index(tradesRequest(TRADES_INDEX, 1101L));
-        List<SimpleDoc> docs = indexer.getCurrent(TRADES_INDEX, "/trades/001", "/trades/010");
+        List<SimpleDoc> docs = indexer.getCurrent(TRADES_INDEX, "trades:001", "trades:010");
 
         indexer.index(new BulkRequest().refresh(true).add(new IndexRequest(TRADES_INDEX, TRADE_TYPE,
-           "/trades/001").version(2101L).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade("/trades/001",
+           "trades:001").version(2101L).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade("trades:001",
            "EMEA", "UK", "London", "IEU", "Alex", 1425427200000L, 20.0)))));
 
-        QueryResponse origResponse = query.search(idRequest(new String[]{"/trades/001", "/trades/010"},
+        QueryResponse origResponse = query.search(idRequest(new String[]{"trades:001", "trades:010"},
            ImmutableList.of(TRADE_TYPE), TRADES_INDEX), IndexKeyBuilder);
         assertEquals(transform(origResponse.resultsAs(IndexKey.class), key -> key.version), ImmutableList.of(2101L, 1101L));
 
         indexer.forceReindex(docs);
         admin.forceRefresh(TRADES_INDEX);
 
-        QueryResponse queryResponse = query.search(idRequest(new String[]{"/trades/001", "/trades/010"},
+        QueryResponse queryResponse = query.search(idRequest(new String[]{"trades:001", "trades:010"},
            ImmutableList.of(TRADE_TYPE), TRADES_INDEX), IndexKeyBuilder);
         assertTrue(Iterables.all(queryResponse.resultsAs(IndexKey.class), key -> key.version == 1101L));
     }
 
     @Test
     public void deleteUpdatesNoop() {
-        indexer.deleteUpdatesInHistory(TRADES_INDEX, ImmutableList.of(keyWith(TRADES_INDEX, TRADE_TYPE, "/trades/100"),
-           keyWith(TRADES_INDEX, TRADE_TYPE, "/trades/101")));
+        indexer.deleteUpdatesInHistory(TRADES_INDEX, ImmutableList.of(keyWith(TRADES_INDEX, TRADE_TYPE, "trades:100"),
+           keyWith(TRADES_INDEX, TRADE_TYPE, "trades:101")));
         admin.forceRefresh(TRADES_INDEX);
+    }
+
+    @Test
+    public void logErrorUnknown() {
+        IndexerWrapper.logError(new NullPointerException("induced null pointer"));
     }
 
     @Test

@@ -27,12 +27,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.query.QueryBuilder.aggregationToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.scrollRequest;
-import static io.polyglotted.eswrapper.services.ModelIndexUtil.failureMessage;
+import static io.polyglotted.eswrapper.services.ModelIndexUtil.checkMultiGet;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getReturnedHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getTotalHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.headerFrom;
@@ -82,9 +81,9 @@ public final class QueryWrapper {
         for (IndexKey key : indexKeys) multiGetRequest.add(new MultiGetRequest.Item(key.index, key.type, key.id));
         MultiGetResponse multiGetItemResponses = client.multiGet(multiGetRequest).actionGet();
         ImmutableList.Builder<SimpleDoc> result = ImmutableList.builder();
+
         for (MultiGetItemResponse item : multiGetItemResponses.getResponses()) {
-            checkState(!item.isFailed(), "error getting item: " + failureMessage(item.getFailure()));
-            GetResponse get = item.getResponse();
+            GetResponse get = checkMultiGet(item).getResponse();
             if (!get.isExists()) {
                 if (ignoreFailure) continue;
                 throw new IllegalStateException("get item not exists");

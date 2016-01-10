@@ -7,9 +7,9 @@ import io.polyglotted.pgmodel.search.query.ResponseHeader;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.cluster.metadata.AliasAction;
 import org.elasticsearch.index.VersionType;
@@ -29,10 +29,6 @@ public abstract class ModelIndexUtil {
            .versionType(VersionType.FORCE).source(doc.source);
     }
 
-    public static IndexKey keyFrom(IndexResponse response) {
-        return IndexKey.keyFrom(response.getIndex(), response.getType(), response.getId(), response.getVersion());
-    }
-
     public static IndexKey keyFrom(BulkItemResponse response) {
         return IndexKey.keyFrom(response.getIndex(), response.getType(), response.getId(), response.getVersion());
     }
@@ -42,16 +38,17 @@ public abstract class ModelIndexUtil {
            getReturnedHits(response), response.getScrollId());
     }
 
-    public static long getTotalHits(SearchResponse response) {
-        return response.getHits().getTotalHits();
+    public static long getTotalHits(SearchResponse response) { return response.getHits().getTotalHits(); }
+
+    public static int getReturnedHits(SearchResponse response) { return response.getHits().hits().length; }
+
+    public static MultiGetItemResponse checkMultiGet(MultiGetItemResponse item) {
+        if (item.isFailed())
+            throw new IllegalStateException("error multi-get item " + failureMessage(item.getFailure()));
+        return item;
     }
 
-    public static int getReturnedHits(SearchResponse response) {
-        return response.getHits().hits().length;
-    }
-
-    public static String failureMessage(MultiGetResponse.Failure fail) {
-        return fail == null ? "" : fail.getIndex() + "/" + fail.getType()
-           + "/" + fail.getId() + " : " + fail.getMessage();
+    private static String failureMessage(MultiGetResponse.Failure fail) {
+        return fail.getIndex() + "/" + fail.getType() + "/" + fail.getId() + ": " + fail.getMessage();
     }
 }

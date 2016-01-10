@@ -130,14 +130,9 @@ public class TimeSeriesTest extends AbstractElasticTest {
         )).build();
         indexer.twoPhaseCommit(indexable);
 
-        indexer.bulkIndex(bundlingBuilder().timestamp(ts2)
-           .records(makePoints(TS_INDEX, PTA_TYPE, a.id, 100)).build(), strict());
-
-        indexer.bulkIndex(bundlingBuilder().timestamp(ts2)
-           .records(makePoints(TS_INDEX, PTB_TYPE, b1.id, 100)).build(), strict());
-
-        indexer.bulkIndex(bundlingBuilder().timestamp(ts2)
-           .records(makePoints(TS_INDEX, PTB_TYPE, b2.id, 100)).build(), strict());
+        indexer.bulkIndex(bundlingBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTA_TYPE, a.id, 100)).build());
+        indexer.bulkIndex(bundlingBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTB_TYPE, b1.id, 100)).build());
+        indexer.bulkIndex(bundlingBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTB_TYPE, b2.id, 100)).build());
     }
 
     private static List<IndexRecord> makePoints(String index, String type, String parent, int numPoints) {
