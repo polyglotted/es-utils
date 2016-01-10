@@ -5,6 +5,7 @@ import org.elasticsearch.index.query.FilterBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static com.google.common.collect.ImmutableList.of;
 import static io.polyglotted.eswrapper.query.ExprConverter.*;
 import static io.polyglotted.pgmodel.search.query.Expression.NilExpression;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
@@ -18,6 +19,7 @@ public class ExpressionsTest extends Expressions {
         return new Object[][]{
            {All.buildFrom(all()), "{\"match_all\":{}}"},
            {Ids.buildFrom(ids("ab", "cd")), "{\"ids\":{\"types\":[],\"values\":[\"ab\",\"cd\"]}}"},
+           {Ids.buildFrom(ids(of("t1"), of("ab", "cd"))), "{\"ids\":{\"type\":\"t1\",\"values\":[\"ab\",\"cd\"]}}"},
            {Eq.buildFrom(equalsTo("hello", "world")), "{\"term\":{\"hello\":\"world\"}}"},
            {Gte.buildFrom(greaterThanEquals("hello", "world")),
               "{\"range\":{\"hello\":{\"from\":\"world\",\"to\":null,\"include_lower\":true,\"include_upper\":true}}}"},

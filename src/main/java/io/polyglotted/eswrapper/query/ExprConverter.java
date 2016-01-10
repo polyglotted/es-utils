@@ -3,12 +3,15 @@ package io.polyglotted.eswrapper.query;
 import io.polyglotted.pgmodel.search.query.Expression;
 import org.elasticsearch.index.query.FilterBuilder;
 
+import java.util.List;
+
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
+import static io.polyglotted.eswrapper.query.QueryBuilder.toStrArray;
 import static io.polyglotted.pgmodel.search.query.Expression.NilExpression;
 import static org.elasticsearch.index.query.FilterBuilders.*;
 import static org.elasticsearch.index.query.MatchQueryBuilder.Type.PHRASE_PREFIX;
@@ -24,7 +27,8 @@ public enum ExprConverter {
     Ids {
         @Override
         FilterBuilder buildFrom(Expression expr) {
-            return idsFilter().ids(toArray(transform(expr.arrayArg(), Object::toString), String.class));
+            List<String> types = expr.argFor("types");
+            return idsFilter(toStrArray(types)).ids(toStrArray(transform(expr.arrayArg(), Object::toString)));
         }
     },
     Eq {
