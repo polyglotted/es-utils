@@ -3,10 +3,13 @@ package io.polyglotted.eswrapper.query;
 import io.polyglotted.pgmodel.search.query.Expression;
 import org.elasticsearch.index.query.FilterBuilder;
 
+import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
+import static io.polyglotted.pgmodel.search.query.Expression.NilExpression;
 import static org.elasticsearch.index.query.FilterBuilders.*;
 import static org.elasticsearch.index.query.MatchQueryBuilder.Type.PHRASE_PREFIX;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -156,10 +159,10 @@ public enum ExprConverter {
     abstract FilterBuilder buildFrom(Expression expr);
 
     public static FilterBuilder buildFilter(Expression expr) {
-        return expr == null ? null : valueOf(expr.operation).buildFrom(expr);
+        return expr == null || NilExpression.equals(expr) ? null : valueOf(expr.operation).buildFrom(expr);
     }
 
     public static FilterBuilder[] aggregateFilters(Iterable<Expression> expressions) {
-        return toArray(transform(expressions, ExprConverter::buildFilter), FilterBuilder.class);
+        return toArray(filter(transform(expressions, ExprConverter::buildFilter), notNull()), FilterBuilder.class);
     }
 }

@@ -6,8 +6,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static io.polyglotted.eswrapper.query.ExprConverter.*;
+import static io.polyglotted.pgmodel.search.query.Expression.NilExpression;
 import static org.elasticsearch.common.xcontent.XContentHelper.convertToJson;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class ExpressionsTest extends Expressions {
 
@@ -62,5 +64,11 @@ public class ExpressionsTest extends Expressions {
     @Test(dataProvider = "expressionInputs")
     public void expressionToFilter(FilterBuilder filterBuilder, String json) throws Exception {
         assertEquals(convertToJson(filterBuilder.buildAsBytes(), false, false), json);
+    }
+
+    @Test
+    public void filterBuilderIsNull() {
+        assertNull(buildFilter(null));
+        assertNull(buildFilter(NilExpression));
     }
 }
