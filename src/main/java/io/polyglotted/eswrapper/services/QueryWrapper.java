@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.query.QueryBuilder.aggregationToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.scrollRequest;
@@ -63,25 +64,35 @@ public final class QueryWrapper {
            ImmutableMap.copyOf(response.getSourceAsMap())) : null;
     }
 
+    public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) {
+        GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
+        return response.isExists() ? builder.buildFrom(response.getSourceAsMap()) : null;
+    }
+
+    public Map<IndexKey, SimpleDoc> findAll(Iterable<IndexKey> indexKeys) {
+        return uniqueIndex(doMultiGet(indexKeys, true), SimpleDoc::key);
+    }
+
     public List<SimpleDoc> getAll(Iterable<IndexKey> indexKeys) {
+        return doMultiGet(indexKeys, false);
+    }
+
+    private List<SimpleDoc> doMultiGet(Iterable<IndexKey> indexKeys, boolean ignoreFailure) {
         MultiGetRequest multiGetRequest = new MultiGetRequest();
         for (IndexKey key : indexKeys) multiGetRequest.add(new MultiGetRequest.Item(key.index, key.type, key.id));
-        MultiGetResponse multiResponse = client.multiGet(multiGetRequest).actionGet();
-
+        MultiGetResponse multiGetItemResponses = client.multiGet(multiGetRequest).actionGet();
         ImmutableList.Builder<SimpleDoc> result = ImmutableList.builder();
-        for (MultiGetItemResponse item : multiResponse.getResponses()) {
+        for (MultiGetItemResponse item : multiGetItemResponses.getResponses()) {
             checkState(!item.isFailed(), "error getting item: " + failureMessage(item.getFailure()));
-
             GetResponse get = item.getResponse();
+            if (!get.isExists()) {
+                if (ignoreFailure) continue;
+                throw new IllegalStateException("get item not exists");
+            }
             result.add(new SimpleDoc(IndexKey.keyFrom(get.getIndex(), get.getType(), get.getId(), get.getVersion()),
                ImmutableMap.copyOf(get.getSourceAsMap())));
         }
         return result.build();
-    }
-
-    public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) {
-        GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
-        return response.isExists() ? builder.buildFrom(response.getSourceAsMap()) : null;
     }
 
     public Aggregation aggregate(Expression aggs, String... indices) {

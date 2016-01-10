@@ -2,6 +2,7 @@ package io.polyglotted.eswrapper.services;
 
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
+import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.index.FieldType;
 import io.polyglotted.pgmodel.search.query.QueryResponse;
@@ -42,11 +43,13 @@ import static io.polyglotted.pgmodel.search.query.Expressions.equalsTo;
 import static io.polyglotted.pgmodel.search.query.Expressions.textAnywhere;
 import static io.polyglotted.pgmodel.search.query.Sort.sortAsc;
 import static io.polyglotted.pgmodel.search.query.StandardQuery.queryBuilder;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 public class QueryWrapperTest extends AbstractElasticTest {
     private static final String[] DUMMY_INDICES = {"dummy1", "dummy2"};
@@ -148,6 +151,22 @@ public class QueryWrapperTest extends AbstractElasticTest {
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
         Map<String, ?> stringMap = query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/001"), DEFAULT_BUILDER);
         assertNotNull(stringMap);
+    }
+
+    @Test
+    public void testFindAll() {
+        indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
+        List<IndexKey> indexKeys = asList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/001"),
+           keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/025"));
+
+        Map<IndexKey, SimpleDoc> docMap = query.findAll(indexKeys);
+        assertNotNull(docMap.get(indexKeys.get(0)));
+        assertNull(docMap.get(indexKeys.get(1)));
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class, expectedExceptionsMessageRegExp = "get item not exists")
+    public void testGetAllFailure() {
+        query.getAll(singletonList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "/trades/001")));
     }
 
     @Test
