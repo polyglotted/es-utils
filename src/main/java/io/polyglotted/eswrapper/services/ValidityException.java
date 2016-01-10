@@ -10,7 +10,13 @@ public class ValidityException extends IndexerException {
         super(errorsMap);
     }
 
-    public static <K, V> void checkValidity(Map<K, V>  validations) {
+    public static void failedValidity(boolean condition, String message) {
+        if (!condition) {
+            throw new ValidityException(ImmutableMap.of("ERROR_MESSAGE", "validation failed:" + message));
+        }
+    }
+
+    public static <K, V> void checkValidity(Map<K, V> validations) {
         if (!validations.isEmpty()) {
             throw new ValidityException(ImmutableMap.of("ERROR_MESSAGE",
                buildFailureMessage("validation failed:", validations), "ERRORS", validations));
