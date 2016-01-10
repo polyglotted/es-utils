@@ -11,9 +11,11 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.collect.ImmutableMap.of;
 import static com.google.common.collect.ImmutableSortedSet.copyOf;
 import static com.google.common.collect.Iterables.concat;
 import static io.polyglotted.eswrapper.ElasticConstants.ALL_META;
+import static io.polyglotted.eswrapper.ElasticConstants.ID_META;
 import static io.polyglotted.eswrapper.ElasticConstants.META_META;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
 import static io.polyglotted.eswrapper.ElasticConstants.ROUTING_META;
@@ -64,11 +66,12 @@ public abstract class IndexSerializer {
             if (!mapping.enableAll) {
                 mainType.add(ALL_META, all);
                 all.addProperty("enabled", false);
-            }
-            else if (mapping.allAnalyzer != null) {
+            } else if (mapping.allAnalyzer != null) {
                 mainType.add(ALL_META, all);
                 all.addProperty("analyzer", mapping.allAnalyzer);
             }
+            if (mapping.enableType)
+                mainType.add(ID_META, context.serialize(of("index", "not_analyzed")));
 
             if (mapping.parent != null) {
                 JsonObject parent = new JsonObject();
@@ -116,7 +119,7 @@ public abstract class IndexSerializer {
             object.addProperty("analyzer", field.analyzer);
             object.addProperty("store", field.stored);
             object.addProperty("doc_values", field.docValues);
-            if(field.copyTo != null) object.add("copy_to", context.serialize(ImmutableList.of(field.copyTo)));
+            if (field.copyTo != null) object.add("copy_to", context.serialize(ImmutableList.of(field.copyTo)));
             field.type.extra(object);
             object.addProperty("include_in_all", field.includeInAll);
             field.argsMap.entrySet().forEach(arg -> object.add(arg.getKey(), context.serialize(arg.getValue())));
