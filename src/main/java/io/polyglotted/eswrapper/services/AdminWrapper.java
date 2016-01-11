@@ -213,5 +213,5 @@ public final class AdminWrapper {
         checkState(validationFailures.isEmpty(), "cluster has validation errors " + validationFailures);
     }
 
-    private static boolean typeIsVisible(String type) { return !type.startsWith("$"); }
+    private static boolean typeIsVisible(String type) { return !type.contains("$"); }
 }

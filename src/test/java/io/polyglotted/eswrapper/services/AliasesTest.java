@@ -10,9 +10,11 @@ import org.testng.annotations.Test;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.collect.ImmutableList.of;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
 import static io.polyglotted.pgmodel.search.index.Alias.aliasBuilder;
-import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
+import static io.polyglotted.pgmodel.search.index.FieldMapping.simpleField;
+import static io.polyglotted.pgmodel.search.index.FieldType.STRING;
 import static io.polyglotted.pgmodel.search.query.Expressions.allIndex;
 import static io.polyglotted.pgmodel.search.query.Expressions.liveIndex;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,16 +36,18 @@ public class AliasesTest extends AbstractElasticTest {
     @Test
     public void basicStarAliasesTest() {
         createIndexWithStar(INDEX_1, true);
-        assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, ImmutableList.of(INDEX_2, INDEX_3), INDEX_1);
+        Multimap<String, String> aliasData = admin.getAliasData(STAR_ALL);
+        assertDefaultType(aliasData, STAR_ALL, of(INDEX_2, INDEX_3), INDEX_1);
+        assertThat(aliasData.get(STAR_ALL), is(of("index_1:DefType", "index_1:*")));
 
         createIndexWithStar(INDEX_2, false);
-        assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, ImmutableList.of(INDEX_3), INDEX_1, INDEX_2);
+        assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, of(INDEX_3), INDEX_1, INDEX_2);
 
         createIndexWithStar(INDEX_3, true);
-        assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, ImmutableList.of(), INDEX_1, INDEX_2, INDEX_3);
+        assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, of(), INDEX_1, INDEX_2, INDEX_3);
 
         admin.dropIndex(INDEX_2);
-        assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, ImmutableList.of(INDEX_2), INDEX_1, INDEX_3);
+        assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, of(INDEX_2), INDEX_1, INDEX_3);
     }
 
     private void assertDefaultType(Multimap<String, String> aliasData, String alias, List<String> nots, String... indices) {
@@ -62,8 +66,10 @@ public class AliasesTest extends AbstractElasticTest {
     private static List<TypeMapping> mappings(String index, boolean addDef) {
         ImmutableList.Builder<TypeMapping> builder = ImmutableList.builder();
         builder.add(typeBuilder().index(index).type("$lock").enableAll(false).enableSource(false).build());
-        if (addDef) builder.add(typeBuilder().index(index).type("DefaultType")
-           .fieldMapping(notAnalyzedStringField("a")).build());
+        if (addDef) {
+            builder.add(typeBuilder().index(index).type("DefType").fieldMapping(simpleField("a", STRING)).build());
+            builder.add(typeBuilder().index(index).type("DefType$appr").fieldMapping(simpleField("a", STRING)).build());
+        }
         return builder.build();
     }
 }
