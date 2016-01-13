@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequestBuilder;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
-import org.elasticsearch.action.get.*;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -27,11 +26,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.collect.Maps.uniqueIndex;
+import static io.polyglotted.eswrapper.query.DocFinder.findAllByKeys;
+import static io.polyglotted.eswrapper.query.DocFinder.getByKey;
+import static io.polyglotted.eswrapper.query.DocFinder.getByKeyAs;
+import static io.polyglotted.eswrapper.query.DocFinder.multiGetByKeys;
 import static io.polyglotted.eswrapper.query.QueryBuilder.aggregationToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.scrollRequest;
-import static io.polyglotted.eswrapper.services.ModelIndexUtil.checkMultiGet;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getReturnedHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getTotalHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.headerFrom;
@@ -57,42 +58,13 @@ public final class QueryWrapper {
            : ImmutableMap.of();
     }
 
-    public SimpleDoc get(IndexKey indexKey) {
-        GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
-        return response.isExists() ? new SimpleDoc(indexKey.newVersion(response.getVersion()),
-           ImmutableMap.copyOf(response.getSourceAsMap())) : null;
-    }
+    public SimpleDoc get(IndexKey indexKey) { return getByKey(client, indexKey); }
 
-    public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) {
-        GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)).actionGet();
-        return response.isExists() ? builder.buildFrom(response.getSourceAsMap()) : null;
-    }
+    public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) { return getByKeyAs(client, indexKey, builder); }
 
-    public Map<IndexKey, SimpleDoc> findAll(Iterable<IndexKey> indexKeys) {
-        return uniqueIndex(doMultiGet(indexKeys, true), SimpleDoc::key);
-    }
+    public Map<IndexKey, SimpleDoc> findAll(Iterable<IndexKey> indexKeys) { return findAllByKeys(client, indexKeys); }
 
-    public List<SimpleDoc> getAll(Iterable<IndexKey> indexKeys) {
-        return doMultiGet(indexKeys, false);
-    }
-
-    private List<SimpleDoc> doMultiGet(Iterable<IndexKey> indexKeys, boolean ignoreFailure) {
-        MultiGetRequest multiGetRequest = new MultiGetRequest();
-        for (IndexKey key : indexKeys) multiGetRequest.add(new MultiGetRequest.Item(key.index, key.type, key.id));
-        MultiGetResponse multiGetItemResponses = client.multiGet(multiGetRequest).actionGet();
-        ImmutableList.Builder<SimpleDoc> result = ImmutableList.builder();
-
-        for (MultiGetItemResponse item : multiGetItemResponses.getResponses()) {
-            GetResponse get = checkMultiGet(item).getResponse();
-            if (!get.isExists()) {
-                if (ignoreFailure) continue;
-                throw new IllegalStateException("get item not exists");
-            }
-            result.add(new SimpleDoc(IndexKey.keyFrom(get.getIndex(), get.getType(), get.getId(), get.getVersion()),
-               ImmutableMap.copyOf(get.getSourceAsMap())));
-        }
-        return result.build();
-    }
+    public List<SimpleDoc> getAll(Iterable<IndexKey> indexKeys) { return multiGetByKeys(client, indexKeys, false); }
 
     public Aggregation aggregate(Expression aggs, String... indices) {
         SearchResponse response = client.search(aggregationToRequest(AggsConverter.build(aggs), indices)).actionGet();
