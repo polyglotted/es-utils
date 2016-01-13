@@ -27,15 +27,13 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
-import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
 import static io.polyglotted.eswrapper.services.DocFinder.findAllBy;
 import static io.polyglotted.eswrapper.services.IndexerException.checkErrors;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.keyFrom;
-import static io.polyglotted.eswrapper.services.Validator.EMPTY_VALIDATOR;
-import static io.polyglotted.eswrapper.services.ValidityException.checkValidity;
+import static io.polyglotted.eswrapper.services.VersionValidator.STANDARD_VALIDATOR;
 import static org.elasticsearch.client.Requests.refreshRequest;
 
 @Slf4j
@@ -66,13 +64,13 @@ public final class IndexerWrapper {
         }
     }
 
-    public List<IndexKey> twoPhaseCommit(Indexable indexable) { return twoPhaseCommit(indexable, EMPTY_VALIDATOR); }
+    public List<IndexKey> twoPhaseCommit(Indexable indexable) { return twoPhaseCommit(indexable, STANDARD_VALIDATOR); }
 
-    public List<IndexKey> twoPhaseCommit(Indexable indexable, Validator validator) {
+    public List<IndexKey> twoPhaseCommit(Indexable indexable, VersionValidator validator) {
         lockTheIndexOrFail(indexable.unaryIndex);
         try {
-            List<SimpleDoc> currentDocs = validateAndGet(indexable, validator);
-            BulkRequest updateRequest = indexable.updateRequest(uniqueIndex(currentDocs, SimpleDoc::baseIndexId));
+            List<SimpleDoc> currentDocs = findAllBy(client, indexable.keys(), SimpleDocBuilder, true);
+            BulkRequest updateRequest = validator.validate(indexable, currentDocs);
             try {
                 index(updateRequest);
                 BulkResponse bulkResponse = index(indexable.writeRequest());
@@ -80,7 +78,7 @@ public final class IndexerWrapper {
 
             } catch (RuntimeException ex) {
                 logError(ex);
-                deleteUpdatesInHistory(indexable.unaryIndex, indexable.updateKeys());
+                deleteUpdatesInHistory(indexable.unaryIndex, indexable.keys());
                 forceReindex(currentDocs);
                 throw ex;
             }
@@ -90,19 +88,12 @@ public final class IndexerWrapper {
         }
     }
 
-    private List<SimpleDoc> validateAndGet(Indexable indexable, Validator validator) {
-        Collection<IndexKey> indexKeys = indexable.updateKeys();
-        List<SimpleDoc> currentDocs = findAllBy(client, indexKeys, SimpleDocBuilder, true);
-        checkValidity(validator.validate(indexKeys, currentDocs));
-        return currentDocs;
-    }
-
     private void forceRefresh(String... indices) {
         client.admin().indices().refresh(refreshRequest(indices)).actionGet();
     }
 
     @VisibleForTesting
-    void forceReindex(List<SimpleDoc> currentDocs) {
+    void forceReindex(Collection<SimpleDoc> currentDocs) {
         index(new BulkRequest().refresh(false).add(transform(currentDocs, ModelIndexUtil::forcedRequest)), lenient());
     }
 

@@ -1,30 +1,23 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.polyglotted.pgmodel.search.IndexKey;
-import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.index.VersionType;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.getFirst;
-import static io.polyglotted.eswrapper.services.ValidityException.checkValidity;
-import static io.polyglotted.pgmodel.search.KeyUtil.longToCompare;
 import static java.util.Arrays.asList;
 
 @Slf4j
@@ -34,50 +27,14 @@ public final class Indexable {
     public final ImmutableList<IndexRecord> records;
     public final long timestamp;
     public final String user;
+    private volatile Collection<IndexKey> _keys;
 
-    public Collection<IndexKey> updateKeys() {
-        return transform(records, IndexRecord::key);
-    }
-
-    public BulkRequest updateRequest(Map<String, SimpleDoc> currentDocs) {
-        BulkRequest request = new BulkRequest().refresh(false);
-        validateCurrentDocs(currentDocs);
-        for (IndexRecord record : records) {
-            if (!record.isUpdate()) continue;
-
-            log.debug("creating archive record " + record.uniqueId() + " for " + record.id()
-               + " for type " + record.type() + " at " + record.index());
-
-            request.add(new IndexRequest(record.index(), record.type(), record.uniqueId()).create(true)
-               .parent(record.parent()).versionType(VersionType.EXTERNAL).version(record.version())
-               .source(record.action.sourceFrom(currentDocs.get(record.baseIndexId()),
-                  record.updateStatus, record.updateComment, timestamp, user)));
-        }
-        return request;
+    public Collection<IndexKey> keys() {
+        return _keys == null ? (_keys = transform(records, IndexRecord::key)) : _keys;
     }
 
     public BulkRequest writeRequest() {
         return new BulkRequest().refresh(false).add(transform(records, record -> record.request(timestamp, user)));
-    }
-
-    private void validateCurrentDocs(Map<String, SimpleDoc> currentDocs) {
-        ImmutableMap.Builder<IndexKey, String> errors = ImmutableMap.builder();
-        for (IndexRecord record : records) {
-            String baseIndexId = record.baseIndexId();
-
-            if (record.isUpdate()) {
-                SimpleDoc simpleDoc = currentDocs.get(baseIndexId);
-                if (simpleDoc == null) {
-                    errors.put(record.indexKey, "record not found for update");
-
-                } else if (longToCompare(simpleDoc.version()) != longToCompare(record.version())) {
-                    errors.put(record.indexKey, "version conflict for update");
-                }
-            } else if (currentDocs.containsKey(baseIndexId)) {
-                errors.put(record.indexKey, "record already exists");
-            }
-        }
-        checkValidity(errors.build());
     }
 
     public static Builder indexableBuilder() {

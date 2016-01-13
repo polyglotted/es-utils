@@ -8,6 +8,7 @@ import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexRecord;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
+import io.polyglotted.eswrapper.services.VersionValidator.StandardValidator;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.Sleeve;
@@ -15,6 +16,7 @@ import io.polyglotted.pgmodel.search.index.FieldType;
 import io.polyglotted.pgmodel.search.query.Expression;
 import org.testng.annotations.Test;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -197,7 +199,12 @@ public class IndexableTest extends AbstractElasticTest {
         ImmutableMap<String, String> errors = ImmutableMap.of("a", "induced validation fail");
         try {
             indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
-               newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)), T1), (keys, docs) -> errors);
+               newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)), T1), new StandardValidator(){
+                @Override
+                protected void prevalidateCurrentDocs(Collection<IndexKey> keys) {
+                    ValidityException.checkValidity(errors);
+                }
+            });
             fail("cannot pass valid");
 
         } catch (IndexerException ie) {
