@@ -31,6 +31,7 @@ import static io.polyglotted.eswrapper.services.Trade.tradesRequest;
 import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
 import static io.polyglotted.pgmodel.search.index.FieldMapping.notAnalyzedStringField;
 import static io.polyglotted.pgmodel.util.ReflectionUtil.fieldValue;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -66,15 +67,15 @@ public class IndexerWrapperTest extends AbstractElasticTest {
         checkSimpleTrade(trade, t2);
 
         indexer.index(new DeleteRequest(TRADES_INDEX, TRADE_TYPE, trade.address));
-        assertNull(query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address)));
+        assertNull(query.findBy(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address)));
 
         indexer.index(new AnalyzeRequest(TRADES_INDEX, "foo analyze"));
     }
 
     private void checkSimpleTrade(Trade trade, long t1) {
-        SimpleDoc simpleDoc = query.get(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address));
+        SimpleDoc simpleDoc = query.findBy(keyWith(TRADES_INDEX, TRADE_TYPE, trade.address));
         assertEquals((long) simpleDoc.version(), t1);
-        assertEquals(tradeFromMap(simpleDoc.source), trade);
+        assertEquals(tradeFromMap(simpleDoc.key, simpleDoc.source), trade);
     }
 
     @Test
@@ -103,7 +104,10 @@ public class IndexerWrapperTest extends AbstractElasticTest {
     @Test
     public void forceReindex() {
         indexer.index(tradesRequest(TRADES_INDEX, 1101L));
-        List<SimpleDoc> docs = indexer.getCurrent(TRADES_INDEX, "trades:001", "trades:010");
+
+        List<IndexKey> keys = asList(keyWith(TRADES_INDEX, TRADE_TYPE, "trades:001"),
+           keyWith(TRADES_INDEX, TRADE_TYPE, "trades:010"));
+        List<SimpleDoc> docs = query.findAll(keys);
 
         indexer.index(new BulkRequest().refresh(true).add(new IndexRequest(TRADES_INDEX, TRADE_TYPE,
            "trades:001").version(2101L).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade("trades:001",

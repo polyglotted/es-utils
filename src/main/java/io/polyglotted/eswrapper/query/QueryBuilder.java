@@ -16,8 +16,13 @@ import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
+import java.util.Collection;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.toArray;
 import static io.polyglotted.eswrapper.ElasticConstants.PARENT_META;
+import static io.polyglotted.eswrapper.query.ExprConverter.aggregateFilters;
+import static io.polyglotted.eswrapper.query.ExprConverter.buildFilter;
 import static io.polyglotted.eswrapper.query.ModelQueryUtil.orderOf;
 import static io.polyglotted.eswrapper.query.ModelQueryUtil.toOptions;
 import static java.util.Collections.singleton;
@@ -33,10 +38,17 @@ import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
 
 @Slf4j
 public abstract class QueryBuilder {
+    public static final int DEFAULT_MAXIMUM = 10000;
 
-    public static SearchRequest idRequest(String[] ids, Iterable<String> types, String... indices) {
-        SearchSourceBuilder source = new SearchSourceBuilder().size(ids.length * 10)
+    public static SearchRequest idRequest(String[] ids, Collection<String> types, String... indices) {
+        SearchSourceBuilder source = new SearchSourceBuilder().size(ids.length * (types.isEmpty() ? 1 : types.size()))
            .query(constantScoreQuery(idsFilter(toStrArray(types)).ids(ids))).version(true);
+        return trace(new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source));
+    }
+
+    public static SearchRequest filterToRequest(Expression filter, String... indices) {
+        SearchSourceBuilder source = new SearchSourceBuilder().size(DEFAULT_MAXIMUM)
+           .query(constantScoreQuery(buildFilter(checkNotNull(filter)))).version(true);
         return trace(new SearchRequest(indices).indicesOptions(lenientExpandOpen()).source(source));
     }
 
@@ -82,7 +94,7 @@ public abstract class QueryBuilder {
 
     @VisibleForTesting
     static void setFilters(SearchSourceBuilder builder, StandardQuery query) {
-        FilterBuilder[] filters = ExprConverter.aggregateFilters(query.expressions);
+        FilterBuilder[] filters = aggregateFilters(query.expressions);
         if (filters.length == 0)
             builder.query(matchAllQuery());
         else if (filters.length == 1)

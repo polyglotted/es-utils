@@ -1,5 +1,6 @@
 package io.polyglotted.eswrapper.services;
 
+import io.polyglotted.pgmodel.search.IndexKey;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -76,7 +77,7 @@ public class Trade {
         return bulkRequest;
     }
 
-    public static Trade tradeFromMap(Map<String, ?> source) {
+    public static Trade tradeFromMap(IndexKey key, Map<String, ?> source) {
         return GSON.fromJson(GSON.toJson(source), Trade.class);
     }
 }

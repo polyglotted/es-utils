@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.query.AggsConverter;
 import io.polyglotted.eswrapper.query.ResultBuilder;
-import io.polyglotted.eswrapper.query.SourceBuilder;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.query.*;
@@ -26,13 +25,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static io.polyglotted.eswrapper.query.DocFinder.findAllByKeys;
-import static io.polyglotted.eswrapper.query.DocFinder.getByKey;
-import static io.polyglotted.eswrapper.query.DocFinder.getByKeyAs;
-import static io.polyglotted.eswrapper.query.DocFinder.multiGetByKeys;
+import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.query.QueryBuilder.aggregationToRequest;
+import static io.polyglotted.eswrapper.query.QueryBuilder.filterToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.QueryBuilder.scrollRequest;
+import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.services.DocFinder.findAllBy;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getReturnedHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.getTotalHits;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.headerFrom;
@@ -58,13 +57,33 @@ public final class QueryWrapper {
            : ImmutableMap.of();
     }
 
-    public SimpleDoc get(IndexKey indexKey) { return getByKey(client, indexKey); }
+    public SimpleDoc findBy(IndexKey indexKey) {
+        return DocFinder.findBy(client, indexKey, SimpleDocBuilder);
+    }
 
-    public <T> T getAs(IndexKey indexKey, SourceBuilder<T> builder) { return getByKeyAs(client, indexKey, builder); }
+    public <T> T findBy(IndexKey indexKey, ResultBuilder<T> builder) {
+        return DocFinder.findBy(client, indexKey, builder);
+    }
 
-    public Map<IndexKey, SimpleDoc> findAll(Iterable<IndexKey> indexKeys) { return findAllByKeys(client, indexKeys); }
+    public List<SimpleDoc> findStrict(Iterable<IndexKey> indexKeys) {
+        return findAllBy(client, indexKeys, SimpleDocBuilder, false);
+    }
 
-    public List<SimpleDoc> getAll(Iterable<IndexKey> indexKeys) { return multiGetByKeys(client, indexKeys, false); }
+    public <T> List<T> findStrict(Iterable<IndexKey> indexKeys, ResultBuilder<T> builder) {
+        return findAllBy(client, indexKeys, builder, false);
+    }
+
+    public Map<IndexKey, SimpleDoc> mapAll(Iterable<IndexKey> indexKeys) {
+        return uniqueIndex(findAllBy(client, indexKeys, SimpleDocBuilder, true), SimpleDoc::key);
+    }
+
+    public List<SimpleDoc> findAll(Iterable<IndexKey> indexKeys) {
+        return findAllBy(client, indexKeys, SimpleDocBuilder, true);
+    }
+
+    public <T> List<T> findAll(Iterable<IndexKey> indexKeys, ResultBuilder<T> builder) {
+        return findAllBy(client, indexKeys, builder, true);
+    }
 
     public Aggregation aggregate(Expression aggs, String... indices) {
         SearchResponse response = client.search(aggregationToRequest(AggsConverter.build(aggs), indices)).actionGet();
@@ -104,6 +123,11 @@ public final class QueryWrapper {
         SearchResponse searchResponse = client.search(queryToRequest(query, postFilter)).actionGet();
         return responseBuilder(searchResponse, resultBuilder)
            .aggregations(buildAggregations(query.aggregates, searchResponse)).build();
+    }
+
+    public <T> QueryResponse searchBy(Expression filter, ResultBuilder<T> resultBuilder, String... indices) {
+        SearchResponse searchResponse = client.search(filterToRequest(filter, indices)).actionGet();
+        return responseBuilder(searchResponse, resultBuilder).build();
     }
 
     private static <T> QueryResponse.Builder responseBuilder(SearchResponse searchResponse, ResultBuilder<T>

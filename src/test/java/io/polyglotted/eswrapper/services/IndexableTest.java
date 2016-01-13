@@ -197,7 +197,7 @@ public class IndexableTest extends AbstractElasticTest {
         ImmutableMap<String, String> errors = ImmutableMap.of("a", "induced validation fail");
         try {
             indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(),
-               newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)), T1), currentDocs -> errors);
+               newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)), T1), (keys, docs) -> errors);
             fail("cannot pass valid");
 
         } catch (IndexerException ie) {

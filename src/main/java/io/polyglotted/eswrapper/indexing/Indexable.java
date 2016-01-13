@@ -35,10 +35,6 @@ public final class Indexable {
     public final long timestamp;
     public final String user;
 
-    public Collection<String> updateIds() {
-        return transform(records, IndexRecord::id);
-    }
-
     public Collection<IndexKey> updateKeys() {
         return transform(records, IndexRecord::key);
     }

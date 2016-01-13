@@ -4,8 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.query.SearchOptions;
 import lombok.SneakyThrows;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.common.io.stream.BytesStreamInput;
+import org.elasticsearch.index.get.GetField;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.sort.SortOrder;
@@ -35,6 +37,16 @@ public abstract class ModelQueryUtil {
     private static String getParent(SearchHit searchHit) {
         SearchHitField field = searchHit.field(PARENT_META);
         return field == null ? null : (String) field.value();
+    }
+
+    public static IndexKey keyFrom(GetResponse response) {
+        return IndexKey.keyFrom(response.getIndex(), response.getType(), response.getId(),
+           getParent(response), response.getVersion());
+    }
+
+    private static String getParent(GetResponse response) {
+        GetField field = response.getField(PARENT_META);
+        return field == null ? null : (String) field.getValue();
     }
 
     @SneakyThrows

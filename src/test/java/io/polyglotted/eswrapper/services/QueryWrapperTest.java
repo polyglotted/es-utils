@@ -20,7 +20,7 @@ import static io.polyglotted.eswrapper.query.QueryBuilder.queryToRequest;
 import static io.polyglotted.eswrapper.query.ResultBuilder.NullBuilder;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleObjectBuilder;
-import static io.polyglotted.eswrapper.query.SourceBuilder.DEFAULT_BUILDER;
+import static io.polyglotted.eswrapper.query.ResultBuilder.SourceBuilder;
 import static io.polyglotted.eswrapper.services.NamePath.NAMEPATH_TYPE;
 import static io.polyglotted.eswrapper.services.NamePath.pathsRequest;
 import static io.polyglotted.eswrapper.services.Nested.NESTED_TYPE;
@@ -149,9 +149,9 @@ public class QueryWrapperTest extends AbstractElasticTest {
     @Test
     public void testGetAs() {
         indexer.index(tradesRequest(DUMMY_INDICES[0], System.currentTimeMillis()));
-        Map<String, ?> stringMap = query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001"), DEFAULT_BUILDER);
+        Map<String, ?> stringMap = query.findBy(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001"), SourceBuilder);
         assertNotNull(stringMap);
-        assertNull(query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:025"), DEFAULT_BUILDER));
+        assertNull(query.findBy(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:025"), SourceBuilder));
     }
 
     @Test
@@ -160,14 +160,14 @@ public class QueryWrapperTest extends AbstractElasticTest {
         List<IndexKey> indexKeys = asList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001"),
            keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:025"));
 
-        Map<IndexKey, SimpleDoc> docMap = query.findAll(indexKeys);
+        Map<IndexKey, SimpleDoc> docMap = query.mapAll(indexKeys);
         assertNotNull(docMap.get(indexKeys.get(0)));
         assertNull(docMap.get(indexKeys.get(1)));
     }
 
     @Test(expectedExceptions = IllegalStateException.class, expectedExceptionsMessageRegExp = "get item not exists")
     public void testGetAllFailure() {
-        query.getAll(singletonList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001")));
+        query.findStrict(singletonList(keyWith(DUMMY_INDICES[0], TRADE_TYPE, "trades:001")));
     }
 
     @Test
@@ -177,7 +177,7 @@ public class QueryWrapperTest extends AbstractElasticTest {
         indexer.index(new IndexRequest(DUMMY_INDICES[0], TRADE_TYPE, trade.address).opType(IndexRequest.OpType.CREATE)
            .version(timestamp).versionType(VersionType.EXTERNAL).source(GSON.toJson(trade)));
 
-        Trade actual = query.getAs(keyWith(DUMMY_INDICES[0], TRADE_TYPE, trade.address), Trade::tradeFromMap);
+        Trade actual = query.findBy(keyWith(DUMMY_INDICES[0], TRADE_TYPE, trade.address), Trade::tradeFromMap);
         assertEquals(actual, trade);
     }
 }

@@ -26,13 +26,12 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
-import static io.polyglotted.eswrapper.query.QueryBuilder.idRequest;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
+import static io.polyglotted.eswrapper.services.DocFinder.findAllBy;
 import static io.polyglotted.eswrapper.services.IndexerException.checkErrors;
 import static io.polyglotted.eswrapper.services.ModelIndexUtil.keyFrom;
 import static io.polyglotted.eswrapper.services.Validator.EMPTY_VALIDATOR;
@@ -92,19 +91,14 @@ public final class IndexerWrapper {
     }
 
     private List<SimpleDoc> validateAndGet(Indexable indexable, Validator validator) {
-        Collection<String> updateIds = indexable.updateIds();
-        List<SimpleDoc> currentDocs = getCurrent(indexable.unaryIndex, toArray(updateIds, String.class));
-        checkValidity(validator.validate(updateIds));
+        Collection<IndexKey> indexKeys = indexable.updateKeys();
+        List<SimpleDoc> currentDocs = findAllBy(client, indexKeys, SimpleDocBuilder, true);
+        checkValidity(validator.validate(indexKeys, currentDocs));
         return currentDocs;
     }
 
     private void forceRefresh(String... indices) {
         client.admin().indices().refresh(refreshRequest(indices)).actionGet();
-    }
-
-    @VisibleForTesting
-    List<SimpleDoc> getCurrent(String currentIndex, String... ids) {
-        return SimpleDocBuilder.buildFrom(client.search(idRequest(ids, ImmutableList.of(), currentIndex)).actionGet());
     }
 
     @VisibleForTesting
