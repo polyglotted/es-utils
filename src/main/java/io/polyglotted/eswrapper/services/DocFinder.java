@@ -14,9 +14,10 @@ import static io.polyglotted.eswrapper.services.ModelIndexUtil.checkMultiGet;
 
 public abstract class DocFinder {
 
-    public static <T> T findBy(Client client, IndexKey indexKey, ResultBuilder<T> builder) {
-        GetResponse response = client.get(new GetRequest(indexKey.index, indexKey.type, indexKey.id)
-           .parent(indexKey.parent).fields(SOURCE_META, PARENT_META)).actionGet();
+    public static <T> T findBy(Client client, String index, String type, String id, String
+       parent, ResultBuilder<T> builder) {
+        GetResponse response = client.get(new GetRequest(index, type, id).parent(parent)
+           .fields(SOURCE_META, PARENT_META)).actionGet();
         return response.isExists() ? builder.buildFrom(response) : null;
     }
 
@@ -24,8 +25,8 @@ public abstract class DocFinder {
        resultBuilder, boolean ignoreFailure) {
         MultiGetRequest multiGetRequest = new MultiGetRequest();
         for (IndexKey key : indexKeys) {
-            multiGetRequest.add(new MultiGetRequest.Item(key.index, key.type, key.id)
-               .parent(key.parent).fields(SOURCE_META, PARENT_META));
+            multiGetRequest.add(new MultiGetRequest.Item(key.index, key.type, key.id).parent(key.parent)
+               .fields(SOURCE_META, PARENT_META));
         }
         MultiGetResponse multiGetItemResponses = client.multiGet(multiGetRequest).actionGet();
 

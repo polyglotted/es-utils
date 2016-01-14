@@ -57,12 +57,16 @@ public final class QueryWrapper {
            : ImmutableMap.of();
     }
 
-    public SimpleDoc findBy(IndexKey indexKey) {
-        return DocFinder.findBy(client, indexKey, SimpleDocBuilder);
+    public SimpleDoc findBy(IndexKey key) {
+        return DocFinder.findBy(client, key.index, key.type, key.id, key.parent, SimpleDocBuilder);
     }
 
-    public <T> T findBy(IndexKey indexKey, ResultBuilder<T> builder) {
-        return DocFinder.findBy(client, indexKey, builder);
+    public <T> T findBy(String index, String type, String id, ResultBuilder<T> builder) {
+        return DocFinder.findBy(client, index, type, id, null, builder);
+    }
+
+    public <T> T findBy(IndexKey key, ResultBuilder<T> builder) {
+        return DocFinder.findBy(client, key.index, key.type, key.id, key.parent, builder);
     }
 
     public List<SimpleDoc> findStrict(Iterable<IndexKey> indexKeys) {
