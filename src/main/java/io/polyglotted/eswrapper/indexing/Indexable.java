@@ -2,6 +2,7 @@ package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import io.polyglotted.pgmodel.search.IndexKey;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,8 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkRequest;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -27,10 +28,10 @@ public final class Indexable {
     public final ImmutableList<IndexRecord> records;
     public final long timestamp;
     public final String user;
-    private volatile Collection<IndexKey> _keys;
+    private volatile List<IndexKey> _keys;
 
-    public Collection<IndexKey> keys() {
-        return _keys == null ? (_keys = transform(records, IndexRecord::key)) : _keys;
+    public List<IndexKey> keys() {
+        return _keys == null ? (_keys = Lists.transform(records, IndexRecord::key)) : _keys;
     }
 
     public BulkRequest writeRequest() {

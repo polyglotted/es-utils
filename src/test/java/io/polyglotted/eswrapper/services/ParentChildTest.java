@@ -4,6 +4,7 @@ import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.Bundling;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.Indexable;
+import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import io.polyglotted.pgmodel.search.query.QueryResponse;
 import org.testng.annotations.Test;
@@ -55,7 +56,8 @@ public class ParentChildTest extends AbstractElasticTest {
            createRecord(PC_INDEX, PORTFOLIO_TYPE, portfolio.address).source(GSON.toJson(portfolio)).build(),
            createRecord(keyWithParent(PC_INDEX, TRADE_TYPE, trade.address, portfolio.address)).source(GSON.toJson(trade)).build()
         )).build();
-        indexer.twoPhaseCommit(indexable);
+        List<IndexKey> indexKeys = indexer.twoPhaseCommit(indexable);
+        assertThat(query.findAll(indexKeys).size(), is(2));
 
         ensureHasParent(portfolio, trade);
         ensureHasChild(portfolio, trade);

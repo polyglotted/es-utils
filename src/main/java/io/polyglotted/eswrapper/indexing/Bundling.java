@@ -1,6 +1,8 @@
 package io.polyglotted.eswrapper.indexing;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import io.polyglotted.pgmodel.search.IndexKey;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,6 +33,10 @@ public final class Bundling {
 
     public String[] indices() {
         return toArray(newHashSet(transform(records, IndexRecord::index)), String.class);
+    }
+
+    public List<IndexKey> keys() {
+        return Lists.transform(records, IndexRecord::key);
     }
 
     public static Builder bundlingBuilder() {

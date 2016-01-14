@@ -24,7 +24,6 @@ import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 import java.util.Collection;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
 import static io.polyglotted.eswrapper.indexing.IgnoreErrors.lenient;
@@ -32,7 +31,8 @@ import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.query.ResultBuilder.SimpleDocBuilder;
 import static io.polyglotted.eswrapper.services.DocFinder.findAllBy;
 import static io.polyglotted.eswrapper.services.IndexerException.checkErrors;
-import static io.polyglotted.eswrapper.services.ModelIndexUtil.keyFrom;
+import static io.polyglotted.eswrapper.services.ModelIndexUtil.indexKeyOf;
+import static io.polyglotted.eswrapper.services.ModelIndexUtil.resultKeys;
 import static io.polyglotted.eswrapper.services.VersionValidator.STANDARD_VALIDATOR;
 import static org.elasticsearch.client.Requests.refreshRequest;
 
@@ -57,7 +57,7 @@ public final class IndexerWrapper {
     public List<IndexKey> bulkIndex(Bundling bundling, IgnoreErrors ignoreErrors) {
         try {
             BulkResponse bulkResponse = index(bundling.writeRequest(), ignoreErrors);
-            return ImmutableList.copyOf(transform(checkNotNull(bulkResponse), ModelIndexUtil::keyFrom));
+            return resultKeys(bulkResponse, bundling.keys());
 
         } finally {
             forceRefresh(bundling.indices());
@@ -74,7 +74,7 @@ public final class IndexerWrapper {
             try {
                 index(updateRequest);
                 BulkResponse bulkResponse = index(indexable.writeRequest());
-                return ImmutableList.copyOf(transform(bulkResponse, ModelIndexUtil::keyFrom));
+                return resultKeys(bulkResponse, indexable.keys());
 
             } catch (RuntimeException ex) {
                 logError(ex);
@@ -139,7 +139,7 @@ public final class IndexerWrapper {
         for (BulkItemResponse response : responses) {
             String failureMessage = response.getFailureMessage();
             if (!ignore.ignoreFailure(failureMessage)) {
-                errorBuilder.put(keyFrom(response), failureMessage);
+                errorBuilder.put(indexKeyOf(response, null), failureMessage);
             }
         }
         checkErrors(errorBuilder.build());
