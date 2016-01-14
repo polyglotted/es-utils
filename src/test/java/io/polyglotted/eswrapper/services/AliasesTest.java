@@ -1,6 +1,7 @@
 package io.polyglotted.eswrapper.services;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import io.polyglotted.eswrapper.AbstractElasticTest;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
@@ -48,6 +49,15 @@ public class AliasesTest extends AbstractElasticTest {
 
         admin.dropIndex(INDEX_2);
         assertDefaultType(admin.getAliasData(STAR_ALL), STAR_ALL, of(INDEX_2), INDEX_1, INDEX_3);
+    }
+
+    @Test
+    public void getAliasIndicesTest() {
+        createIndexWithStar(INDEX_1, false);
+        createIndexWithStar(INDEX_3, false);
+        createIndexWithStar(INDEX_2, false);
+        assertThat(admin.getIndicesFor(STAR_ALL), is(ImmutableSet.of(INDEX_1, INDEX_2, INDEX_3)));
+        assertThat(admin.getIndicesFor(STAR_LIVE), is(ImmutableSet.of(INDEX_1, INDEX_2, INDEX_3)));
     }
 
     private void assertDefaultType(Multimap<String, String> aliasData, String alias, List<String> nots, String... indices) {

@@ -1,9 +1,6 @@
 package io.polyglotted.eswrapper.services;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import io.polyglotted.eswrapper.indexing.IndexSetting;
 import io.polyglotted.eswrapper.indexing.TypeMapping;
 import io.polyglotted.pgmodel.search.index.Alias;
@@ -37,10 +34,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -144,6 +138,11 @@ public final class AdminWrapper {
             }
         }
         return ImmutableMultimap.copyOf(result);
+    }
+
+    public Set<String> getIndicesFor(String alias) {
+        ImmutableOpenMap<String, IndexMetaData> getIndices = getMeta(alias).getIndices();
+        return ImmutableSortedSet.copyOf(getIndices.keysIt());
     }
 
     public void updateSetting(IndexSetting setting, String... indices) {
