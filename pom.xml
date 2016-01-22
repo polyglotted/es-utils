@@ -41,10 +41,10 @@
         <spring.version>4.2.0.RELEASE</spring.version>
         <applauncher.version>2.0.6</applauncher.version>
 
-        <pgmodel.version>1.4.0</pgmodel.version>
+        <pgmodel.version>1.4.1</pgmodel.version>
         <jna.version>4.1.0</jna.version>
         <jts.version>1.13</jts.version>
-        <elasticsearch.version>1.7.1</elasticsearch.version>
+        <elasticsearch.version>1.7.4</elasticsearch.version>
         <lucene.version>4.10.4</lucene.version>
         <groovy.version>2.4.4</groovy.version>
         <springelasticsearch.version>1.4.2</springelasticsearch.version>
