@@ -22,6 +22,7 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 public class AdminWrapperTest extends AbstractElasticTest {
 
@@ -51,6 +52,9 @@ public class AdminWrapperTest extends AbstractElasticTest {
         admin.createIndex(IndexSetting.with(5, 2), ADMIN_INDICES[0]);
         admin.createType(typeBuilder().index(ADMIN_ALIAS).type(ADMIN_TYPE)
            .fieldMapping(notAnalyzedStringField("b")).build());
+
+        admin.dropType(ADMIN_ALIAS, ADMIN_TYPE);
+        assertFalse(admin.typeExists(ADMIN_ALIAS, ADMIN_TYPE));
 
         admin.dropIndex(ADMIN_ALIAS);
 

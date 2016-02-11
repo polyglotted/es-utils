@@ -15,6 +15,8 @@ import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest;
+import org.elasticsearch.action.admin.indices.mapping.delete.DeleteMappingRequest;
+import org.elasticsearch.action.admin.indices.mapping.delete.DeleteMappingResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
@@ -177,6 +179,14 @@ public final class AdminWrapper {
             forceRefresh();
         }
         return getMapping(mapping.index, mapping.type);
+    }
+
+    public void dropType(String index, String type) {
+        if(!typeExists(index, type)) return;
+        checkState(!"$lock".equals(type), "cannot delete restricted $lock type");
+        DeleteMappingResponse response = client.admin().indices().deleteMapping(new DeleteMappingRequest(index)
+           .types(type)).actionGet();
+        checkState(response.isAcknowledged(), "could not delete type " + type);
     }
 
     public String getMapping(String index, String type) {
