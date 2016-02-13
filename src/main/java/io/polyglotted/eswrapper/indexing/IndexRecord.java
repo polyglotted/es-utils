@@ -20,12 +20,14 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static io.polyglotted.pgmodel.search.DocStatus.DELETED;
 import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
 import static io.polyglotted.pgmodel.search.IndexKey.keyWith;
 import static io.polyglotted.pgmodel.util.ModelUtil.equalsAll;
 import static java.util.Arrays.asList;
+import static java.util.UUID.randomUUID;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(includeFieldNames = false, doNotUseGetters = true)
@@ -51,11 +53,13 @@ public final class IndexRecord {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IndexRecord that = (IndexRecord) o;
-        return equalsAll(indexKey, that.indexKey, action, that.action);
+        return equalsAll(idOrRandom(), that.idOrRandom(), indexKey, that.indexKey, action, that.action);
     }
 
     @Override
     public int hashCode() { return Objects.hash(indexKey, action); }
+
+    private String idOrRandom() { return isNullOrEmpty(id()) ? randomUUID().toString() : id(); }
 
     public IndexKey key() { return indexKey; }
 

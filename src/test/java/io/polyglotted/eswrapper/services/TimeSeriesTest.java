@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static io.polyglotted.eswrapper.indexing.Bundling.bundlingBuilder;
-import static io.polyglotted.eswrapper.indexing.IgnoreErrors.strict;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
@@ -130,8 +129,8 @@ public class TimeSeriesTest extends AbstractElasticTest {
         )).build();
         indexer.twoPhaseCommit(indexable);
 
-        indexer.bulkIndex(bundlingBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTA_TYPE, a.id, 100)).build());
-        indexer.bulkIndex(bundlingBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTB_TYPE, b1.id, 100)).build());
+        indexer.twoPhaseCommit(indexableBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTA_TYPE, a.id, 100)).build());
+        indexer.twoPhaseCommit(indexableBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTB_TYPE, b1.id, 100)).build());
         indexer.bulkIndex(bundlingBuilder().timestamp(ts2).records(makePoints(TS_INDEX, PTB_TYPE, b2.id, 100)).build());
     }
 
