@@ -26,6 +26,7 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.createRecord;
 import static io.polyglotted.eswrapper.indexing.IndexRecord.fromSleeve;
+import static io.polyglotted.eswrapper.indexing.IndexRecord.overwriteRecord;
 import static io.polyglotted.eswrapper.indexing.IndexSerializer.GSON;
 import static io.polyglotted.eswrapper.indexing.Indexable.indexableBuilder;
 import static io.polyglotted.eswrapper.indexing.TypeMapping.typeBuilder;
@@ -34,6 +35,7 @@ import static io.polyglotted.eswrapper.services.Trade.FieldDate;
 import static io.polyglotted.eswrapper.services.Trade.TRADE_TYPE;
 import static io.polyglotted.eswrapper.services.Trade.sampleTrades;
 import static io.polyglotted.eswrapper.services.Trade.trade;
+import static io.polyglotted.eswrapper.services.VersionValidator.OVERWRITE_VALIDATOR;
 import static io.polyglotted.pgmodel.search.DocStatus.DELETED;
 import static io.polyglotted.pgmodel.search.DocStatus.EXPIRED;
 import static io.polyglotted.pgmodel.search.IndexKey.keyFrom;
@@ -90,30 +92,28 @@ public class IndexableTest extends AbstractElasticTest {
               trade("trades:022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0)),
            newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)));
 
-        List<IndexKey> updates = of(keyFrom(LIVE_ALIAS, TRADE_TYPE, "trades:005", T1),
-           keyFrom(LIVE_ALIAS, TRADE_TYPE, "trades:010", T1));
-        mutations.add(Sleeve.create(updates.get(0),
+        mutations.add(Sleeve.create(keyFrom(LIVE_ALIAS, TRADE_TYPE, "trades:005", T1),
            trade("trades:005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0)));
-        mutations.add(Sleeve.create(updates.get(1),
+        mutations.add(Sleeve.create(keyFrom(LIVE_ALIAS, TRADE_TYPE, "trades:010", T1),
            trade("trades:010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0)));
 
         //deletes
-        List<IndexKey> deletes = of(keyFrom(LIVE_ALIAS, TRADE_TYPE, "trades:019", T1));
-        Iterables.addAll(mutations, transform(deletes, Sleeve::delete));
+        Iterables.addAll(mutations, of(Sleeve.delete(keyFrom(LIVE_ALIAS, TRADE_TYPE, "trades:019", T1))));
 
         indexer.twoPhaseCommit(indexable(mutations, T2));
 
         assertThat(fetchRecords(query, LIVE_ALIAS).size(), is(21));
         assertThat(fetchRecords(query, ARCHIVE_ALIAS).size(), is(3));
-        assertHistory(updates, T1, EXPIRED.name(), T2);
-        assertHistory(deletes, T1, DELETED.name(), T2);
+        assertHistory(of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "trades:005", T1),
+           keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "trades:010", T1)), T1, EXPIRED.name(), T2);
+        assertHistory(of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "trades:019", T1)), T1, DELETED.name(), T2);
     }
 
     @Test
     public void deleteAndCreateAsNew() {
         indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)), T1));
 
-        List<IndexKey> deletes = of(keyFrom(LIVE_ALIAS, TRADE_TYPE, "trades:019", T1));
+        List<IndexKey> deletes = of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "trades:019", T1));
         indexer.twoPhaseCommit(indexable(transform(deletes, Sleeve::delete), T2));
         assertHistory(deletes, T1, DELETED.name(), T2);
 
@@ -173,6 +173,28 @@ public class IndexableTest extends AbstractElasticTest {
             Map<IndexKey, String> errorsMap = checkAssertValidity(ie);
             assertThat(errorsMap.get(update1.get(0).key), equalTo("record not found for update"));
         }
+    }
+
+    @Test
+    public void overwriteRecords() {
+        indexer.twoPhaseCommit(indexable(createSleeves(sampleTrades(), newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)), T1));
+
+        List<Sleeve<Trade>> mutations = Lists.newArrayList();
+        mutations.addAll(createSleeves(of(
+              trade("trades:021", "EMEA", "UK", "London", "IEU", "Andrew", 1425427200000L, 40.0),
+              trade("trades:022", "EMEA", "UK", "London", "IEU", "Andrew", 1420848000000L, 5.0),
+              trade("trades:005", "EMEA", "UK", "London", "LME", "Chandler", 1425427200000L, 30.0),
+              trade("trades:010", "EMEA", "CH", "Zurich", "NYM", "Gabriel", 1425427200000L, 16.0)),
+           newSleeveFunction(LIVE_ALIAS, TRADE_TYPE)));
+
+        Iterable<IndexRecord> records = transform(mutations, doc -> overwriteRecord(doc.key, GSON.toJson(doc.source)));
+        Indexable indexable = indexableBuilder().user("unit-tester").timestamp(T2).records(records).build();
+        indexer.twoPhaseCommit(indexable, OVERWRITE_VALIDATOR);
+
+        assertThat(fetchRecords(query, LIVE_ALIAS).size(), is(22));
+        assertThat(fetchRecords(query, ARCHIVE_ALIAS).size(), is(2));
+        assertHistory(of(keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "trades:005", T1),
+           keyFrom(INDEXABLE_INDEX, TRADE_TYPE, "trades:010", T1)), T1, EXPIRED.name(), T2);
     }
 
     @Test

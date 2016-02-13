@@ -41,6 +41,16 @@ public enum RecordAction {
                .parent(record.parent()).versionType(VersionType.EXTERNAL_GTE).version(timestamp);
         }
     },
+    OVERWRITE {
+        @Override
+        public ActionRequest request(IndexRecord record, long timestamp, String user) {
+            final String id = emptyToNull(record.id()); //auto-generate if empty
+            log.debug("overwriting record " + nonNull(id, "_auto_") + " for " + record.type() + " at " + record.index());
+
+            return new IndexRequest(record.index(), record.type(), id).source(sourceOf(record, timestamp, user))
+               .parent(record.parent()).versionType(VersionType.FORCE).version(timestamp);
+        }
+    },
     DELETE {
         @Override
         public ActionRequest request(IndexRecord record, long timestamp, String user) {
@@ -66,8 +76,8 @@ public enum RecordAction {
         builder.append(record.source.substring(0, record.source.length() - 1));
 
         if (record.source.length() > 2) builder.append(",");
-        if (record.isUpdate())
-            builder.append("\"").append(ANCESTOR_FIELD).append("\":\"").append(record.uniqueId()).append("\",");
+        if (record.ancestor != null)
+            builder.append("\"").append(ANCESTOR_FIELD).append("\":\"").append(record.ancestor).append("\",");
         if (record.status != null)
             builder.append("\"").append(STATUS_FIELD).append("\":\"").append(record.status.name()).append("\",");
         if (record.comment != null)

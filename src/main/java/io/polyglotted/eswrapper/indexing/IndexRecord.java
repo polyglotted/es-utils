@@ -37,6 +37,7 @@ public final class IndexRecord {
     public final RecordAction action;
     public final DocStatus status;
     public final DocStatus updateStatus;
+    public final String ancestor;
     public final Long baseVersion;
     public final String comment;
     public final String updateComment;
@@ -63,11 +64,13 @@ public final class IndexRecord {
 
     public IndexKey key() { return indexKey; }
 
-    public boolean isNew() { return action == RecordAction.CREATE; }
-
-    public boolean isUpdate() { return action != RecordAction.CREATE; }
+    public boolean isUpdate() { return action != RecordAction.CREATE && ancestor != null; }
 
     public ActionRequest request(long timestamp, String user) { return action.request(this, timestamp, user); }
+
+    public static IndexRecord overwriteRecord(IndexKey key, String source) {
+        return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.OVERWRITE).source(source).build();
+    }
 
     public static IndexRecord createRecord(IndexKey key, String source) {
         return createRecord(key).source(source).build();
@@ -90,7 +93,8 @@ public final class IndexRecord {
     }
 
     public static Builder updateRecord(IndexKey key) {
-        return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.UPDATE).updateStatus(EXPIRED);
+        return new Builder(checkNotNull(key, "key cannot be null"), RecordAction.UPDATE)
+           .updateStatus(EXPIRED).ancestor(key.uniqueId());
     }
 
     public static IndexRecord deleteRecord(IndexKey key) {
@@ -99,7 +103,7 @@ public final class IndexRecord {
 
     public static IndexRecord deleteRecord(IndexKey key, String updateComment, DocStatus updateStatus) {
         return new Builder(checkNotNull(key, "key cannot be null").delete(), RecordAction.DELETE)
-           .updateStatus(updateStatus).updateComment(updateComment).source("").build();
+           .updateStatus(updateStatus).ancestor(key.uniqueId()).updateComment(updateComment).source("").build();
     }
 
     @Setter
@@ -110,6 +114,7 @@ public final class IndexRecord {
         public final RecordAction action;
         private DocStatus status;
         private DocStatus updateStatus;
+        private String ancestor;
         private Long baseVersion;
         private String comment;
         private String updateComment;
@@ -131,7 +136,7 @@ public final class IndexRecord {
         }
 
         public IndexRecord build() {
-            return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action, status, updateStatus,
+            return new IndexRecord(checkNotNull(indexKey, "key cannot be null"), action, status, updateStatus, ancestor,
                baseVersion, comment, updateComment, checkNotNull(source, "source is required"), copyOf(approvalRoles));
         }
     }

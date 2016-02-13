@@ -3,6 +3,7 @@ package io.polyglotted.eswrapper.services;
 import com.google.common.collect.ImmutableMap;
 import io.polyglotted.eswrapper.indexing.IndexRecord;
 import io.polyglotted.eswrapper.indexing.Indexable;
+import io.polyglotted.pgmodel.search.DocStatus;
 import io.polyglotted.pgmodel.search.IndexKey;
 import io.polyglotted.pgmodel.search.SimpleDoc;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ public interface VersionValidator {
     BulkRequest validate(Indexable indexable, List<SimpleDoc> docs);
 
     VersionValidator STANDARD_VALIDATOR = new StandardValidator();
+    VersionValidator OVERWRITE_VALIDATOR = new OverwriteValidator();
 
     @Slf4j
     class StandardValidator implements VersionValidator {
@@ -37,13 +39,14 @@ public interface VersionValidator {
             for (IndexRecord record : indexable.records) {
                 if (!record.isUpdate()) continue;
 
-                log.debug("creating archive record " + record.uniqueId() + " for " + record.id()
+                SimpleDoc simpleDoc = currentDocMap.get(record.baseIndexId());
+                log.debug("creating archive record " + simpleDoc.uniqueId() + " for " + record.id()
                    + " for type " + record.type() + " at " + record.index());
 
-                request.add(new IndexRequest(record.index(), record.type(), record.uniqueId()).create(true)
+                request.add(new IndexRequest(simpleDoc.index(), simpleDoc.type(), simpleDoc.uniqueId()).create(true)
                    .parent(record.parent()).versionType(VersionType.EXTERNAL).version(record.version())
-                   .source(record.action.sourceFrom(currentDocMap.get(record.baseIndexId()),
-                      record.updateStatus, record.updateComment, indexable.timestamp, indexable.user)));
+                   .source(record.action.sourceFrom(simpleDoc, record.updateStatus, record.updateComment,
+                      indexable.timestamp, indexable.user)));
             }
             return request;
         }
@@ -70,5 +73,29 @@ public interface VersionValidator {
 
         @SuppressWarnings("unused")
         protected void prevalidateCurrentDocs(Collection<IndexKey> indexKeys) {}
+    }
+
+    @Slf4j
+    final class OverwriteValidator implements VersionValidator {
+
+        @Override
+        public BulkRequest validate(Indexable indexable, List<SimpleDoc> docs) {
+            Map<String, SimpleDoc> currentDocs = uniqueIndex(docs, SimpleDoc::baseIndexId);
+            BulkRequest request = new BulkRequest().refresh(false);
+
+            for (IndexRecord record : indexable.records) {
+                SimpleDoc simpleDoc = currentDocs.get(record.baseIndexId());
+                if (simpleDoc == null) continue;
+
+                log.debug("creating archive record " + simpleDoc.uniqueId() + " for " + record.id()
+                   + " for type " + record.type() + " at " + record.index());
+
+                request.add(new IndexRequest(record.index(), record.type(), simpleDoc.uniqueId()).create(true)
+                   .parent(record.parent()).versionType(VersionType.EXTERNAL).version(simpleDoc.version())
+                   .source(record.action.sourceFrom(simpleDoc, DocStatus.EXPIRED, record.updateComment,
+                      indexable.timestamp, indexable.user)));
+            }
+            return request;
+        }
     }
 }
